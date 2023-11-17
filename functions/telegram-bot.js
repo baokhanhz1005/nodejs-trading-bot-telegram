@@ -3,6 +3,7 @@ import { APP_CONFIG } from "../constant.js";
 import { handleRunBot } from "../bot/index.js";
 
 export const handler = async (event, context) => {
+  const bot = new TelegramBot(APP_CONFIG.TOKEN, { polling: true });
   bot.on("message", async (msg) => {
     const chatId = msg.chat.id;
     const command = msg.text.toLowerCase();
@@ -18,4 +19,3 @@ export const handler = async (event, context) => {
     body: "Bot is running...",
   };
 };
-const bot = new TelegramBot(APP_CONFIG.TOKEN, { polling: true });
