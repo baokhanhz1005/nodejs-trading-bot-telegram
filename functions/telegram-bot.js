@@ -16,6 +16,8 @@ export const handler = async (event, context) => {
       };
       handleRunBot(payload);
     }
+
+    console.log(event.body);
     return {
       statusCode: 200,
       body: "Webhook received!",
