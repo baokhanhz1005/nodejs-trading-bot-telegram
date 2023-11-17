@@ -5,7 +5,7 @@ import ExchangeInfoService from "./services/ExchangeInfo.js";
 import { sendCurrentTime, timeUntilNextHour } from "./utils.js";
 import { handleRunBot } from "./bot/index.js";
 import express from "express";
-
+import serverless from 'serverless-http';
 const app = express();
 app.use(express.json());
 
@@ -53,3 +53,5 @@ app.get("/", (request, response) => {
 app.listen(port, () => {
   console.log(`App using port ${port}`);
 });
+
+export const handler = serverless(app);
