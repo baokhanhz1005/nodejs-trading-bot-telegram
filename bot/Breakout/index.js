@@ -15,7 +15,7 @@ export const BreakOut = async (payload) => {
         data: {
           symbol: symbol,
           interval: timeLine,
-          limit: 20,
+          limit: 40,
         },
       };
       const candleStickData = await fetchApiGetCandleStickData(params);
