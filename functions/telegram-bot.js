@@ -4,26 +4,26 @@ import { handleRunBot } from "../bot/index.js";
 
 export const handler = async (event, context) => {
   try {
+    const bot = new TelegramBot(APP_CONFIG.TOKEN);
+    const body = JSON.parse(event.body);
+    const chatId = body.message.chat.id;
+    const command = body.message.text.toLowerCase();
+    const payload = {
+      command,
+      bot,
+      chatId,
+    };
+    handleRunBot(payload);
+
     return {
       statusCode: 200,
-      body: "Bot is running...",
+      body: "Webhook received!",
     };
   } catch (error) {
+    console.error("Error:", error);
     return {
       statusCode: 500,
-      body: error,
+      body: "Internal Server Error",
     };
   }
 };
-
-const bot = new TelegramBot(APP_CONFIG.TOKEN, { polling: true });
-bot.on("message", async (msg) => {
-  const chatId = msg.chat.id;
-  const command = msg.text.toLowerCase();
-  const payload = {
-    command,
-    bot,
-    chatId,
-  };
-  handleRunBot(payload);
-});
