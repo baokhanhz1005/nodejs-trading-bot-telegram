@@ -1,5 +1,3 @@
 [build]
   functions = "functions"
-
-[build]
   node_version = "14"
