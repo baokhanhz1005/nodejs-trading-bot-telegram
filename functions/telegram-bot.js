@@ -14,11 +14,11 @@ export const handler = async (event, context) => {
         chatId,
       };
       handleRunBot(payload);
-      return {
-        statusCode: 200,
-        body: "Bot is running...",
-      };
     });
+    return {
+      statusCode: 200,
+      body: "Bot is running...",
+    };
   } catch (error) {
     return {
       statusCode: 500,
