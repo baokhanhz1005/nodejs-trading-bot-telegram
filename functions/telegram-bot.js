@@ -15,12 +15,11 @@ export const handler = async (event, context) => {
         chatId,
       };
       handleRunBot(payload);
-
-      return {
-        statusCode: 200,
-        body: "Webhook received!",
-      };
     }
+    return {
+      statusCode: 200,
+      body: "Webhook received!",
+    };
   } catch (error) {
     console.error("Error:", error);
     return {
