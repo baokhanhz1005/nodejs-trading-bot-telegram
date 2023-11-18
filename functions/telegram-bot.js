@@ -8,8 +8,8 @@ export const handler = async (event, context) => {
     const bot = new TelegramBot(APP_CONFIG.TOKEN);
     const body = event.body;
     bot.on("message", async (msg) => {
-      const chatId = body.chat.id;
-      const command = body.text.toLowerCase();
+      const chatId = body.message.chat.id;
+      const command = body.message.text.toLowerCase();
       const payload = {
         command,
         bot,
