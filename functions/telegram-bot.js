@@ -6,9 +6,10 @@ export const handler = async (event, context) => {
   try {
     // Set up Telegram bot with webhook
     const bot = new TelegramBot(APP_CONFIG.TOKEN);
+    const body = event.body;
     bot.on("message", async (msg) => {
-      const chatId = msg.chat.id;
-      const command = msg.text.toLowerCase();
+      const chatId = body.chat.id;
+      const command = body.text.toLowerCase();
       const payload = {
         command,
         bot,
