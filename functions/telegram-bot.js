@@ -6,12 +6,6 @@ export const handler = async (event, context) => {
   try {
     // Set up Telegram bot with webhook
     const bot = new TelegramBot(APP_CONFIG.TOKEN);
-    const webhookURL = "https://main--helpful-torrone-1696a9.netlify.app/.netlify/functions/telegram-bot";
-
-    // Set the webhook
-    bot.setWebHook(webhookURL);
-
-    // Handle incoming messages
     bot.on("message", async (msg) => {
       const chatId = msg.chat.id;
       const command = msg.text.toLowerCase();
