@@ -40,7 +40,7 @@ export const fetchApiGetCandleStickData = async (params) => {
 };
 
 export const buildLinkToSymbol = symbol => {
-  const linkUrl = `https://www.tradingview.com/chart/biGlEz3q/?symbol=BINANCE%3A${symbol}`
+  const linkUrl = `https://www.tradingview.com/chart/biGlEz3q/?symbol=BINANCE%3A${symbol}.P`
   const url = `<a href="${linkUrl}" target="_blank">${symbol}</a>`;
   return url
 }

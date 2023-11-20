@@ -1,4 +1,4 @@
-export const isEngulfing = (candle1, candle2) => {
+export const checkEngulfing = (candle1, candle2) => {
   let result = {
     isEngulfing: false,
     type: "up",

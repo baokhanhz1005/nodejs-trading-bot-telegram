@@ -17,6 +17,7 @@ export const COMMAND = {
   STOP: "stop",
   BREAK_OUT: "break-out",
   RUN_TECHNICAL: "run-technical",
+  BIG: 'big',
 };
 
 export const MESSAGE = {

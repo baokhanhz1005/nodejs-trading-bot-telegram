@@ -43,7 +43,7 @@ export const IndicatorTechnical = async (payload) => {
         });
         const lastIndex = 0;
         // console.log(rsi[lastIndex], macd[lastIndex].signal, adx[lastIndex].adx)
-        console.log(closePrice.length, rsi.length, macd.length, adx.length);
+        // console.log(closePrice.length, rsi.length, macd.length, adx.length);
         if (
           rsi[lastIndex] < configSettings.buyIndex &&
           macd[lastIndex].signal > 0 &&
