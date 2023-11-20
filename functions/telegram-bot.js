@@ -1,12 +1,12 @@
-import TelegramBot from "node-telegram-bot-api";
 import { APP_CONFIG } from "../constant.js";
 import { handleRunBot } from "../bot/index.js";
+import TelegramBot from "node-telegram-bot-api";
 
 export const handler = async (event, context) => {
   try {
     // Set up Telegram bot with webhook
     const bot = new TelegramBot(APP_CONFIG.TOKEN);
-    const { message } = JSON.parse(event.body);
+    const { message } = event.body;
     bot.on("message", async (msg) => {
       if (message) {
         const chatId = message.chat.id;
@@ -28,7 +28,7 @@ export const handler = async (event, context) => {
     console.error("Error:", error);
     return {
       statusCode: 500,
-      body: 'Internal Server Error',
+      body: "Internal Server Error",
     };
   }
 };
