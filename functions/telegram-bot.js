@@ -28,7 +28,7 @@ export const handler = async (event, context) => {
     console.error("Error:", error);
     return {
       statusCode: 500,
-      body: event.body,
+      body: 'Internal Server Error',
     };
   }
 };
