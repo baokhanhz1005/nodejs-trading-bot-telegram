@@ -5,7 +5,7 @@ import { IndicatorTechnical } from "./IndicatorTechnical/index.js";
 import { TrackingBigPriceTrend } from "./TrackingBigPriceTrend/index.js";
 import { TrackingEngulfing } from "./TrackingEngulfing/index.js";
 
-export const handleRunBot = (payload) => {
+export const handleRunBot = async (payload) => {
   const { bot = () => {}, chatId, command } = payload;
   const [textCommand, timeLine] = command.split(" ");
   const newPayload = {

@@ -15,7 +15,7 @@ export const handler = async (event, context) => {
         bot,
         chatId,
       };
-      handleRunBot(payload);
+      await handleRunBot(payload);
     }
 
     return {
