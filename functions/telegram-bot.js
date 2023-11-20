@@ -7,18 +7,16 @@ export const handler = async (event, context) => {
     // Set up Telegram bot with webhook
     const bot = new TelegramBot(APP_CONFIG.TOKEN);
     const { message } = event.body;
-    bot.on("message", async (msg) => {
-      if (message) {
-        const chatId = message.chat.id;
-        const command = message.text.toLowerCase();
-        const payload = {
-          command,
-          bot,
-          chatId,
-        };
-        handleRunBot(payload);
-      }
-    });
+    if (message) {
+      const chatId = message.chat.id;
+      const command = message.text.toLowerCase();
+      const payload = {
+        command,
+        bot,
+        chatId,
+      };
+      handleRunBot(payload);
+    }
 
     return {
       statusCode: 200,
