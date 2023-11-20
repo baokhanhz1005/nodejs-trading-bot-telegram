@@ -6,16 +6,18 @@ export const handler = async (event, context) => {
   try {
     // Set up Telegram bot with webhook
     const bot = new TelegramBot(APP_CONFIG.TOKEN);
-    const body = JSON.parse(event.body);
+    const { message } = JSON.parse(event.body);
     bot.on("message", async (msg) => {
-      const chatId = body.message.chat.id;
-      const command = body.message.text.toLowerCase();
-      const payload = {
-        command,
-        bot,
-        chatId,
-      };
-      handleRunBot(payload);
+      if (message) {
+        const chatId = message.chat.id;
+        const command = message.text.toLowerCase();
+        const payload = {
+          command,
+          bot,
+          chatId,
+        };
+        handleRunBot(payload);
+      }
     });
 
     return {
@@ -26,7 +28,7 @@ export const handler = async (event, context) => {
     console.error("Error:", error);
     return {
       statusCode: 500,
-      body: "Internal Server Error",
+      body: event.body,
     };
   }
 };
