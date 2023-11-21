@@ -9,16 +9,18 @@ export const handler = async (event, context) => {
     console.log(event);
     if (event && event.body) {
       const { message } = JSON.parse(event.body);
-      if (message) {
-        const chatId = message.chat.id;
-        const command = message.text.toLowerCase();
-        const payload = {
-          command,
-          bot,
-          chatId,
-        };
-        await handleRunBot(payload);
-      }
+      
+
+      const chatId = message.chat.id;
+      const command = message.text.toLowerCase();
+      bot.sendMessage(chatId, command);
+        // const payload = {
+        //   command,
+        //   bot,
+        //   chatId,
+        // };
+        // await handleRunBot(payload);
+      
     }
 
     return {
