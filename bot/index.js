@@ -30,6 +30,6 @@ export const handleRunBot = async (payload) => {
       TrackingBigPriceTrend(newPayload);
       break;
     default:
-      bot.sendMessage(chatId, MESSAGE.NO_COMMAND);
+      await bot.sendMessage(chatId, MESSAGE.NO_COMMAND);
   }
 };
