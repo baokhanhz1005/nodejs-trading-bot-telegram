@@ -16,6 +16,7 @@ export const handler = async (event, context) => {
         bot,
         chatId,
       };
+      await bot.sendMessage(chatId, 'hahâhahahaha');
       await handleRunBot(payload);
     }
 
