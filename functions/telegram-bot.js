@@ -20,7 +20,10 @@ export const handler = async (event, context) => {
         //   chatId,
         // };
         // await handleRunBot(payload);
-      
+        return {
+          statusCode: 200,
+          body: event.body,
+        };
     }
 
     return {
