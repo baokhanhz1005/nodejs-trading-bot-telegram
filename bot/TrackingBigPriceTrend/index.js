@@ -27,7 +27,7 @@ export const TrackingBigPriceTrend = async (payload) => {
           symbol
         );
 
-        if (isHasBigPrice && level >= 4) {
+        if (isHasBigPrice && level >= 5) {
           const trend = type === "up" ? "TĂNG" : "GIẢM";
           count += 1;
           bot.sendMessage(

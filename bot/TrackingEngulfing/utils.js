@@ -35,8 +35,8 @@ export const checkEngulfing = (candle1, candle2) => {
 
 export const isMarubozu = (candleData, type) => {
   if (type === "up") {
-    return candleData[4] > 0.999 * candleData[2];
+    return candleData[4] > 0.998 * candleData[2];
   } else {
-    return candleData[4] < 1.001 * candleData[3];
+    return candleData[4] < 1.002 * candleData[3];
   }
 };

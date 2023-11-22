@@ -1,6 +1,6 @@
 import { checkEngulfing, isMarubozu } from "../TrackingEngulfing/utils.js";
 
-export const checkHasBigPriceTrend = (dataCandle, symbol) => {
+export const checkHasBigPriceTrend = (dataCandle) => {
   const result = {
     isHasBigPrice: false,
     level: 0,
@@ -16,7 +16,7 @@ export const checkHasBigPriceTrend = (dataCandle, symbol) => {
     const isMarubozuCandle = isMarubozu(dataCandleCheck, type);
     for (let i = 0; i < dataCandle.length; i++) {
       const candle = dataCandle[lengthDataCandle - i];
-      if (i !== 0 && isEngulfing && isMarubozuCandle) {
+      if (i !== 0 && isMarubozuCandle) {
         if (
           (type === "up" && dataCandleCheck[4] > candle[4] * 1.005) ||
           (type === "down" && dataCandleCheck[4] < candle[4] * 0.995)
