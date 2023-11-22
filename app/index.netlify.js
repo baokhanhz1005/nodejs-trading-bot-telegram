@@ -1,9 +1,9 @@
+import bot from "../utils/SendMessage.js";
 import { handleRunBot } from "../bot/index.js";
 import { APP_CONFIG } from "../constant.js";
 
 export const handler = async (event, context) => {
   try {
-    const bot = new TelegramBot(APP_CONFIG.TOKEN);
     if (event && event.body) {
       const { message } = JSON.parse(event.body);
 

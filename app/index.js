@@ -1,6 +1,6 @@
 import TelegramBot from "node-telegram-bot-api";
-import { APP_CONFIG } from "./constant.js";
-import { handleRunBot } from "./bot/index.js";
+import { APP_CONFIG } from "../constant.js";
+import { handleRunBot } from "../bot/index.js";
 
 const bot = new TelegramBot(APP_CONFIG.TOKEN, { polling: true });
 
