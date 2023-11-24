@@ -2,16 +2,18 @@ import axios from "axios";
 import { APP_CONFIG } from "../constant.js";
 
 const API = {
-  sendMessage: async (params) => async (chat_id, text) => {
-    await axios.post(
-      `https://api.telegram.org/bot${APP_CONFIG.TOKEN}/sendMessage`,
-      {
+  sendMessage: async (chat_id, text) => {
+    const URL = `https://api.telegram.org/bot${APP_CONFIG.TOKEN}/sendMessage`;
+    return axios({
+      method: "POST",
+      url: URL,
+      params: {
         chat_id,
         text,
-      }
-    );
-
-    return true;
+      },
+    }).catch((err) => {
+      console.log(err);
+    });
   },
 };
 
