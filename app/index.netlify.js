@@ -19,7 +19,7 @@ export const handler = async (event, context) => {
 
     return {
       statusCode: 200,
-      body: "Function is running...",
+      body: JSON.stringify(event.body),
     };
   } catch (error) {
     console.error("Error:", error);
