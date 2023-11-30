@@ -1,17 +1,12 @@
 import {
   buildLinkToSymbol,
-  sendCurrentTime,
-  timeUntilNextHour,
-} from "../../utils.js";
-import { checkEngulfing, isMarubozu } from "./utils.js";
-import {
   fetchApiGetCandleStickData,
   fetchApiGetListingSymbols,
-} from "../../utils.js";
+} from "../../../utils.js";
+import { checkHasBigPriceTrend } from "./utils.js";
 
-export const TrackingEngulfing = async (payload) => {
+export const TrackingBigPriceTrend = async (payload) => {
   const { bot, chatId, timeLine } = payload;
-
   const listSymbols = await fetchApiGetListingSymbols();
   let count = 0;
   if (listSymbols && listSymbols.length) {
@@ -20,26 +15,28 @@ export const TrackingEngulfing = async (payload) => {
         data: {
           symbol: symbol,
           interval: timeLine,
-          limit: 2,
+          limit: 50,
         },
       };
+
       const candleStickData = await fetchApiGetCandleStickData(params);
-
       if (candleStickData && candleStickData.length) {
-        const [latestCandle, previousCandle] = candleStickData;
+        candleStickData.pop();
+        const { isHasBigPrice, level, type } = checkHasBigPriceTrend(
+          candleStickData,
+          symbol
+        );
 
-        const { isEngulfing: isEngulfingCandle, type } = checkEngulfing(latestCandle, previousCandle);
-        const isMarubozuCandle = isMarubozu(latestCandle, type);
-        if (isMarubozuCandle && isEngulfingCandle) {
-          const textType = type === 'up' ? 'TĂNG' : 'GIẢM';
+        if (isHasBigPrice && level >= 5) {
+          const trend = type === "up" ? "TĂNG" : "GIẢM";
+          count += 1;
           bot.sendMessage(
             chatId,
             `Symbol ${buildLinkToSymbol(
               symbol
-            )} có engulfing ${textType} tại khung ${timeLine} !!`,
+            )} có lực ${trend} mạnh tại khung ${timeLine} !! [${level}]`,
             { parse_mode: "HTML", disable_web_page_preview: true }
           );
-          count += 1;
         }
       }
       if (index === listSymbols.length - 1 && !count) {

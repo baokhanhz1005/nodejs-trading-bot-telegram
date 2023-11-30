@@ -1,9 +1,15 @@
 import ExchangeInfoService from "./services/ExchangeInfo.js";
 import GetCandleService from "./services/GetCandle.js";
 
-export const timeUntilNextHour = () => {
+export const timeToSpecificTime = (gapTime = 60, delay = 0) => {
   const now = new Date();
-  const minutesUntilNextHour = 60 - now.getMinutes() + 5;
+  let time = gapTime;
+
+  if (gapTime !== 60) {
+    time = 60
+  }
+  console.log(time);
+  const minutesUntilNextHour = time - now.getMinutes() + delay;
   const secondsUntilNextHour = minutesUntilNextHour * 60;
   return secondsUntilNextHour * 1000;
 };
@@ -39,8 +45,22 @@ export const fetchApiGetCandleStickData = async (params) => {
   }
 };
 
+export const fetchApiGetCurrentPrice = async (params) => {
+  try {
+    const response = await GetCandleService.getCurrent(params);
+
+    if (response) {
+      return response.data;
+    }
+    return {};
+  } catch (error) {
+    console.error("Error fetching candlestick data:", error);
+    throw error;
+  }
+};
+
 export const buildLinkToSymbol = (symbol) => {
-  const linkUrl = `https://www.tradingview.com/chart/biGlEz3q/?symbol=BINANCE%3A${symbol}.P`;
+  const linkUrl = `https://www.tradingview.com/chart/hyWIwHCK/?symbol=BINANCE%3A${symbol}.P`;
   const url = `<a href="${linkUrl}" target="_blank">${symbol}</a>`;
   return url;
 };

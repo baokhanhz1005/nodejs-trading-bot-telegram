@@ -1,6 +1,6 @@
 import bot from "../utils/SendMessage.js";
-import { handleRunBot } from "../bot/index.js";
 import { APP_CONFIG } from "../constant.js";
+import { handleRunBot } from "./handlers/index.js";
 
 export const handler = async (event, context) => {
   try {

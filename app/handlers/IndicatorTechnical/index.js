@@ -2,7 +2,7 @@ import {
   buildLinkToSymbol,
   fetchApiGetCandleStickData,
   fetchApiGetListingSymbols,
-} from "../../utils.js";
+} from "../../../utils.js";
 import { RSI, MACD, ADX } from "technicalindicators";
 
 const configSettings = {

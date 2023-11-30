@@ -2,7 +2,7 @@ import {
   buildLinkToSymbol,
   fetchApiGetCandleStickData,
   fetchApiGetListingSymbols,
-} from "../../utils.js";
+} from "../../../utils.js";
 import { findMinMaxPriceCandle, isBreakOut } from "./utils.js";
 
 export const BreakOut = async (payload) => {
