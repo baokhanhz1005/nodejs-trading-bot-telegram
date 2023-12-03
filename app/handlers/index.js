@@ -1,5 +1,6 @@
 import { COMMAND, MESSAGE } from "../../constant.js";
 import { sendCurrentTime } from "../../utils.js";
+import { ExecuteBigPriceTrend } from "../execute/ExecuteBigPriceTrend/index.js";
 import { OrderMarket } from "../orders/MarketOrder/index.js";
 import { BreakOut } from "./Breakout/index.js";
 import { IndicatorTechnical } from "./IndicatorTechnical/index.js";
@@ -40,6 +41,9 @@ export const handleRunBot = async (payload) => {
       break;
     case COMMAND.ORDER:
       OrderMarket({});
+      break;
+    case COMMAND.EXECUTE_BIG_PRICE:
+      ExecuteBigPriceTrend(newPayload);
       break;
     default:
       await bot.sendMessage(chatId, MESSAGE.NO_COMMAND);

@@ -11,6 +11,7 @@ export const DOMAIN = {
 
 export const ENDPOINT_TYPE = {
   fAPIv1: "fapi/v1",
+  fAPIv2: "fapi/v2",
   fAPIv3: "fapi/v3",
 };
 
@@ -22,7 +23,8 @@ export const COMMAND = {
   BIG: 'big',
   SAFE: 'safe',
   TEST: 'test',
-  ORDER: 'order'
+  ORDER: 'order',
+  EXECUTE_BIG_PRICE: 'execute-big-price'
 };
 
 export const MESSAGE = {
@@ -32,6 +34,16 @@ export const MESSAGE = {
 
 export const TEST_CONFIG = {
   account: 50,
+  limitOrder: 30,
+  trackingTime: 15, // tgian call interval check account
+  tpPercent: 0.5,
+  slPercent: 3,
+  volume: 20,
+  limitVolume: 25,
+  orders: [], // => { symbol: BTCUSDT, entry: 29000, tp: 30000, sl: 27000, }
+}
+
+export const CONFIG_EXEC_BIG_PRICE = {
   limitOrder: 30,
   trackingTime: 15, // tgian call interval check account
   tpPercent: 0.5,

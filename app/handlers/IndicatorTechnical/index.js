@@ -16,7 +16,8 @@ export const IndicatorTechnical = async (payload) => {
   const listSymbols = await fetchApiGetListingSymbols();
   let count = 0;
   if (listSymbols && listSymbols.length) {
-    listSymbols.forEach(async (symbol, index) => {
+    listSymbols.forEach(async (token, index) => {
+      const { symbol, stickPrice } = token;
       const params = {
         data: {
           symbol: symbol,

@@ -14,9 +14,30 @@ export const timeToSpecificTime = (gapTime = 60, delay = 0) => {
   return secondsUntilNextHour * 1000;
 };
 
+export const calculateTimeout15m = (delay = 0) => {
+  const currentDate = new Date();
+  const currentMinutes = currentDate.getMinutes();
+
+  let targetMinutes;
+
+  if (currentMinutes < 15) {
+      targetMinutes = 15;
+  } else if (currentMinutes < 30) {
+      targetMinutes = 30;
+  } else if (currentMinutes < 45) {
+      targetMinutes = 45;
+  } else {
+      targetMinutes = 60;
+  }
+
+  const timeToTarget = targetMinutes - currentMinutes + delay;
+  const timeout = timeToTarget * 60 * 1000;
+  return timeout;
+}
+
 export function sendCurrentTime(bot, chatId) {
   const currentTime = new Date().toLocaleTimeString();
-  bot.sendMessage(chatId, `================================================`);
+  bot.sendMessage(chatId, `>>>>>>>>>>><<<<<<<<<<`);
   bot.sendMessage(chatId, `BOT đang tracking dữ liệu vào: ${currentTime}`);
 }
 
@@ -25,8 +46,11 @@ export const fetchApiGetListingSymbols = async () => {
   const response = await ExchangeInfoService.info();
   if (response && response.data) {
     listSymbols = response.data.symbols.map((pair) => {
-      if (pair.quoteAsset === "USDT") {
-        return pair.symbol;
+      if (pair.quoteAsset === "USDT" && pair.symbol) {
+        return {
+          symbol: pair.symbol,
+          stickPrice: pair.pricePrecision
+        };
       }
     });
   }

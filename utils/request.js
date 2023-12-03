@@ -37,15 +37,13 @@ export const callApiBinanceFutureWithAuth = async (
 
     const domainBinanceFt = DOMAIN.BINANCE_FUTURE;
     let URL = `${domainBinanceFt}/${endpoint}?${orderParams}&signature=${signature}`;
-    console.log(URL);
-    console.log(body);
     return axios({
       method,
       url: URL,
       headers,
     });
   } catch (err) {
-    console.log(err);
+    console.error("errorrrr...", err);
   }
 };
 

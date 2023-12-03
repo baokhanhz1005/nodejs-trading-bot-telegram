@@ -1,10 +1,10 @@
-import crypto from "crypto";
 import OrderServices from "../../../services/Order.js";
 import { getQuantity } from "../utils.js";
-import { TEST_CONFIG } from "../../../constant.js";
+import { CONFIG_EXEC_BIG_PRICE, TEST_CONFIG } from "../../../constant.js";
 import { TYPE_MARKET } from "../contants.js";
+
 export const OrderMarket = async (payload) => {
-  const { symbol = "MANAUSDT", entry = 0.4591, sl, tp, type } = payload;
+  const { symbol, entry, type, stickPrice } = payload;
 
   // Thực thi 1 lệnh market và lấy orderId
   const side = type === "up" ? "BUY" : "SELL";
@@ -22,18 +22,16 @@ export const OrderMarket = async (payload) => {
   };
 
   const resMarket = await OrderServices.market(params);
-  console.log(resMarket);
 
   if (resMarket && resMarket.data && resMarket.data.orderId) {
-    console.log("will handleeeeeeeeeeeee");
     const ratePriceTP =
       type === "up"
-        ? 1 + TEST_CONFIG.tpPercent / 100
-        : 1 - TEST_CONFIG.tpPercent / 100;
+        ? 1 + CONFIG_EXEC_BIG_PRICE.tpPercent / 100
+        : 1 - CONFIG_EXEC_BIG_PRICE.tpPercent / 100;
     const ratePriceSL =
       type === "up"
-        ? 1 - TEST_CONFIG.slPercent / 100
-        : 1 + TEST_CONFIG.slPercent / 100;
+        ? 1 - CONFIG_EXEC_BIG_PRICE.slPercent / 100
+        : 1 + CONFIG_EXEC_BIG_PRICE.slPercent / 100;
 
     [TYPE_MARKET.TAKE_PROFIT_MARKET, TYPE_MARKET.STOP_MARKET].forEach(
       async (type) => {
@@ -43,28 +41,15 @@ export const OrderMarket = async (payload) => {
             : entry * ratePriceSL;
 
         params.data.type = type;
-        params.data.stopPrice = priceTake;
+        params.data.stopPrice = priceTake.toFixed(+stickPrice);
         params.data.side = side === "BUY" ? "SELL" : "BUY";
+        params.data.timestamp = Date.now();
 
         delete params.data.newOrderRespType;
         delete params.data.leverage;
 
-        // const paramsUpdate = {
-        //   data: {
-        //     symbol,
-        //     side,
-        //     quantity,
-        //     orderId: resMarket.data.orderId,
-        //     type,
-        //     stopPrice: priceTake,
-        //     closePosition: false,
-        //     timestamp: Date.now(),
-        //   },
-        // };
-        console.log(params);
         // set Take profit || Stop loss
-        const res = await OrderServices.market(params);
-        console.log("check resssssssssss...", res);
+        await OrderServices.market(params);
       }
     );
   }
