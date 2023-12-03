@@ -20,7 +20,9 @@ export const TrackingPriceSafety = async (payload) => {
         },
       };
 
-      const candleStickData = await fetchApiGetCandleStickData(params);
+      const { data: candleStickData } = await fetchApiGetCandleStickData(
+        params
+      );
       if (candleStickData && candleStickData.length) {
         candleStickData.pop();
         candleStickData.reverse();

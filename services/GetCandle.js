@@ -10,7 +10,7 @@ const API = {
     const { symbol } = params;
     const URL = `${ENDPOINT_TYPE.fAPIv1}/ticker/price?symbol=${symbol}`;
     return callApiBinanceFt(URL, "GET", params.data).then((res) => res);
-  }
+  },
 };
 
 export default API;

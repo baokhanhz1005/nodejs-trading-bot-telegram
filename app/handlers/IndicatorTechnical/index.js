@@ -24,7 +24,9 @@ export const IndicatorTechnical = async (payload) => {
           limit: 50,
         },
       };
-      const candleStickData = await fetchApiGetCandleStickData(params);
+      const { data: candleStickData } = await fetchApiGetCandleStickData(
+        params
+      );
 
       if (candleStickData && candleStickData.length) {
         const closePrice = candleStickData.map((candle) => candle[4]);
@@ -47,7 +49,7 @@ export const IndicatorTechnical = async (payload) => {
         if (
           rsi[lastIndex] < configSettings.buyIndex &&
           macd[lastIndex].signal > 0 &&
-          adx[lastIndex].adx > 25   
+          adx[lastIndex].adx > 25
         ) {
           bot.sendMessage(
             chatId,

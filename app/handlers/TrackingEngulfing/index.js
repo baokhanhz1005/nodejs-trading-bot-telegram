@@ -21,7 +21,9 @@ export const TrackingEngulfing = async (payload) => {
           limit: 3,
         },
       };
-      const candleStickData = await fetchApiGetCandleStickData(params);
+      const { data: candleStickData } = await fetchApiGetCandleStickData(
+        params
+      );
 
       if (candleStickData && candleStickData.length) {
         const [previousCandle, latestCandle, currentCandle] = candleStickData;

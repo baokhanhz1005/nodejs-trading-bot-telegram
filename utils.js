@@ -6,7 +6,7 @@ export const timeToSpecificTime = (gapTime = 60, delay = 0) => {
   let time = gapTime;
 
   if (gapTime !== 60) {
-    time = 60
+    time = 60;
   }
   console.log(time);
   const minutesUntilNextHour = time - now.getMinutes() + delay;
@@ -21,22 +21,26 @@ export function sendCurrentTime(bot, chatId) {
 }
 
 export const fetchApiGetListingSymbols = async () => {
+  let listSymbols = [];
   const response = await ExchangeInfoService.info();
-  const listSymbols = response.data.symbols.map((pair) => {
-    if (pair.quoteAsset === "USDT") {
-      return pair.symbol;
-    }
-  });
+  if (response && response.data) {
+    listSymbols = response.data.symbols.map((pair) => {
+      if (pair.quoteAsset === "USDT") {
+        return pair.symbol;
+      }
+    });
+  }
 
   return listSymbols.filter(Boolean);
 };
 
 export const fetchApiGetCandleStickData = async (params) => {
   try {
+    const { symbol } = params.data;
     const response = await GetCandleService.getList(params);
 
     if (response) {
-      return response.data;
+      return { data: response.data, symbol };
     }
     return {};
   } catch (error) {

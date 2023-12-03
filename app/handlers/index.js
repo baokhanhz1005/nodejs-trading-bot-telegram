@@ -1,5 +1,6 @@
 import { COMMAND, MESSAGE } from "../../constant.js";
 import { sendCurrentTime } from "../../utils.js";
+import { OrderMarket } from "../orders/MarketOrder/index.js";
 import { BreakOut } from "./Breakout/index.js";
 import { IndicatorTechnical } from "./IndicatorTechnical/index.js";
 import { Test } from "./Test/index.js";
@@ -36,6 +37,9 @@ export const handleRunBot = async (payload) => {
       break;
     case COMMAND.TEST:
       Test(newPayload);
+      break;
+    case COMMAND.ORDER:
+      OrderMarket({});
       break;
     default:
       await bot.sendMessage(chatId, MESSAGE.NO_COMMAND);

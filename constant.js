@@ -1,5 +1,7 @@
 export const APP_CONFIG = {
   TOKEN: "6536748064:AAEd9oc61IwSI3cBqlmuv0IGwkd-Y6st54o",
+  API_KEY: '16tXNcwM2ruf4shLnGhqnlPD4TDQQHJQqaRZgCRDEi51wAySkXxhQz2Xc9M4IORx',
+  API_SECRET: 'cagy3oI698pBYtdMxNU0Ane4w5ti4rGiv0s3yg4ClBhgTiIqgYZ8uS56x90N2Sdr'
 };
 
 export const DOMAIN = {
@@ -20,6 +22,7 @@ export const COMMAND = {
   BIG: 'big',
   SAFE: 'safe',
   TEST: 'test',
+  ORDER: 'order'
 };
 
 export const MESSAGE = {
@@ -33,5 +36,7 @@ export const TEST_CONFIG = {
   trackingTime: 15, // tgian call interval check account
   tpPercent: 0.5,
   slPercent: 3,
+  volume: 20,
+  limitVolume: 25,
   orders: [], // => { symbol: BTCUSDT, entry: 29000, tp: 30000, sl: 27000, }
 }

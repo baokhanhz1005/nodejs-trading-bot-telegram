@@ -18,7 +18,9 @@ export const BreakOut = async (payload) => {
           limit: 30,
         },
       };
-      const candleStickData = await fetchApiGetCandleStickData(params);
+      const { data: candleStickData } = await fetchApiGetCandleStickData(
+        params
+      );
       const { highest, lowest } = findMinMaxPriceCandle(candleStickData);
       const isBreakOutUp = isBreakOut(candleStickData, highest, 5, "up");
       const isBreakOutDown = isBreakOut(candleStickData, lowest, 5, "down");

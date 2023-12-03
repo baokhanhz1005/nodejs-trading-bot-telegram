@@ -19,7 +19,9 @@ export const TrackingBigPriceTrend = async (payload) => {
         },
       };
 
-      const candleStickData = await fetchApiGetCandleStickData(params);
+      const { data: candleStickData } = await fetchApiGetCandleStickData(
+        params
+      );
       if (candleStickData && candleStickData.length) {
         candleStickData.pop();
         const { isHasBigPrice, level, type } = checkHasBigPriceTrend(

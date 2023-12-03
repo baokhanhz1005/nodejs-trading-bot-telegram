@@ -1,0 +1,234 @@
+{
+  "account": 56.30000000000025,
+  "limitOrder": 30,
+  "trackingTime": 15,
+  "tpPercent": 0.5,
+  "slPercent": 3,
+  "orders": [
+    {
+      "symbol": "STEEMUSDT",
+      "entry": 0.262,
+      "tp": 0.26331,
+      "sl": 0.25414,
+      "type": "up",
+      "startTime": 1701480682771,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "MATICUSDT",
+      "entry": 0.8173,
+      "tp": 0.8213864999999999,
+      "sl": 0.792781,
+      "type": "up",
+      "startTime": 1701483384707,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "IOSTUSDT",
+      "entry": 0.009268,
+      "tp": 0.00922166,
+      "sl": 0.00954604,
+      "type": "down",
+      "startTime": 1701485181815,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "ONGUSDT",
+      "entry": 0.403,
+      "tp": 0.40098500000000004,
+      "sl": 0.41509,
+      "type": "down",
+      "startTime": 1701494185657,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "SNTUSDT",
+      "entry": 0.0433,
+      "tp": 0.04351649999999999,
+      "sl": 0.042001,
+      "type": "up",
+      "startTime": 1701501382908,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "NKNUSDT",
+      "entry": 0.11204,
+      "tp": 0.11260019999999998,
+      "sl": 0.10867879999999999,
+      "type": "up",
+      "startTime": 1701508582049,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "CRVUSDT",
+      "entry": 0.584,
+      "tp": 0.5869199999999999,
+      "sl": 0.56648,
+      "type": "up",
+      "startTime": 1701509485100,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "FXSUSDT",
+      "entry": 7.918,
+      "tp": 7.95759,
+      "sl": 7.68046,
+      "type": "up",
+      "startTime": 1701509489141,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "POLYXUSDT",
+      "entry": 0.2095,
+      "tp": 0.21054749999999997,
+      "sl": 0.20321499999999998,
+      "type": "up",
+      "startTime": 1701513983160,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "APTUSDT",
+      "entry": 7.323,
+      "tp": 7.359615,
+      "sl": 7.1033100000000005,
+      "type": "up",
+      "startTime": 1701521140337,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "ZENUSDT",
+      "entry": 10.418,
+      "tp": 10.470089999999999,
+      "sl": 10.105459999999999,
+      "type": "up",
+      "startTime": 1701523839296,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "1000PEPEUSDT",
+      "entry": 0.0011542,
+      "tp": 0.0011599709999999999,
+      "sl": 0.001119574,
+      "type": "up",
+      "startTime": 1701523841561,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "ARUSDT",
+      "entry": 8.506,
+      "tp": 8.54853,
+      "sl": 8.25082,
+      "type": "up",
+      "startTime": 1701526543022,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "API3USDT",
+      "entry": 1.5843,
+      "tp": 1.5922215,
+      "sl": 1.5367709999999999,
+      "type": "up",
+      "startTime": 1701527437857,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "CKBUSDT",
+      "entry": 0.003255,
+      "tp": 0.0032712749999999997,
+      "sl": 0.00315735,
+      "type": "up",
+      "startTime": 1701528337429,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "TRUUSDT",
+      "entry": 0.05885,
+      "tp": 0.059144249999999995,
+      "sl": 0.057084499999999996,
+      "type": "up",
+      "startTime": 1701528337435,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "BEAMXUSDT",
+      "entry": 0.01126,
+      "tp": 0.011203699999999999,
+      "sl": 0.0115978,
+      "type": "down",
+      "startTime": 1701530138910,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "KEYUSDT",
+      "entry": 0.006229,
+      "tp": 0.006260144999999999,
+      "sl": 0.00604213,
+      "type": "up",
+      "startTime": 1701532937287,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "CFXUSDT",
+      "entry": 0.1648,
+      "tp": 0.165624,
+      "sl": 0.159856,
+      "type": "up",
+      "startTime": 1701532938341,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "SSVUSDT",
+      "entry": 24.63,
+      "tp": 24.50685,
+      "sl": 25.3689,
+      "type": "down",
+      "startTime": 1701532940231,
+      "isCheckMinMax": false
+    },
+    {
+      "symbol": "DASHUSDT",
+      "entry": 31.5,
+      "tp": 31.657499999999995,
+      "sl": 30.555,
+      "type": "up",
+      "startTime": 1701533837101,
+      "isCheckMinMax": true
+    },
+    {
+      "symbol": "MAVUSDT",
+      "entry": 0.3012,
+      "tp": 0.302706,
+      "sl": 0.29216400000000003,
+      "type": "up",
+      "startTime": 1701533837151,
+      "isCheckMinMax": true
+    },
+    {
+      "symbol": "ACHUSDT",
+      "entry": 0.02065,
+      "tp": 0.02075325,
+      "sl": 0.0200305,
+      "type": "up",
+      "startTime": 1701533837207,
+      "isCheckMinMax": true
+    },
+    {
+      "symbol": "COMBOUSDT",
+      "entry": 0.7744,
+      "tp": 0.7782719999999999,
+      "sl": 0.751168,
+      "type": "up",
+      "startTime": 1701533837210,
+      "isCheckMinMax": true
+    },
+    {
+      "symbol": "ALICEUSDT",
+      "entry": 1.131,
+      "tp": 1.136655,
+      "sl": 1.09707,
+      "type": "up",
+      "startTime": 1701533837868,
+      "isCheckMinMax": true
+    }
+  ]
+}
