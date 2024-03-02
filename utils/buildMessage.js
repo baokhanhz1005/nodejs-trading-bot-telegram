@@ -5,9 +5,9 @@ export const buildMessageTPSL = (
   tempMapListOrders
 ) => {
   const textStyle = {
-    content: "TAKE PROFIT",
+    content: "😍 TP",
     color: "yellowgreen",
-    type: type === "BUY" ? "LONG" : "SHORT",
+    type: type === "SELL" ? "LONG" : "SHORT",
   };
 
   const linkUrl = `https://en.tradingview.com/chart/?symbol=BINANCE%3A${symbol}.P`;
@@ -15,7 +15,7 @@ export const buildMessageTPSL = (
 
   if (!isTakeProfit) {
     // ===> SL
-    textStyle.content = "STOP LOSS";
+    textStyle.content = "😭 SL";
     textStyle.color = "red";
   }
   let moreInfo = "";
@@ -29,7 +29,7 @@ export const buildMessageTPSL = (
     }
   }
 
-  let content = `Lệnh ${symbol} đã chạm || ${textStyle.content} || vị thế ${textStyle.type} ${moreInfo} - ${url}`;
+  let content = `${textStyle.content} lệnh ${symbol} vị thế ${textStyle.type} ${moreInfo} - ${url}`;
 
   return content;
 };

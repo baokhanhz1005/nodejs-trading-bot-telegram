@@ -1,13 +1,15 @@
 import { COMMAND, MESSAGE } from "../../constant.js";
 import { sendCurrentTime } from "../../utils.js";
+import { TestingFunction } from "../Test/TesingFunction/index.js";
 import { ExecuteBigPriceTrend } from "../execute/ExecuteBigPriceTrend/index.js";
 import { OrderMarket } from "../orders/MarketOrder/index.js";
 import { BreakOut } from "./Breakout/index.js";
 import { IndicatorTechnical } from "./IndicatorTechnical/index.js";
-import { Test } from "./Test/index.js";
+import { Test } from "../Test/index.js";
 import { TrackingBigPriceTrend } from "./TrackingBigPriceTrend/index.js";
 import { TrackingEngulfing } from "./TrackingEngulfing/index.js";
 import { TrackingPriceSafety } from "./TrackingPriceSafety/index.js";
+import { ExecuteBigPriceTrendV2 } from "../execute/ExecuteBigPriceTrendV2/index.js";
 
 export const handleRunBot = async (payload) => {
   const { bot = () => {}, chatId, command } = payload;
@@ -44,6 +46,13 @@ export const handleRunBot = async (payload) => {
       break;
     case COMMAND.EXECUTE_BIG_PRICE:
       ExecuteBigPriceTrend(newPayload);
+      break;
+    case COMMAND.TEST_FUNCTION:
+      TestingFunction(newPayload);
+      break;
+
+    case COMMAND.EXECUTE_BIG_PRICE_V2:
+      ExecuteBigPriceTrendV2(newPayload);
       break;
     default:
       await bot.sendMessage(chatId, MESSAGE.NO_COMMAND);

@@ -17,6 +17,10 @@ export const ExecuteBigPriceTrend = async (payload) => {
   const { bot, chatId, timeLine } = payload;
   const listSymbols = await fetchApiGetListingSymbols();
   const tempMapListOrders = {};
+  let countTP = 0;
+  let countSL = 0;
+  const mapListOrders = {};
+
 
   const executeBOT = async () => {
     // Noti tài khoản hiện tại
@@ -32,7 +36,6 @@ export const ExecuteBigPriceTrend = async (payload) => {
     );
 
     // Call api lấy danh sách orders hiện tại của account này
-    const mapListOrders = {};
 
     const listOrderRes = await OrderServices.getList({
       data: {
@@ -51,25 +54,30 @@ export const ExecuteBigPriceTrend = async (payload) => {
     let listSymbolOrder = Object.keys(mapListOrders);
 
     listSymbolOrder = listSymbolOrder.map(async (symbol) => {
-      if (mapListOrders[symbol].length < 2) {
+      if (
+        mapListOrders[symbol].length &&
+        (mapListOrders[symbol].every(
+          (order) => order.type === TYPE_MARKET.STOP_MARKET
+        ) ||
+          mapListOrders[symbol].every(
+            (order) => order.type === TYPE_MARKET.TAKE_PROFIT_MARKET
+          ))
+      ) {
         // thực thi xóa lệnh tồn đọng do đã TP || SL
-        const orderDelete = mapListOrders[symbol][0];
-        const {
-          symbol: symbolDelete,
-          orderId: orderIdDelete,
-          type: typeOrder,
-          side,
-        } = orderDelete;
+        mapListOrders[symbol].forEach(async (orderDelete) => {
+          const { symbol: symbolDelete, orderId: orderIdDelete } = orderDelete;
 
-        // nếu còn lệnh stop market ==> lệnh tp đã thực thi
-        const isTakeProfit = typeOrder === TYPE_MARKET.STOP_MARKET;
-        await OrderServices.delete({
-          data: {
-            orderId: orderIdDelete,
-            symbol: symbolDelete,
-            timestamp: Date.now(),
-          },
+          // nếu còn lệnh stop market ==> lệnh tp đã thực thi
+          await OrderServices.delete({
+            data: {
+              orderId: orderIdDelete,
+              symbol: symbolDelete,
+              timestamp: Date.now(),
+            },
+          });
         });
+        const { type: typeOrder, side } = mapListOrders[symbol][0];
+        const isTakeProfit = typeOrder === TYPE_MARKET.STOP_MARKET;
         // send mess thông báo đã TP/SL lệnh
         bot.sendMessage(
           chatId,
@@ -79,6 +87,18 @@ export const ExecuteBigPriceTrend = async (payload) => {
             disable_web_page_preview: true,
           }
         );
+        if (isTakeProfit) {
+          countTP += 1;
+        } else {
+          countSL += 1;
+        }
+
+        if (mapListOrders[symbol].length > 1) {
+          bot.sendMessage(
+            chatId,
+            `${symbol} đang đặt nhiều lệnh. Vui lòng kiểm tra lại`
+          );
+        }
 
         delete mapListOrders[symbol];
         delete tempMapListOrders[symbol];
@@ -90,7 +110,14 @@ export const ExecuteBigPriceTrend = async (payload) => {
     // Thông báo số lệnh còn lại
     bot.sendMessage(
       chatId,
-      `Hiện tại có ${listSymbolOrder.length} đang chạy...`
+      `Hiện tại có ${listSymbolOrder.length} lệnh đang chạy...`
+    );
+
+    bot.sendMessage(
+      chatId,
+      `Có ${countTP} lệnh đạt TP. \n
+       Có ${countSL} lệnh chạm SL.
+      `
     );
 
     if (listSymbolOrder.length < CONFIG_EXEC_BIG_PRICE.limitOrder) {
@@ -117,7 +144,7 @@ export const ExecuteBigPriceTrend = async (payload) => {
 
             if (
               isHasBigPrice &&
-              level >= 5 &&
+              level >= 6 &&
               listSymbolOrder.every((order) => order !== symbol)
             ) {
               const data = await fetchApiGetCurrentPrice({
@@ -125,7 +152,7 @@ export const ExecuteBigPriceTrend = async (payload) => {
               });
               const { price } = data;
 
-              if (price <= CONFIG_EXEC_BIG_PRICE.limitVolume) {
+              if (price && price <= CONFIG_EXEC_BIG_PRICE.limitVolume) {
                 // call api order MARKET symbol này và đặt TP + SL
                 await OrderMarket({
                   symbol,
@@ -167,11 +194,15 @@ export const ExecuteBigPriceTrend = async (payload) => {
       }
     }
   };
-  console.log(calculateTimeout15m(0.5));
+  console.log(calculateTimeout15m());
   setTimeout(() => {
     executeBOT();
     setInterval(() => {
       executeBOT();
     }, 15 * 60 * 1000);
-  }, calculateTimeout15m(0.5));
+  }, calculateTimeout15m());
+
+  setInterval(() => {
+
+  }, 60 * 1000);
 };

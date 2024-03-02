@@ -44,9 +44,11 @@ export const OrderMarket = async (payload) => {
         params.data.stopPrice = priceTake.toFixed(+stickPrice);
         params.data.side = side === "BUY" ? "SELL" : "BUY";
         params.data.timestamp = Date.now();
+        params.data.closePosition = true;
 
         delete params.data.newOrderRespType;
         delete params.data.leverage;
+        delete params.data.quantity;
 
         // set Take profit || Stop loss
         await OrderServices.market(params);

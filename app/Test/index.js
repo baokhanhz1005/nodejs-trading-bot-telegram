@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { TEST_CONFIG } from "../../../constant.js";
+import { TEST_CONFIG } from "../../constant.js";
 import {
   buildLinkToSymbol,
   calculateTimeout15m,
@@ -8,10 +8,16 @@ import {
   fetchApiGetCurrentPrice,
   fetchApiGetListingSymbols,
   timeToSpecificTime,
-} from "../../../utils.js";
-import { checkHasBigPriceTrend } from "../TrackingBigPriceTrend/utils.js";
+} from "../../utils.js";
 import util from "util";
-import { checkSafetyPrice } from "../TrackingPriceSafety/utils.js";
+import { checkSafetyPrice } from "../handlers/TrackingPriceSafety/utils.js";
+import { checkHasBigPriceTrend } from "../handlers/TrackingBigPriceTrend/utils.js";
+import {
+  checkAvailableOrder,
+  checkAvailableOrderV2,
+} from "../execute/ExecuBuySellRestricted/utils.js";
+import { checkAbleOrderSMC } from "../execute/ExecuteSMC/utils.js";
+import { COST, REWARD, RR } from "../execute/ExecuteSMC/constant.js";
 
 export const Test = async (payload) => {
   const { bot, chatId, timeLine } = payload;
@@ -25,16 +31,17 @@ export const Test = async (payload) => {
   let payloadAccount;
 
   try {
-    const dataStoraged = await fs.readFile(filePath, "utf-8");
-    payloadAccount = JSON.parse(dataStoraged);
-    if (payloadAccount) {
-      payloadAccount.orders = payloadAccount.orders.map((order) => {
-        return {
-          ...order,
-          isCheckMinMax: true,
-        };
-      });
-    }
+    payloadAccount = TEST_CONFIG;
+    // const dataStoraged = await fs.readFile(filePath, "utf-8");
+    // payloadAccount = JSON.parse(dataStoraged);
+    // if (payloadAccount) {
+    //   payloadAccount.orders = payloadAccount.orders.map((order) => {
+    //     return {
+    //       ...order,
+    //       isCheckMinMax: true,
+    //     };
+    //   });
+    // }
     console.log("Get from try");
   } catch (e) {
     console.log("Get from catch");
@@ -98,9 +105,6 @@ export const Test = async (payload) => {
           params
         );
         if (candleStickData && candleStickData.length) {
-          if (index < 2) {
-            console.log(candleStickData.length);
-          }
           const [candleCheck, lastestCandle] = candleStickData;
 
           const maxPrice = isCheckMinMax
@@ -114,8 +118,7 @@ export const Test = async (payload) => {
           }
 
           if (type === "up" && maxPrice >= tp) {
-            dataAccount.account =
-              dataAccount.account + dataAccount.takeProfitEST;
+            dataAccount.account = dataAccount.account + REWARD * RR - COST;
             dataAccount.orders = dataAccount.orders.filter(
               (order) => order.symbol !== symbol
             );
@@ -124,11 +127,11 @@ export const Test = async (payload) => {
               chatId,
               `😍 TP lệnh ${
                 type === "up" ? "LONG" : "SHORT"
-              } ${buildLinkToSymbol(symbol)} tại giá ${tp}`,
+              } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol}`,
               { parse_mode: "HTML", disable_web_page_preview: true }
             );
           } else if (type === "up" && minPrice <= sl) {
-            dataAccount.account = dataAccount.account - dataAccount.stoplossEST;
+            dataAccount.account = dataAccount.account - REWARD - COST;
             dataAccount.orders = dataAccount.orders.filter(
               (order) => order.symbol !== symbol
             );
@@ -137,12 +140,11 @@ export const Test = async (payload) => {
               chatId,
               `😭 SL lệnh ${
                 type === "up" ? "LONG" : "SHORT"
-              } ${buildLinkToSymbol(symbol)} tại giá ${sl}`,
+              } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol}`,
               { parse_mode: "HTML", disable_web_page_preview: true }
             );
           } else if (type === "down" && minPrice <= tp) {
-            dataAccount.account =
-              dataAccount.account + dataAccount.takeProfitEST;
+            dataAccount.account = dataAccount.account + REWARD * RR - COST;
             dataAccount.orders = dataAccount.orders.filter(
               (order) => order.symbol !== symbol
             );
@@ -151,11 +153,11 @@ export const Test = async (payload) => {
               chatId,
               `😍 TP lệnh ${
                 type === "up" ? "LONG" : "SHORT"
-              } ${buildLinkToSymbol(symbol)} tại giá ${tp}`,
+              } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol}`,
               { parse_mode: "HTML", disable_web_page_preview: true }
             );
           } else if (type === "down" && maxPrice >= sl) {
-            dataAccount.account = dataAccount.account - dataAccount.stoplossEST;
+            dataAccount.account = dataAccount.account - REWARD - COST;
             dataAccount.orders = dataAccount.orders.filter(
               (order) => order.symbol !== symbol
             );
@@ -164,7 +166,7 @@ export const Test = async (payload) => {
               chatId,
               `😭 SL lệnh ${
                 type === "up" ? "LONG" : "SHORT"
-              } ${buildLinkToSymbol(symbol)} tại giá ${sl}`,
+              } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol}`,
               { parse_mode: "HTML", disable_web_page_preview: true }
             );
           }
@@ -191,7 +193,7 @@ export const Test = async (payload) => {
           data: {
             symbol: symbol,
             interval: timeLine,
-            limit: 50,
+            limit: 100,
           },
         };
 
@@ -200,19 +202,25 @@ export const Test = async (payload) => {
         );
         if (candleStickData && candleStickData.length) {
           candleStickData.pop();
-          const { isHasBigPrice, level, type } = checkHasBigPriceTrend(
+          // candleStickData.reverse();
+          const { isAbleOrder, type, tpPercent, slPercent } = checkAbleOrderSMC(
             candleStickData,
             symbol
           );
 
+          let typeOrder = type;
+
+          // typeOrder = type === "up" ? "dowwn" : "up"; // reverse
+
           // const { isHasBigPrice, level, type, isBuySellSafety } =
           //   checkSafetyPrice(candleStickData, symbol);
-
+          const numberCurrentOrder = dataAccount.orders.length;
+          const numberOrderLong = dataAccount.orders.filter(
+            (order) => order.type === "up"
+          ).length;
+          const numberOrderShort = numberCurrentOrder - numberOrderLong;
           if (
-            isHasBigPrice &&
-            level >= 6 &&
-            // isBuySellSafety &&
-            dataAccount.orders.length < 30 &&
+            isAbleOrder &&
             dataAccount.orders.every((order) => order.symbol !== symbol)
           ) {
             const data = await fetchApiGetCurrentPrice({
@@ -221,19 +229,15 @@ export const Test = async (payload) => {
             const { price } = data;
             const dataTime = new Date();
             const ratePriceTP =
-              type === "up"
-                ? 1 + dataAccount.tpPercent / 100
-                : 1 - dataAccount.tpPercent / 100;
+              typeOrder === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
             const ratePriceSL =
-              type === "up"
-                ? 1 - dataAccount.slPercent / 100
-                : 1 + dataAccount.slPercent / 100;
+              typeOrder === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
             const newOrder = {
               symbol,
               entry: +price,
               tp: ratePriceTP * price,
               sl: ratePriceSL * price,
-              type,
+              type: typeOrder,
               startTime: dataTime.getTime(),
               isCheckMinMax: true,
             };
@@ -241,7 +245,7 @@ export const Test = async (payload) => {
             bot.sendMessage(
               chatId,
               `Thực hiện lệnh ${
-                type === "up" ? "LONG" : "SHORT"
+                typeOrder === "up" ? "LONG" : "SHORT"
               } ${buildLinkToSymbol(symbol)} tại giá ${price}`,
               { parse_mode: "HTML", disable_web_page_preview: true }
             );
@@ -251,11 +255,15 @@ export const Test = async (payload) => {
     }
   };
 
-  setTimeout(() => {
-    handleData(listSymbols);
-    setInterval(() => {
+  setTimeout(
+    () => {
       handleData(listSymbols);
-      console.log(JSON.stringify(dataAccount, null, 2));
-    }, 5 * 60 * 1000);
-  }, calculateTimeout15m());
+      setInterval(() => {
+        handleData(listSymbols);
+        // console.log(JSON.stringify(dataAccount, null, 2));
+      }, 5 * 60 * 1000);
+    },
+    0
+    //  calculateTimeout15m()
+  );
 };
