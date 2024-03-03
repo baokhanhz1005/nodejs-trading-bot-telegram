@@ -19,11 +19,6 @@ if (!isBotRunning) {
       chatId,
     };
     handleRunBot(payload);
-
-    bot.on("polling_error", (error) => {
-      console.error("Polling error:", error.message);
-      isBotRunning = false;
-    });
   });
 } else {
   console.log("Bot is already running.");
