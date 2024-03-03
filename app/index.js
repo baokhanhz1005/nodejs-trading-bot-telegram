@@ -4,13 +4,27 @@ import { handleRunBot } from "./handlers/index.js";
 
 const bot = new TelegramBot(APP_CONFIG.TOKEN, { polling: true });
 
-bot.on("message", async (msg) => {
-  const chatId = msg.chat.id;
-  const command = msg.text.toLowerCase();
-  const payload = {
-    command,
-    bot,
-    chatId,
-  };
-  handleRunBot(payload);
-});
+let isBotRunning = false;
+
+// Khởi tạo bot chỉ chạy khi chưa có bot nào chạy
+if (!isBotRunning) {
+  isBotRunning = true;
+
+  bot.on("message", async (msg) => {
+    const chatId = msg.chat.id;
+    const command = msg.text.toLowerCase();
+    const payload = {
+      command,
+      bot,
+      chatId,
+    };
+    handleRunBot(payload);
+
+    bot.on("polling_error", (error) => {
+      console.error("Polling error:", error.message);
+      isBotRunning = false;
+    });
+  });
+} else {
+  console.log("Bot is already running.");
+}

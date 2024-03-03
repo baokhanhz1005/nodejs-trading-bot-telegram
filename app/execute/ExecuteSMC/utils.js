@@ -80,14 +80,14 @@ const checkPattern = (candleStickData, symbol) => {
         timeStamp = lastestCandle[0];
       }
     }
-  } else if (false && isDownCandle(lastestCandle)) {
+  } else if (false && checkFullCandle(lastestCandle, "down")) {
     const minRange50 = getMinOnListCandle(candleStickData.slice(-50), 3);
     const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
     const indexMax = candleStickData
       .slice(-50)
       .findIndex((candle) => +candle[2] === +maxRange50);
     if (maxRange50 * 0.995 < lastestCandle[2]) {
-      const EstRR = (1 - lastestCandle[4] / maxRange50) * 100;
+      const EstRR = (1 - lastestCandle[4] / maxRange50) * 100 * 1.1;
       const CONDITION_1__ =
         lastestCandle[4] * (1 - (EstRR * RR) / 100) > minRange50;
 
