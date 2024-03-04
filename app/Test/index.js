@@ -84,7 +84,8 @@ export const Test = async (payload) => {
   const handleData = (listSymbols) => {
     if (dataAccount.orders.length) {
       dataAccount.orders.forEach(async (order, index) => {
-        const { symbol, type, tp, sl, isCheckMinMax, startTime } = order;
+        const { symbol, type, tp, sl, isCheckMinMax, startTime, percent } =
+          order;
         const params = {
           data: {
             symbol: symbol,
@@ -118,7 +119,8 @@ export const Test = async (payload) => {
           }
 
           if (type === "up" && maxPrice >= tp) {
-            dataAccount.account = dataAccount.account + REWARD * RR - COST;
+            dataAccount.account =
+              dataAccount.account + REWARD * RR - (REWARD * 0.1) / percent;
             dataAccount.orders = dataAccount.orders.filter(
               (order) => order.symbol !== symbol
             );
@@ -131,7 +133,8 @@ export const Test = async (payload) => {
               { parse_mode: "HTML", disable_web_page_preview: true }
             );
           } else if (type === "up" && minPrice <= sl) {
-            dataAccount.account = dataAccount.account - REWARD - COST;
+            dataAccount.account =
+              dataAccount.account - REWARD - (REWARD * 0.1) / percent;
             dataAccount.orders = dataAccount.orders.filter(
               (order) => order.symbol !== symbol
             );
@@ -144,7 +147,8 @@ export const Test = async (payload) => {
               { parse_mode: "HTML", disable_web_page_preview: true }
             );
           } else if (type === "down" && minPrice <= tp) {
-            dataAccount.account = dataAccount.account + REWARD * RR - COST;
+            dataAccount.account =
+              dataAccount.account + REWARD * RR - (REWARD * 0.1) / percent;
             dataAccount.orders = dataAccount.orders.filter(
               (order) => order.symbol !== symbol
             );
@@ -157,7 +161,8 @@ export const Test = async (payload) => {
               { parse_mode: "HTML", disable_web_page_preview: true }
             );
           } else if (type === "down" && maxPrice >= sl) {
-            dataAccount.account = dataAccount.account - REWARD - COST;
+            dataAccount.account =
+              dataAccount.account - REWARD - (REWARD * 0.1) / percent;
             dataAccount.orders = dataAccount.orders.filter(
               (order) => order.symbol !== symbol
             );
@@ -240,6 +245,7 @@ export const Test = async (payload) => {
               type: typeOrder,
               startTime: dataTime.getTime(),
               isCheckMinMax: true,
+              percent: slPercent,
             };
             dataAccount.orders.push(newOrder);
             bot.sendMessage(

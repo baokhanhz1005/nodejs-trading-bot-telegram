@@ -1,3 +1,4 @@
+import { REWARD } from "../app/execute/ExecuteSMC/constant.js";
 import { buildLinkToSymbol, buildTimeStampToDate } from "../utils.js";
 import { checkInRange, isDownCandle, isUpCandle } from "./TypeCandle.js";
 
@@ -239,6 +240,9 @@ export const ForeCastMethod = (data) => {
     loseOrder: 0,
     orderInfo: null,
     info: null,
+    percent: 0,
+    count: 0,
+    cost: 0,
   };
 
   if (rangeCandleInfo && candleStickData.length > rangeCandleInfo) {
@@ -261,28 +265,40 @@ const handleData = (
   symbol
 ) => {
   if (dataForeCast.orderInfo) {
-    const { sl, tp, type, timeStamp } = dataForeCast.orderInfo;
+    const { sl, tp, type, timeStamp, percent, cost } = dataForeCast.orderInfo;
     const maxPrice = currentCandle[2];
     const minPrice = currentCandle[3];
 
-    if (type === "up" && maxPrice >= tp) {
-      dataForeCast.winOrder += 1;
-      dataForeCast.orderInfo = null;
-    } else if (type === "up" && minPrice <= sl) {
+    if (type === "up" && minPrice <= sl) {
       dataForeCast.loseOrder += 1;
       dataForeCast.orderInfo = null;
       dataForeCast.info = `${buildTimeStampToDate(
         timeStamp
       )} - ${buildLinkToSymbol(symbol)}\n`;
-    } else if (type === "down" && minPrice <= tp) {
-      dataForeCast.winOrder += 1;
-      dataForeCast.orderInfo = null;
+      dataForeCast.percent += percent;
+      dataForeCast.count += 1;
+      dataForeCast.cost += cost;
     } else if (type === "down" && maxPrice >= sl) {
       dataForeCast.loseOrder += 1;
       dataForeCast.orderInfo = null;
       dataForeCast.info = `${buildTimeStampToDate(
         timeStamp
       )} - ${buildLinkToSymbol(symbol)}\n`;
+      dataForeCast.percent += percent;
+      dataForeCast.count += 1;
+      dataForeCast.cost += cost;
+    } else if (type === "up" && maxPrice >= tp) {
+      dataForeCast.winOrder += 1;
+      dataForeCast.orderInfo = null;
+      dataForeCast.percent += percent;
+      dataForeCast.count += 1;
+      dataForeCast.cost += cost;
+    } else if (type === "down" && minPrice <= tp) {
+      dataForeCast.winOrder += 1;
+      dataForeCast.orderInfo = null;
+      dataForeCast.percent += percent;
+      dataForeCast.count += 1;
+      dataForeCast.cost += cost;
     }
   } else {
     listCandleInfo.pop();
@@ -311,6 +327,8 @@ const handleData = (
         type: typeOrder,
         isCheckMinMax: true,
         timeStamp,
+        percent: slPercent,
+        cost: (REWARD * 0.1) / slPercent,
       };
       dataForeCast.orderInfo = newOrder;
       dataForeCast.countOrders += 1;
@@ -341,9 +359,9 @@ export const checkCurrentTrending = (candleStickData, type) => {
     if (type === "up") {
       result =
         (firstCandle[4] < centerCandle[4] && centerCandle[4] < lastCandle[4]) ||
-        (firstCandle[4] > centerCandle[4] && lastCandle[4] > firstCandle[4]) 
-        // ||
-        // (firstCandle[4] > centerCandle[4] && lastCandle[4] > centerCandle[4]);
+        (firstCandle[4] > centerCandle[4] && lastCandle[4] > firstCandle[4]);
+      // ||
+      // (firstCandle[4] > centerCandle[4] && lastCandle[4] > centerCandle[4]);
     } else if (type === "down") {
       result =
         (firstCandle[4] > centerCandle[4] && centerCandle[4] > lastCandle[4]) ||
@@ -353,4 +371,47 @@ export const checkCurrentTrending = (candleStickData, type) => {
   }
 
   return result;
+};
+
+export const reverseCandleData = (candleStickData) => {
+  const newData = [];
+  const listCandles = [...candleStickData].reverse();
+  listCandles.forEach((candle) => {
+    const newInfoCandle = [...candle];
+    newInfoCandle[1] = candle[4];
+    // newInfoCandle[2] = candle[3];
+    // newInfoCandle[3] = candle[2];
+    newInfoCandle[4] = candle[1];
+    newData.push(newInfoCandle);
+  });
+
+  return newData;
+};
+
+export const forecastTrending = (candleStickData) => {
+  let type = 'balance';
+
+  if (candleStickData.length) {
+    const numberCandle = candleStickData.length;
+  
+    const firstMaxRange = getMaxOnListCandle(
+      candleStickData.slice(0, Math.ceil(numberCandle / 2)),
+      4
+    );
+  
+    const numberCandleRemain =
+      numberCandle - candleStickData.slice(0, Math.ceil(numberCandle / 2)).length;
+  
+    const lastMaxRange = getMaxOnListCandle(
+      candleStickData.slice(-(numberCandleRemain - 1))
+    );
+
+    if (firstMaxRange > lastMaxRange) {
+      type = lastMaxRange * 1.008 >= firstMaxRange ? 'balance' : 'go-down';
+    } else if (lastMaxRange < firstMaxRange) {
+      type = firstMaxRange * 1.008 >= lastMaxRange ? 'balance' : 'go-up';
+    }
+  }
+
+  return type;
 };

@@ -5,10 +5,12 @@ import {
   isUpCandle,
 } from "../../../utils/TypeCandle.js";
 import {
+  checkCurrentTrending,
   getMaxOnListCandle,
   getMinOnListCandle,
+  rateUpAndDown,
 } from "../../../utils/handleDataCandle.js";
-import { RR } from "./constant.js";
+import { REWARD, RR, LIMIT_ORDER } from "./constant.js";
 
 export const checkAbleOrderSMC = (candleStickData, symbol) => {
   const result = {
@@ -68,30 +70,57 @@ const checkPattern = (candleStickData, symbol) => {
     const indexMin = candleStickData
       .slice(-50)
       .findIndex((candle) => +candle[3] === +minRange50);
-    if (minRange50 * 1.005 > lastestCandle[3]) {
-      const EstRR = (lastestCandle[4] / minRange50 - 1) * 100;
+    if (minRange50 * 1.015 > lastestCandle[3]) {
+      const EstRR = (lastestCandle[4] / minRange50 - 1) * 100 * 1.05;
+
+      // --------CONDITION----------//
       const CONDITION_1__ =
         lastestCandle[4] * (1 + (EstRR * RR) / 100) < maxRange50;
+      // --------CONDITION----------//
+      const CONDITION_2__ = (REWARD / EstRR) * 100 <= LIMIT_ORDER;
 
-      if (CONDITION_1__ && lastestCandle[4] < 50) {
+      if (CONDITION_1__ && CONDITION_2__ && lastestCandle[4] < LIMIT_ORDER) {
         slPercent = EstRR;
         type = "up";
         isAllowOrder = true;
         timeStamp = lastestCandle[0];
       }
     }
-  } else if (false && checkFullCandle(lastestCandle, "down")) {
+  } else if (
+    true &&
+    isDownCandle(lastestCandle) &&
+    lastestCandle[2] / lastestCandle[3] >= 1.004
+  ) {
     const minRange50 = getMinOnListCandle(candleStickData.slice(-50), 3);
     const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
+    const avrgField = (maxRange50 + minRange50) * 0.5;
     const indexMax = candleStickData
       .slice(-50)
       .findIndex((candle) => +candle[2] === +maxRange50);
-    if (maxRange50 * 0.995 < lastestCandle[2]) {
-      const EstRR = (1 - lastestCandle[4] / maxRange50) * 100 * 1.1;
+    if (maxRange50 * 0.998 < lastestCandle[2]) {
+      // const EstRR = (1 - lastestCandle[4] / maxRange50) * 100 * 1.05;
+      const EstRR = (maxRange50 / lastestCandle[4] - 1) * 100 * 1.1;
       const CONDITION_1__ =
-        lastestCandle[4] * (1 - (EstRR * RR) / 100) > minRange50;
-
-      if (CONDITION_1__ && lastestCandle[4] < 50) {
+        lastestCandle[4] * (1 - (EstRR * RR) / 100) > avrgField;
+      const CONDITION_2__ = (REWARD / EstRR) * 100 <= LIMIT_ORDER;
+      const listFullCandle = [];
+      candleStickData.slice(-10).forEach((candle) => {
+        if (checkFullCandle(candle, "up")) {
+          listFullCandle.push(candle);
+        }
+      });
+      const CONDITION_3__ = listFullCandle.length < 4;
+      const CONDITION_4__ = candleStickData
+        .slice(-25)
+        .every((candle) =>
+          isUpCandle(candle) ? candle[4] / candle[1] < 1.03 : true
+        );
+      if (
+        CONDITION_1__ &&
+        CONDITION_2__ &&
+        CONDITION_4__ &&
+        lastestCandle[4] < LIMIT_ORDER
+      ) {
         slPercent = EstRR;
         type = "down";
         isAllowOrder = true;

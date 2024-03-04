@@ -35,6 +35,9 @@ export const TestingFunction = async (payload) => {
     let totalWin = 0;
     let totalLose = 0;
     let listInfo = [];
+    let percentAvg = 0;
+    let countSymbol = 0;
+    let totalCost = 0;
 
     if (listSymbols && listSymbols.length) {
       const promiseCandleData = listSymbols.map(async (token) => {
@@ -43,7 +46,7 @@ export const TestingFunction = async (payload) => {
           data: {
             symbol: symbol,
             interval: timeLine,
-            limit: 388,
+            limit: 1000, // 388 -- 676 -- 964
           },
         };
         const res = await fetchApiGetCandleStickData(params);
@@ -66,20 +69,35 @@ export const TestingFunction = async (payload) => {
                   },
                 },
               };
-              const { countOrders, winOrder, loseOrder, orderInfo, info } =
-                ForeCastMethod(payload);
+              const {
+                countOrders,
+                winOrder,
+                loseOrder,
+                orderInfo,
+                info,
+                percent,
+                count,
+                cost,
+              } = ForeCastMethod(payload);
               R = R + (winOrder * RR - loseOrder);
               totalWin += winOrder;
               totalLose += loseOrder;
               totalOrder += countOrders;
+              totalCost += cost;
+              if (count) {
+                percentAvg += +percent / +count;
+                countSymbol += 1;
+              }
               if (info) {
                 listInfo.push(info);
               }
             }
           });
           if (true) {
+            // Dùng cho việc log ra các lệnh SL, cho việc đánh giá lý do tại sao lệnh chạm SL
             let tempMess = [];
             for (let i = 0; i < listInfo.length; i++) {
+              if (i > 16) break;
               if (i % 5 === 0 && i !== 0) {
                 tempMess.push(listInfo[i]);
                 bot.sendMessage(chatId, `${tempMess.join("")}`, {
@@ -104,10 +122,9 @@ export const TestingFunction = async (payload) => {
             `- Thu được ${R}R \n - Tổng số lệnh: ${totalOrder} với: \n     + ${totalWin} lệnh TP và ${totalLose} lệnh SL \n     + Tỷ lệ: ${(
               (totalWin / totalOrder) *
               100
-            ).toFixed(2)}%\n     + Profit: ${(
-              R * REWARD -
-              totalOrder * COST
-            ).toFixed(2)}`
+            ).toFixed(2)}%\n     + Profit: ${(R * REWARD - totalCost).toFixed(
+              2
+            )}\n     + Cost: ${percentAvg / countSymbol} - ${totalCost}`
           );
         }
       });
