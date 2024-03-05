@@ -65,7 +65,7 @@ const checkPattern = (candleStickData, symbol) => {
     return { type, slPercent, isAllowOrder };
   }
 
-  if (true && checkFullCandle(lastestCandle, "up")) {
+  if (true && (checkFullCandle(lastestCandle, "up"))) {
     const minRange50 = getMinOnListCandle(candleStickData.slice(-50), 3);
     const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
     const avrgField = (maxRange50 + minRange50) * 0.5;
@@ -76,7 +76,7 @@ const checkPattern = (candleStickData, symbol) => {
       // --------CONDITION----------//
       const CONDITION_1__ =
         lastestCandle[4] * (1 + (EstRR * RR) / 100) < maxRange50;
-      // --------CONDITION----------//
+
       const CONDITION_2__ = (REWARD / EstRR) * 100 <= LIMIT_ORDER;
 
       const CONDITION_3__ = isDownCandle(prevCandle, "down")
@@ -90,7 +90,7 @@ const checkPattern = (candleStickData, symbol) => {
       const CONDITION_5__ = candleStickData
         .slice(-15)
         .every((candle) =>
-          isDownCandle(candle) ? candle[1] / candle[4] < 1.015 : true
+          isDownCandle(candle) ? candle[1] / candle[4] < 1.02 : true
         );
 
       const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
@@ -98,11 +98,14 @@ const checkPattern = (candleStickData, symbol) => {
       );
 
       const CONDITION_6__ = maxContinueDown < 5;
+
+      // --------CONDITION----------//
+
       if (
         CONDITION_1__ &&
         CONDITION_2__ &&
         CONDITION_3__ &&
-        CONDITION_4__ &&
+        // CONDITION_4__ &&
         CONDITION_5__ &&
         CONDITION_6__ &&
         lastestCandle[4] < LIMIT_ORDER

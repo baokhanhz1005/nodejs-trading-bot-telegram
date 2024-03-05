@@ -128,50 +128,6 @@ export const TestingFunction = async (payload) => {
           );
         }
       });
-
-      // return;
-      // listSymbols.forEach(async (token, index) => {
-      //   const { symbolCandle, stickPrice } = token;
-      //   if (true) {
-      //     const params = {
-      //       data: {
-      //         symbol: symbol,
-      //         interval: timeLine,
-      //         limit: 1000,
-      //       },
-      //     };
-      //     const { data: candleStickData } = await fetchApiGetCandleStickData(
-      //       params
-      //     );
-
-      //     if (
-      //       candleStickData &&
-      //       candleStickData.length &&
-      //       candleStickData[candleStickData.length - 1][4] <= 25
-      //     ) {
-      //       const payload = {
-      //         candleStickData,
-      //         method: {
-      //           methodFn: checkAbleOrderSMC,
-      //           config: {
-      //             rangeCandleInfo: 100,
-      //             symbol,
-      //           },
-      //         },
-      //       };
-      //       const { countOrders, winOrder, loseOrder, orderInfo } =
-      //         ForeCastMethod(payload);
-      //       R = R + (winOrder * 1.5 - loseOrder);
-      //       totalOrder += countOrders;
-      //       bot.sendMessage(
-      //         chatId,
-      //         `Symbol ${symbol} này đã thực hiện ${countOrders} lệnh: Với ${winOrder} TP và ${loseOrder} SL${
-      //           orderInfo ? " \n - Còn 1 lệnh đang chạy" : ""
-      //         } \n - Thu được ${R}R \n - Tổng số lệnh: ${totalOrder}`
-      //       );
-      //     }
-      //   }
-      // });
     }
   } catch (error) {
     console.error("Error in TestingFunction:", error);
