@@ -71,11 +71,17 @@ export const checkDoji = (candle) => {
   if (isUp) {
     const rate =
       Math.abs(candle[2] - candle[4]) / Math.abs(candle[3] - candle[1]);
-    isDoji = rate >= 0.9 && rate <= 1.1;
+    isDoji =
+      (candle[4] / candle[1] < 1.0009 || candle[1] / candle[4] > 0.9991) &&
+      rate >= 0.9 &&
+      rate <= 1.1;
   } else {
     const rate =
       Math.abs(candle[2] - candle[1]) / Math.abs(candle[3] - candle[4]);
-    isDoji = rate >= 0.9 && rate <= 1.1;
+    isDoji =
+      (candle[1] / candle[4] < 1.0009 || candle[4] / candle[1] > 0.9991) &&
+      rate >= 0.9 &&
+      rate <= 1.1;
   }
 
   return isDoji;

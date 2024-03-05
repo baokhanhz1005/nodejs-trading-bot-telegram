@@ -6,6 +6,7 @@ import {
 } from "../../../utils/TypeCandle.js";
 import {
   checkCurrentTrending,
+  findContinueSameTypeCandle,
   getMaxOnListCandle,
   getMinOnListCandle,
   rateUpAndDown,
@@ -67,9 +68,8 @@ const checkPattern = (candleStickData, symbol) => {
   if (true && checkFullCandle(lastestCandle, "up")) {
     const minRange50 = getMinOnListCandle(candleStickData.slice(-50), 3);
     const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
-    const indexMin = candleStickData
-      .slice(-50)
-      .findIndex((candle) => +candle[3] === +minRange50);
+    const avrgField = (maxRange50 + minRange50) * 0.5;
+
     if (minRange50 * 1.015 > lastestCandle[3]) {
       const EstRR = (lastestCandle[4] / minRange50 - 1) * 100 * 1.05;
 
@@ -79,7 +79,34 @@ const checkPattern = (candleStickData, symbol) => {
       // --------CONDITION----------//
       const CONDITION_2__ = (REWARD / EstRR) * 100 <= LIMIT_ORDER;
 
-      if (CONDITION_1__ && CONDITION_2__ && lastestCandle[4] < LIMIT_ORDER) {
+      const CONDITION_3__ = isDownCandle(prevCandle, "down")
+        ? (prevCandle[1] - prevCandle[4]) /
+            (lastestCandle[4] - lastestCandle[1]) <
+          1.7
+        : true;
+      const CONDITION_4__ =
+        lastestCandle[4] * (1 + (EstRR * RR) / 100) < avrgField;
+
+      const CONDITION_5__ = candleStickData
+        .slice(-15)
+        .every((candle) =>
+          isDownCandle(candle) ? candle[1] / candle[4] < 1.015 : true
+        );
+
+      const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
+        candleStickData.slice(-25)
+      );
+
+      const CONDITION_6__ = maxContinueDown < 5;
+      if (
+        CONDITION_1__ &&
+        CONDITION_2__ &&
+        CONDITION_3__ &&
+        CONDITION_4__ &&
+        CONDITION_5__ &&
+        CONDITION_6__ &&
+        lastestCandle[4] < LIMIT_ORDER
+      ) {
         slPercent = EstRR;
         type = "up";
         isAllowOrder = true;
@@ -109,7 +136,7 @@ const checkPattern = (candleStickData, symbol) => {
           listFullCandle.push(candle);
         }
       });
-      const CONDITION_3__ = listFullCandle.length < 4;
+
       const CONDITION_4__ = candleStickData
         .slice(-25)
         .every((candle) =>
@@ -131,62 +158,3 @@ const checkPattern = (candleStickData, symbol) => {
 
   return { type, slPercent, isAllowOrder, timeStamp };
 };
-
-// if (isDownCandle(prevCandle) && prevCandle[1] < lastestCandle[4]) {
-//   const listLastCandle = candleStickData.slice(-25);
-//   const minBounce = Math.min(
-//     ...listLastCandle.map((candle) => parseFloat(candle[4]))
-//   );
-//   const maxBounce = Math.max(
-//     ...listLastCandle.map((candle) => parseFloat(candle[4]))
-//   );
-//   const indexMin = listLastCandle.findIndex(
-//     (candle) => parseFloat(candle[4]) === minBounce
-//   );
-
-//   const CONDITION_1__ = indexMin <= 15;
-//   const CONDITION_2__ = lastestCandle[4] < maxBounce;
-
-//   if (CONDITION_1__ && CONDITION_2__) {
-//     if (
-//       lastestCandle[3] < minBounce * 1 ||
-//       prevCandle[3] < minBounce * 1 ||
-//       thirdLastCandle[3] < minBounce * 1
-//     ) {
-//       slPercent =
-//         (lastestCandle[3] > prevCandle[3]
-//           ? (lastestCandle[4] / prevCandle[3] - 1) * 100
-//           : (lastestCandle[4] / lastestCandle[3] - 1) * 100) * 1.15;
-//       const targetPrice = lastestCandle[4] * (1 + (slPercent * RR) / 100);
-//       if (targetPrice <= max) {
-//         type = "up";
-//         isAllowOrder = true;
-//         timeStamp = lastestCandle[0];
-//       }
-//     }
-//   }
-// }
-
-// if (isDownCandle(lastestCandle) && !checkPinbar(lastestCandle, "up")) {
-//   const maxListCandle = Math.max(
-//     ...candleStickData.slice(-50).map((candle) => candle[2])
-//   );
-//   const CONDITION_1__ = [+lastestCandle[2]].includes(+maxListCandle);
-//   const CONDITION_2__ =
-//     lastestCandle[4] * 1.0005 < prevCandle[1] ||
-//     lastestCandle[4] * 1.0005 < thirdLastCandle[1];
-//   const CONDITION_3__ = !checkFullCandle(thirdLastCandle, "up");
-//   const CONDITION_4__ =
-//     (+lastestCandle[1] / +lastestCandle[4] - 1) * 100 > 0.25;
-//   if (CONDITION_1__ && CONDITION_2__ && CONDITION_3__ && CONDITION_4__) {
-//     slPercent =
-//       (lastestCandle[2] < prevCandle[2]
-//         ? (prevCandle[2] / lastestCandle[4] - 1) * 100
-//         : (lastestCandle[2] / lastestCandle[4] - 1) * 100) * 1.15;
-//     const targetPrice = lastestCandle[4] * (1 - (slPercent * RR) / 100);
-//     if (targetPrice >= min) {
-//       type = "down";
-//       isAllowOrder = true;
-//     }
-//   }
-// }

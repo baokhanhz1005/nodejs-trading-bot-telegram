@@ -389,29 +389,54 @@ export const reverseCandleData = (candleStickData) => {
 };
 
 export const forecastTrending = (candleStickData) => {
-  let type = 'balance';
+  let type = "balance";
 
   if (candleStickData.length) {
     const numberCandle = candleStickData.length;
-  
+
     const firstMaxRange = getMaxOnListCandle(
       candleStickData.slice(0, Math.ceil(numberCandle / 2)),
       4
     );
-  
+
     const numberCandleRemain =
-      numberCandle - candleStickData.slice(0, Math.ceil(numberCandle / 2)).length;
-  
+      numberCandle -
+      candleStickData.slice(0, Math.ceil(numberCandle / 2)).length;
+
     const lastMaxRange = getMaxOnListCandle(
       candleStickData.slice(-(numberCandleRemain - 1))
     );
 
     if (firstMaxRange > lastMaxRange) {
-      type = lastMaxRange * 1.008 >= firstMaxRange ? 'balance' : 'go-down';
+      type = lastMaxRange * 1.008 >= firstMaxRange ? "balance" : "go-down";
     } else if (lastMaxRange < firstMaxRange) {
-      type = firstMaxRange * 1.008 >= lastMaxRange ? 'balance' : 'go-up';
+      type = firstMaxRange * 1.008 >= lastMaxRange ? "balance" : "go-up";
     }
   }
 
   return type;
+};
+
+export const findContinueSameTypeCandle = (candleStickData) => {
+  let listCountDown = [];
+  let listCountUp = [];
+  let countUp = 0;
+  let countDown = 0;
+
+  candleStickData.forEach((candle) => {
+    if (isDownCandle(candle)) {
+      countDown += 1;
+      listCountUp.push(countUp);
+      countUp = 0;
+    } else {
+      countUp += 1;
+      listCountDown.push(countDown);
+      countDown = 0;
+    }
+  });
+
+  const maxContinueUp = Math.max(...listCountUp);
+  const maxContinueDown = Math.max(...listCountDown);
+
+  return { maxContinueUp, maxContinueDown };
 };

@@ -3,6 +3,7 @@ export const APP_CONFIG = {
   API_KEY: "16tXNcwM2ruf4shLnGhqnlPD4TDQQHJQqaRZgCRDEi51wAySkXxhQz2Xc9M4IORx",
   API_SECRET:
     "cagy3oI698pBYtdMxNU0Ane4w5ti4rGiv0s3yg4ClBhgTiIqgYZ8uS56x90N2Sdr",
+  TOKEN_TEST: "7137015129:AAHxluTIbi3TpnUnht2jizx96hh-5OhF7aQ",
 };
 
 export const DOMAIN = {
