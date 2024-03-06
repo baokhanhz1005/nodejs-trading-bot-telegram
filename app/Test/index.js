@@ -231,7 +231,18 @@ export const Test = async (payload) => {
             const data = await fetchApiGetCurrentPrice({
               symbol,
             });
+
             const { price } = data;
+            let priceGap = 0;
+            const lastestCandle = [...candleStickData.slice(-1)];
+
+            if (typeOrder === "up") {
+              priceGap =
+                lastestCandle[4] < price ? price - lastestCandle[4] : 0;
+            } else if (typeOrder === "down") {
+              priceGap =
+                lastestCandle[4] > price ? lastestCandle[4] - price : 0;
+            }
             const dataTime = new Date();
             const ratePriceTP =
               typeOrder === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
@@ -240,8 +251,12 @@ export const Test = async (payload) => {
             const newOrder = {
               symbol,
               entry: +price,
-              tp: ratePriceTP * price,
-              sl: ratePriceSL * price,
+              tp:
+                ratePriceTP * price +
+                (typeOrder === "up" ? priceGap * RR : -priceGap * RR),
+              sl:
+                ratePriceSL * price +
+                (typeOrder === "up" ? -priceGap : priceGap),
               type: typeOrder,
               startTime: dataTime.getTime(),
               isCheckMinMax: true,
