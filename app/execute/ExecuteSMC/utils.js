@@ -65,13 +65,17 @@ const checkPattern = (candleStickData, symbol) => {
     return { type, slPercent, isAllowOrder };
   }
 
-  if (true && (checkFullCandle(lastestCandle, "up"))) {
+  if (true && checkFullCandle(lastestCandle, "up")) {
     const minRange50 = getMinOnListCandle(candleStickData.slice(-50), 3);
     const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
     const avrgField = (maxRange50 + minRange50) * 0.5;
 
-    if (minRange50 * 1.015 > lastestCandle[3]) {
-      const EstRR = (lastestCandle[4] / minRange50 - 1) * 100 * 1.05;
+    const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
+      candleStickData.slice(-25)
+    );
+
+    if (true && minRange50 * 1.015 > lastestCandle[3]) {
+      const EstRR = (lastestCandle[4] / minRange50 - 1) * 100 * 1.15;
 
       // --------CONDITION----------//
       const CONDITION_1__ =
@@ -93,10 +97,6 @@ const checkPattern = (candleStickData, symbol) => {
           isDownCandle(candle) ? candle[1] / candle[4] < 1.02 : true
         );
 
-      const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
-        candleStickData.slice(-25)
-      );
-
       const CONDITION_6__ = maxContinueDown < 5;
 
       // --------CONDITION----------//
@@ -115,6 +115,26 @@ const checkPattern = (candleStickData, symbol) => {
         isAllowOrder = true;
         timeStamp = lastestCandle[0];
       }
+    } else if (
+      true &&
+      (maxRange50 * 0.995 < lastestCandle[2] || maxRange50 === lastestCandle[2])
+    ) {
+      const rangeCandle30 = candleStickData.slice(-30);
+      const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.1;
+      const CONDITION_1__ = maxContinueUp > 2;
+      const CONDITION_2__ = (REWARD / EstRR) * 100 <= LIMIT_ORDER;
+      const CONDITION_3__ = rangeCandle30[0][4] < lastestCandle[4] * 0.97;
+      if (
+        CONDITION_1__ &&
+        CONDITION_2__ &&
+        CONDITION_3__ &&
+        lastestCandle[4] < LIMIT_ORDER
+      ) {
+        slPercent = EstRR;
+        type = "up";
+        isAllowOrder = true;
+        timeStamp = lastestCandle[0];
+      }
     }
   } else if (
     true &&
@@ -124,10 +144,13 @@ const checkPattern = (candleStickData, symbol) => {
     const minRange50 = getMinOnListCandle(candleStickData.slice(-50), 3);
     const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
     const avrgField = (maxRange50 + minRange50) * 0.5;
+    const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
+      candleStickData.slice(-25)
+    );
     const indexMax = candleStickData
       .slice(-50)
       .findIndex((candle) => +candle[2] === +maxRange50);
-    if (maxRange50 * 0.998 < lastestCandle[2]) {
+    if (true && maxRange50 * 0.998 < lastestCandle[2]) {
       // const EstRR = (1 - lastestCandle[4] / maxRange50) * 100 * 1.05;
       const EstRR = (maxRange50 / lastestCandle[4] - 1) * 100 * 1.1;
       const CONDITION_1__ =
@@ -145,10 +168,40 @@ const checkPattern = (candleStickData, symbol) => {
         .every((candle) =>
           isUpCandle(candle) ? candle[4] / candle[1] < 1.03 : true
         );
+
+      const CONDITION_5__ =
+        (isUpCandle(prevCandle) &&
+          (prevCandle[4] - prevCandle[1]) /
+            (lastestCandle[1] - lastestCandle[4]) <
+            1.5) ||
+        (isUpCandle(thirdLastCandle) &&
+          isDownCandle(prevCandle) &&
+          lastestCandle[4] < thirdLastCandle[1]);
       if (
         CONDITION_1__ &&
         CONDITION_2__ &&
         CONDITION_4__ &&
+        CONDITION_5__ &&
+        lastestCandle[4] < LIMIT_ORDER
+      ) {
+        slPercent = EstRR;
+        type = "down";
+        isAllowOrder = true;
+        timeStamp = lastestCandle[0];
+      }
+    } else if (
+      true &&
+      (minRange50 * 1.005 || minRange50 === lastestCandle[3])
+    ) {
+      const rangeCandle30 = candleStickData.slice(-30);
+      const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.15;
+      const CONDITION_1__ = maxContinueDown > 2;
+      const CONDITION_2__ = (REWARD / EstRR) * 100 <= LIMIT_ORDER;
+      const CONDITION_3__ = rangeCandle30[0][4] * 0.97 > lastestCandle[4];
+      if (
+        CONDITION_1__ &&
+        CONDITION_2__ &&
+        CONDITION_3__ &&
         lastestCandle[4] < LIMIT_ORDER
       ) {
         slPercent = EstRR;
