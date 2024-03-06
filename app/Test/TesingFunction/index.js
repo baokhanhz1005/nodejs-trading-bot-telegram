@@ -1,3 +1,6 @@
+import fs from "fs/promises";
+import path from "path";
+import util from "util";
 import {
   buildLinkToSymbol,
   calculateMovingAverage,
@@ -25,6 +28,32 @@ export const TestingFunction = async (payload) => {
   try {
     const { bot, chatId, timeLine } = payload;
 
+    const fileName = "DATA_CANDLE.json";
+    const filePath = path.join("./", fileName);
+    let dataCandle;
+
+    try {
+      const dataStoraged = await fs.readFile(filePath, "utf-8");
+      if (dataStoraged) {
+        dataCandle = JSON.parse(dataStoraged);
+      }
+      console.log("Get from try");
+    } catch (e) {
+      console.log("Get from catch");
+      dataCandle = null;
+    }
+
+    const writeFile = util.promisify(fs.writeFile);
+
+    const writeToDisk = async (dataCandle) => {
+      try {
+        await writeFile(filePath, JSON.stringify(dataCandle, null, 2));
+        console.log("Write to file successful!");
+      } catch (error) {
+        console.error("Error writing to file:", error);
+      }
+    };
+
     const listSymbols = await fetchApiGetListingSymbols();
     let count = 0;
 
@@ -40,27 +69,33 @@ export const TestingFunction = async (payload) => {
     let totalCost = 0;
 
     if (listSymbols && listSymbols.length) {
-      const promiseCandleData = listSymbols.map(async (token) => {
-        const { symbol, stickPrice } = token;
-        const params = {
-          data: {
-            symbol: symbol,
-            interval: timeLine,
-            limit: 1000, // 388 -- 676 -- 964
-          },
-        };
-        const res = await fetchApiGetCandleStickData(params);
-        return res;
-      });
+      const promiseCandleData = dataCandle
+        ? dataCandle
+        : listSymbols.map(async (token) => {
+            const { symbol, stickPrice } = token;
+            const params = {
+              data: {
+                symbol: symbol,
+                interval: timeLine,
+                limit: 1000, // 388 -- 676 -- 964
+              },
+            };
+            const res = await fetchApiGetCandleStickData(params);
+            return res;
+          });
 
-      Promise.all(promiseCandleData).then((res) => {
+      Promise.all(promiseCandleData).then(async (res) => {
         if (res.length) {
-          res.forEach((candleInfo) => {
+          if (!dataCandle) {
+            await writeToDisk(res);
+          }
+          res.forEach((candleInfo, index) => {
             const { symbol: symbolCandle, data: candleStickData } = candleInfo;
 
             if (candleStickData && candleStickData.length) {
               const payload = {
-                candleStickData,
+                candleStickData:
+                  candleStickData || candleStickData.slice(0, 700),
                 method: {
                   methodFn: checkAbleOrderSMC,
                   config: {
@@ -93,7 +128,7 @@ export const TestingFunction = async (payload) => {
               }
             }
           });
-          if (true) {
+          if (false) {
             // Dùng cho việc log ra các lệnh SL, cho việc đánh giá lý do tại sao lệnh chạm SL
             let tempMess = [];
             for (let i = 0; i < listInfo.length; i++) {
