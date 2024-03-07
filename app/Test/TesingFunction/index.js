@@ -31,11 +31,13 @@ export const TestingFunction = async (payload) => {
     const fileName = "DATA_CANDLE.json";
     const filePath = path.join("./", fileName);
     let dataCandle;
-
+    let isCheckCandleHistory = false; // <<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>></>
     try {
-      const dataStoraged = await fs.readFile(filePath, "utf-8");
-      if (dataStoraged) {
-        dataCandle = JSON.parse(dataStoraged);
+      if (isCheckCandleHistory) {
+        const dataStoraged = await fs.readFile(filePath, "utf-8");
+        if (dataStoraged) {
+          dataCandle = JSON.parse(dataStoraged);
+        }
       }
       console.log("Get from try");
     } catch (e) {
@@ -86,7 +88,7 @@ export const TestingFunction = async (payload) => {
 
       Promise.all(promiseCandleData).then(async (res) => {
         if (res.length) {
-          if (!dataCandle) {
+          if (!dataCandle && isCheckCandleHistory) {
             await writeToDisk(res);
           }
           res.forEach((candleInfo, index) => {
@@ -132,7 +134,7 @@ export const TestingFunction = async (payload) => {
             // Dùng cho việc log ra các lệnh SL, cho việc đánh giá lý do tại sao lệnh chạm SL
             let tempMess = [];
             for (let i = 0; i < listInfo.length; i++) {
-              if (i > 16) break;
+              if (i > 9) break;
               if (i % 5 === 0 && i !== 0) {
                 tempMess.push(listInfo[i]);
                 bot.sendMessage(chatId, `${tempMess.join("")}`, {

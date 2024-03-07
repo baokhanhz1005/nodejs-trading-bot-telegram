@@ -391,33 +391,34 @@ export const reverseCandleData = (candleStickData) => {
 export const forecastTrending = (candleStickData) => {
   let type = "balance";
 
-  if (candleStickData.length) {
-    const numberCandle = candleStickData.length;
+  const numberCandle = candleStickData.length;
 
-    const firstMaxRange = getMaxOnListCandle(
-      candleStickData.slice(0, Math.ceil(numberCandle / 2)),
-      4
-    );
+  const firstMinRange = getMaxOnListCandle(
+    candleStickData.slice(0, Math.ceil((numberCandle * 1) / 3)),
+    3
+  );
 
-    const numberCandleRemain =
-      numberCandle -
-      candleStickData.slice(0, Math.ceil(numberCandle / 2)).length;
+  const centerMinRange = getMaxOnListCandle(
+    candleStickData.slice(34, Math.ceil((numberCandle * 2) / 3)),
+    3
+  );
 
-    const lastMaxRange = getMaxOnListCandle(
-      candleStickData.slice(-(numberCandleRemain - 1))
-    );
+  const lastMinRange = getMaxOnListCandle(
+    candleStickData.slice(67, Math.ceil((numberCandle * 3) / 3)),
+    3
+  );
 
-    if (firstMaxRange > lastMaxRange) {
-      type = lastMaxRange * 1.008 >= firstMaxRange ? "balance" : "go-down";
-    } else if (lastMaxRange < firstMaxRange) {
-      type = firstMaxRange * 1.008 >= lastMaxRange ? "balance" : "go-up";
-    }
+  if (firstMinRange < centerMinRange && firstMinRange < lastMinRange) {
+    type = "go-up";
+  } else if (firstMinRange > centerMinRange && firstMinRange > lastMinRange) {
+    type = "go-down";
   }
 
   return type;
 };
 
 export const findContinueSameTypeCandle = (candleStickData) => {
+  // đếm số nến cùng loại liên tiếp nhau nhiều nhất
   let listCountDown = [];
   let listCountUp = [];
   let countUp = 0;
