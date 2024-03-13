@@ -118,21 +118,7 @@ export const Test = async (payload) => {
             dataAccount.orders[index].isCheckMinMax = false;
           }
 
-          if (type === "up" && maxPrice >= tp) {
-            dataAccount.account =
-              dataAccount.account + REWARD * RR - (REWARD * 0.1) / percent;
-            dataAccount.orders = dataAccount.orders.filter(
-              (order) => order.symbol !== symbol
-            );
-            countTP += 1;
-            bot.sendMessage(
-              chatId,
-              `😍 TP lệnh ${
-                type === "up" ? "LONG" : "SHORT"
-              } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol}`,
-              { parse_mode: "HTML", disable_web_page_preview: true }
-            );
-          } else if (type === "up" && minPrice <= sl) {
+          if (type === "up" && minPrice <= sl) {
             dataAccount.account =
               dataAccount.account - REWARD - (REWARD * 0.1) / percent;
             dataAccount.orders = dataAccount.orders.filter(
@@ -144,20 +130,6 @@ export const Test = async (payload) => {
               `😭 SL lệnh ${
                 type === "up" ? "LONG" : "SHORT"
               } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol}`,
-              { parse_mode: "HTML", disable_web_page_preview: true }
-            );
-          } else if (type === "down" && minPrice <= tp) {
-            dataAccount.account =
-              dataAccount.account + REWARD * RR - (REWARD * 0.1) / percent;
-            dataAccount.orders = dataAccount.orders.filter(
-              (order) => order.symbol !== symbol
-            );
-            countTP += 1;
-            bot.sendMessage(
-              chatId,
-              `😍 TP lệnh ${
-                type === "up" ? "LONG" : "SHORT"
-              } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol}`,
               { parse_mode: "HTML", disable_web_page_preview: true }
             );
           } else if (type === "down" && maxPrice >= sl) {
@@ -172,6 +144,34 @@ export const Test = async (payload) => {
               `😭 SL lệnh ${
                 type === "up" ? "LONG" : "SHORT"
               } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol}`,
+              { parse_mode: "HTML", disable_web_page_preview: true }
+            );
+          } else if (type === "up" && maxPrice >= tp) {
+            dataAccount.account =
+              dataAccount.account + REWARD * RR - (REWARD * 0.1) / percent;
+            dataAccount.orders = dataAccount.orders.filter(
+              (order) => order.symbol !== symbol
+            );
+            countTP += 1;
+            bot.sendMessage(
+              chatId,
+              `😍 TP lệnh ${
+                type === "up" ? "LONG" : "SHORT"
+              } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol}`,
+              { parse_mode: "HTML", disable_web_page_preview: true }
+            );
+          } else if (type === "down" && minPrice <= tp) {
+            dataAccount.account =
+              dataAccount.account + REWARD * RR - (REWARD * 0.1) / percent;
+            dataAccount.orders = dataAccount.orders.filter(
+              (order) => order.symbol !== symbol
+            );
+            countTP += 1;
+            bot.sendMessage(
+              chatId,
+              `😍 TP lệnh ${
+                type === "up" ? "LONG" : "SHORT"
+              } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol}`,
               { parse_mode: "HTML", disable_web_page_preview: true }
             );
           }
