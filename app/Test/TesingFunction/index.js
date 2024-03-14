@@ -69,6 +69,8 @@ export const TestingFunction = async (payload) => {
     let percentAvg = 0;
     let countSymbol = 0;
     let totalCost = 0;
+    let totalLong = 0;
+    let totalShort = 0;
 
     if (listSymbols && listSymbols.length) {
       const promiseCandleData = dataCandle
@@ -115,12 +117,16 @@ export const TestingFunction = async (payload) => {
                 percent,
                 count,
                 cost,
+                countLong,
+                countShort,
               } = ForeCastMethod(payload);
               R = R + (winOrder * RR - loseOrder);
               totalWin += winOrder;
               totalLose += loseOrder;
               totalOrder += countOrders;
               totalCost += cost;
+              totalLong += countLong;
+              totalShort += countShort;
               if (count) {
                 percentAvg += +percent / +count;
                 countSymbol += 1;
@@ -161,7 +167,9 @@ export const TestingFunction = async (payload) => {
               100
             ).toFixed(2)}%\n     + Profit: ${(R * REWARD - totalCost).toFixed(
               2
-            )}\n     + Cost: ${percentAvg / countSymbol} - ${totalCost}`
+            )}\n     + Cost: ${
+              percentAvg / countSymbol
+            } - ${totalCost}\n     + Gồm: ${totalLong} LONG và ${totalShort} SHORT`
           );
         }
       });

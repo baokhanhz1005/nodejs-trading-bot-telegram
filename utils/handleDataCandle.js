@@ -243,6 +243,8 @@ export const ForeCastMethod = (data) => {
     percent: 0,
     count: 0,
     cost: 0,
+    countLong: 0,
+    countShort: 0,
   };
 
   if (rangeCandleInfo && candleStickData.length > rangeCandleInfo) {
@@ -332,6 +334,11 @@ const handleData = (
       };
       dataForeCast.orderInfo = newOrder;
       dataForeCast.countOrders += 1;
+      if (type === "up") {
+        dataForeCast.countLong += 1;
+      } else {
+        dataForeCast.countShort += 1;
+      }
     }
   }
 };
