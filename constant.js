@@ -54,6 +54,7 @@ export const TEST_CONFIG = {
   takeProfitEST: 0.94,
   stoplossEST: 0.26,
   orders: [], // => { symbol: BTCUSDT, entry: 29000, tp: 30000, sl: 27000, }
+  mapLevelPow: {},
 };
 
 export const CONFIG_EXEC_BIG_PRICE = {

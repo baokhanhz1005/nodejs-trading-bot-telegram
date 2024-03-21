@@ -18,7 +18,6 @@ import {
 } from "../execute/ExecuBuySellRestricted/utils.js";
 import { checkAbleOrderSMC } from "../execute/ExecuteSMC/utils.js";
 import { COST, REWARD, RR } from "../execute/ExecuteSMC/constant.js";
-import { checkAbleOrderBySympleMethod } from "../execute/ExecuteSympleMethod/utils.js";
 
 export const Test = async (payload) => {
   const { bot, chatId, timeLine } = payload;
@@ -85,7 +84,7 @@ export const Test = async (payload) => {
   const handleData = (listSymbols) => {
     if (dataAccount.orders.length) {
       dataAccount.orders.forEach(async (order, index) => {
-        const { symbol, type, tp, sl, isCheckMinMax, startTime, percent, levelPow } =
+        const { symbol, type, tp, sl, isCheckMinMax, startTime, percent } =
           order;
         const params = {
           data: {
@@ -121,73 +120,57 @@ export const Test = async (payload) => {
 
           if (type === "up" && minPrice <= sl) {
             dataAccount.account =
-              dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+              dataAccount.account - REWARD - (REWARD * 0.1) / percent;
             dataAccount.orders = dataAccount.orders.filter(
               (order) => order.symbol !== symbol
             );
             countSL += 1;
-            if (dataAccount.mapLevelPow[symbol] === 8) {
-              dataAccount.mapLevelPow[symbol] = 0;
-              bot.sendMessage(
-                chatId,
-                `### ${symbol} dính lệnh lose liên tục`
-              );
-            } else {
-              dataAccount.mapLevelPow[symbol] += 1;
-            }
             bot.sendMessage(
               chatId,
-              `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
+              `😭 SL lệnh ${
+                type === "up" ? "LONG" : "SHORT"
               } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol}`,
               { parse_mode: "HTML", disable_web_page_preview: true }
             );
           } else if (type === "down" && maxPrice >= sl) {
             dataAccount.account =
-              dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+              dataAccount.account - REWARD - (REWARD * 0.1) / percent;
             dataAccount.orders = dataAccount.orders.filter(
               (order) => order.symbol !== symbol
             );
-            if (dataAccount.mapLevelPow[symbol] === 8) {
-              dataAccount.mapLevelPow[symbol] = 0;
-              bot.sendMessage(
-                chatId,
-                `### ${symbol} dính lệnh lose liên tục`
-              );
-            } else {
-              dataAccount.mapLevelPow[symbol] += 1;
-            }
             countSL += 1;
             bot.sendMessage(
               chatId,
-              `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
+              `😭 SL lệnh ${
+                type === "up" ? "LONG" : "SHORT"
               } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol}`,
               { parse_mode: "HTML", disable_web_page_preview: true }
             );
           } else if (type === "up" && maxPrice >= tp) {
             dataAccount.account =
-              dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+              dataAccount.account + REWARD * RR - (REWARD * 0.1) / percent;
             dataAccount.orders = dataAccount.orders.filter(
               (order) => order.symbol !== symbol
             );
-            dataAccount.mapLevelPow[symbol] = 0;
             countTP += 1;
             bot.sendMessage(
               chatId,
-              `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
+              `😍 TP lệnh ${
+                type === "up" ? "LONG" : "SHORT"
               } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol}`,
               { parse_mode: "HTML", disable_web_page_preview: true }
             );
           } else if (type === "down" && minPrice <= tp) {
             dataAccount.account =
-              dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+              dataAccount.account + REWARD * RR - (REWARD * 0.1) / percent;
             dataAccount.orders = dataAccount.orders.filter(
               (order) => order.symbol !== symbol
             );
-            dataAccount.mapLevelPow[symbol] = 0;
             countTP += 1;
             bot.sendMessage(
               chatId,
-              `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
+              `😍 TP lệnh ${
+                type === "up" ? "LONG" : "SHORT"
               } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol}`,
               { parse_mode: "HTML", disable_web_page_preview: true }
             );
@@ -222,10 +205,10 @@ export const Test = async (payload) => {
         const { data: candleStickData } = await fetchApiGetCandleStickData(
           params
         );
-        if (candleStickData && candleStickData.length && candleStickData.slice(-1)[0][4] < 0.05) {
+        if (candleStickData && candleStickData.length) {
           candleStickData.pop();
           // candleStickData.reverse();
-          const { isAbleOrder, type, tpPercent, slPercent } = checkAbleOrderBySympleMethod(
+          const { isAbleOrder, type, tpPercent, slPercent } = checkAbleOrderSMC(
             candleStickData,
             symbol
           );
@@ -278,15 +261,12 @@ export const Test = async (payload) => {
               startTime: dataTime.getTime(),
               isCheckMinMax: true,
               percent: slPercent,
-              levelPow: dataAccount.mapLevelPow[symbol] || 0,
             };
-            if (dataAccount.mapLevelPow[symbol] === undefined) {
-              dataAccount.mapLevelPow[symbol] = 0;
-            }
             dataAccount.orders.push(newOrder);
             bot.sendMessage(
               chatId,
-              `Thực hiện lệnh ${typeOrder === "up" ? "LONG" : "SHORT"
+              `Thực hiện lệnh ${
+                typeOrder === "up" ? "LONG" : "SHORT"
               } ${buildLinkToSymbol(symbol)} tại giá ${price}`,
               { parse_mode: "HTML", disable_web_page_preview: true }
             );

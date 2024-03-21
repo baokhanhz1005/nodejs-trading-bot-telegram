@@ -1,8 +1,8 @@
-import { REWARD } from "../app/execute/ExecuteSMC/constant.js";
+import { REWARD, RR } from "../app/execute/ExecuteSMC/constant.js";
 import { buildLinkToSymbol, buildTimeStampToDate } from "../utils.js";
 import { checkInRange, isDownCandle, isUpCandle } from "./TypeCandle.js";
 
-export const detectTrendPrice = (listCandle) => {};
+export const detectTrendPrice = (listCandle) => { };
 
 export const handleByTrend = (listCandle, type) => {
   if (type === "up") {
@@ -16,7 +16,7 @@ export const isIntoRangePrice = (
   priceCheck,
   range = 0.5,
   typeRange
-) => {};
+) => { };
 
 export const getListSupportRestricted = (listCandle) => {
   const data = {
@@ -226,7 +226,7 @@ export const rateUpAndDown = (listCandle, position = 1, isCheck = true) => {
 };
 
 export const ForeCastMethod = (data) => {
-  const { candleStickData = [], method = {} } = data;
+  const { candleStickData = [], method = {}, isOtherMethod = false } = data;
 
   const { methodFn, config } = method;
 
@@ -245,6 +245,10 @@ export const ForeCastMethod = (data) => {
     cost: 0,
     countLong: 0,
     countShort: 0,
+    // orther method
+    levelPow: 0,
+    isLoseFullPow: false,
+    profit: 0,
   };
 
   if (rangeCandleInfo && candleStickData.length > rangeCandleInfo) {
@@ -253,7 +257,15 @@ export const ForeCastMethod = (data) => {
       listCandleInfo = candleStickData.slice(index, i);
       currentCandle = candleStickData[i - 1];
       index += 1;
-      handleData(listCandleInfo, currentCandle, dataForeCast, methodFn, symbol);
+      if (isOtherMethod) {
+        if (dataForeCast.levelPow > 8) {
+          dataForeCast.isLoseFullPow = true;
+          break;
+        };
+        handleOtherMethod(listCandleInfo, currentCandle, dataForeCast, methodFn, symbol);
+      } else {
+        handleData(listCandleInfo, currentCandle, dataForeCast, methodFn, symbol);
+      }
     }
   }
   return dataForeCast;
@@ -331,6 +343,98 @@ const handleData = (
         timeStamp,
         percent: slPercent,
         cost: (REWARD * 0.1) / slPercent,
+      };
+      dataForeCast.orderInfo = newOrder;
+      dataForeCast.countOrders += 1;
+      if (type === "up") {
+        dataForeCast.countLong += 1;
+      } else {
+        dataForeCast.countShort += 1;
+      }
+    }
+  }
+};
+
+const handleOtherMethod = (
+  listCandleInfo,
+  currentCandle,
+  dataForeCast,
+  methodFn,
+  symbol
+) => {
+  if (dataForeCast.orderInfo) {
+    const { sl, tp, type, timeStamp, percent, cost } = dataForeCast.orderInfo;
+    const maxPrice = currentCandle[2];
+    const minPrice = currentCandle[3];
+
+    if (type === "up" && minPrice <= sl) {
+      dataForeCast.loseOrder += 1;
+      dataForeCast.orderInfo = null;
+      dataForeCast.info = `${buildTimeStampToDate(
+        timeStamp
+      )} - ${buildLinkToSymbol(symbol)}\n`;
+      dataForeCast.percent += percent;
+      dataForeCast.count += 1;
+      dataForeCast.cost += cost;
+      dataForeCast.profit = dataForeCast.profit - cost - REWARD * Math.pow(2, dataForeCast.levelPow);
+      dataForeCast.levelPow += 1;
+    } else if (type === "down" && maxPrice >= sl) {
+      dataForeCast.loseOrder += 1;
+      dataForeCast.orderInfo = null;
+      dataForeCast.info = `${buildTimeStampToDate(
+        timeStamp
+      )} - ${buildLinkToSymbol(symbol)}\n`;
+      dataForeCast.percent += percent;
+      dataForeCast.count += 1;
+      dataForeCast.cost += cost;
+      dataForeCast.profit = dataForeCast.profit - cost - REWARD * Math.pow(2, dataForeCast.levelPow);
+      dataForeCast.levelPow += 1;
+    } else if (type === "up" && maxPrice >= tp) {
+      dataForeCast.winOrder += 1;
+      dataForeCast.orderInfo = null;
+      dataForeCast.percent += percent;
+      dataForeCast.count += 1;
+      dataForeCast.profit = dataForeCast.profit - cost + REWARD * RR * Math.pow(2, dataForeCast.levelPow);
+      dataForeCast.cost += cost;
+      dataForeCast.levelPow = 0;
+    } else if (type === "down" && minPrice <= tp) {
+      dataForeCast.winOrder += 1;
+      dataForeCast.orderInfo = null;
+      dataForeCast.percent += percent;
+      dataForeCast.count += 1;
+      dataForeCast.profit = dataForeCast.profit - cost + REWARD * RR * Math.pow(2, dataForeCast.levelPow);
+      dataForeCast.cost += cost;
+      dataForeCast.levelPow = 0;
+    }
+  } else {
+    listCandleInfo.pop();
+    // listCandleInfo.reverse();
+
+    const {
+      isAbleOrder,
+      type,
+      tpPercent = 1,
+      slPercent = 1,
+      timeStamp = "",
+    } = methodFn(listCandleInfo, symbol) || {};
+    // console.log(isAbleOrder);
+    let typeOrder = type;
+    if (isAbleOrder && (type === "up" || type === "down")) {
+      const price = currentCandle[1];
+      const ratePriceTP =
+        typeOrder === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
+      const ratePriceSL =
+        typeOrder === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
+      const newOrder = {
+        symbol,
+        entry: +price,
+        tp: ratePriceTP * price,
+        sl: ratePriceSL * price,
+        type: typeOrder,
+        isCheckMinMax: true,
+        timeStamp,
+        percent: slPercent,
+        cost: (REWARD * 0.1 * Math.pow(2, dataForeCast.levelPow)) / slPercent,
       };
       dataForeCast.orderInfo = newOrder;
       dataForeCast.countOrders += 1;

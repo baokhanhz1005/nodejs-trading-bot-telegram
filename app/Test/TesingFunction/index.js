@@ -23,6 +23,7 @@ import {
 import { checkAvailableOrderV2 } from "../../execute/ExecuBuySellRestricted/utils.js";
 import { checkAbleOrderSMC } from "../../execute/ExecuteSMC/utils.js";
 import { COST, REWARD, RR } from "../../execute/ExecuteSMC/constant.js";
+import { checkAbleOrderBySympleMethod } from "../../execute/ExecuteSympleMethod/utils.js";
 
 export const TestingFunction = async (payload) => {
   try {
@@ -32,6 +33,7 @@ export const TestingFunction = async (payload) => {
     const filePath = path.join("./", fileName);
     let dataCandle;
     let isCheckCandleHistory = false; // <<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>></>
+    let isOtherMethod = true;
     try {
       if (isCheckCandleHistory) {
         const dataStoraged = await fs.readFile(filePath, "utf-8");
@@ -71,22 +73,28 @@ export const TestingFunction = async (payload) => {
     let totalCost = 0;
     let totalLong = 0;
     let totalShort = 0;
-
+    // other method
+    let profitMethod = 0;
+    let levelPowMethod = 0;
+    let isLoseFullPowMethod = false;
+    let countLoseFullMethod = 0;
+    let stringSymbol = '';
+    let countLevelHigh = 0;
     if (listSymbols && listSymbols.length) {
       const promiseCandleData = dataCandle
         ? dataCandle
-        : listSymbols.map(async (token) => {
-            const { symbol, stickPrice } = token;
-            const params = {
-              data: {
-                symbol: symbol,
-                interval: timeLine,
-                limit: 1000, // 388 -- 676 -- 964
-              },
-            };
-            const res = await fetchApiGetCandleStickData(params);
-            return res;
-          });
+        : listSymbols.filter(each => true || ['PEOPLEUSDT'].includes(each.symbol)).map(async (token) => {
+          const { symbol, stickPrice } = token;
+          const params = {
+            data: {
+              symbol: symbol,
+              interval: timeLine,
+              limit: 1000, // 388 -- 676 -- 964
+            },
+          };
+          const res = await fetchApiGetCandleStickData(params);
+          return res;
+        });
 
       Promise.all(promiseCandleData).then(async (res) => {
         if (res.length) {
@@ -96,17 +104,19 @@ export const TestingFunction = async (payload) => {
           res.forEach((candleInfo, index) => {
             const { symbol: symbolCandle, data: candleStickData } = candleInfo;
 
-            if (candleStickData && candleStickData.length) {
+            if (candleStickData && candleStickData.length && candleStickData.slice(-1)[0][4] < 0.05) {
               const payload = {
                 candleStickData:
-                  candleStickData || candleStickData.slice(0, 700),
+                  candleStickData || candleStickData.slice(0, 388),
                 method: {
-                  methodFn: checkAbleOrderSMC,
+                  methodFn: checkAbleOrderBySympleMethod,
+                  // checkAbleOrderSMC,
                   config: {
                     rangeCandleInfo: 100,
                     symbol: symbolCandle,
                   },
                 },
+                isOtherMethod,
               };
               const {
                 countOrders,
@@ -119,6 +129,10 @@ export const TestingFunction = async (payload) => {
                 cost,
                 countLong,
                 countShort,
+                // other method
+                isLoseFullPow,
+                levelPow,
+                profit,
               } = ForeCastMethod(payload);
               R = R + (winOrder * RR - loseOrder);
               totalWin += winOrder;
@@ -127,6 +141,16 @@ export const TestingFunction = async (payload) => {
               totalCost += cost;
               totalLong += countLong;
               totalShort += countShort;
+              //other method
+              profitMethod += profit;
+              levelPowMethod = levelPow;
+              if (isLoseFullPow) {
+                countLoseFullMethod += 1;
+                stringSymbol += `${symbolCandle} `;
+              }
+              if (levelPow >= 5) {
+                countLevelHigh += 1;
+              }
               if (count) {
                 percentAvg += +percent / +count;
                 countSymbol += 1;
@@ -160,17 +184,25 @@ export const TestingFunction = async (payload) => {
               tempMess = [];
             }
           }
-          bot.sendMessage(
-            chatId,
-            `- Thu được ${R}R \n - Tổng số lệnh: ${totalOrder} với: \n     + ${totalWin} lệnh TP và ${totalLose} lệnh SL \n     + Tỷ lệ: ${(
-              (totalWin / totalOrder) *
-              100
-            ).toFixed(2)}%\n     + Profit: ${(R * REWARD - totalCost).toFixed(
-              2
-            )}\n     + Cost: ${
-              percentAvg / countSymbol
-            } - ${totalCost}\n     + Gồm: ${totalLong} LONG và ${totalShort} SHORT`
-          );
+          if (isOtherMethod) {
+            bot.sendMessage(
+              chatId,
+              `- Tổng số lệnh: ${totalOrder} với: \n- Thu được: ${profitMethod}$ 
+              \n- Số lệnh mắc lose liên tiếp: ${countLoseFullMethod} - LEVEL: ${countLevelHigh}\n ${stringSymbol}\n+ ${totalWin} lệnh TP và ${totalLose} lệnh SL \n 
+              `
+            );
+          } else {
+            bot.sendMessage(
+              chatId,
+              `- Thu được ${R}R \n c     + ${totalWin} lệnh TP và ${totalLose} lệnh SL \n     + Tỷ lệ: ${(
+                (totalWin / totalOrder) *
+                100
+              ).toFixed(2)}%\n     + Profit: ${(R * REWARD - totalCost).toFixed(
+                2
+              )}\n     + Cost: ${percentAvg / countSymbol
+              } - ${totalCost}\n     + Gồm: ${totalLong} LONG và ${totalShort} SHORT`
+            );
+          }
         }
       });
     }
