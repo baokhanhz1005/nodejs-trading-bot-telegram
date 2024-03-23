@@ -97,9 +97,9 @@ const checkPattern = (candleStickData, symbol) => {
                     isDownCandle(candle) ? candle[1] / candle[4] < 1.02 : true
                 );
 
-            const CONDITION_6__ = maxContinueDown < 5;
+            const CONDITION_6__ = maxContinueDown < 6;
 
-            const CONDITION_7__ = EstRR > 1.2;
+            const CONDITION_7__ = EstRR > 0.8;
 
             // --------CONDITION----------//
 
@@ -108,7 +108,7 @@ const checkPattern = (candleStickData, symbol) => {
                 // CONDITION_3__ &&
                 // CONDITION_4__ &&
                 // CONDITION_5__ &&
-                // CONDITION_6__ &&
+                CONDITION_6__ &&
                 CONDITION_7__ &&
                 lastestCandle[4] < LIMIT_ORDER
             ) {
@@ -171,18 +171,18 @@ const checkPattern = (candleStickData, symbol) => {
                     (lastestCandle[1] - lastestCandle[4]) <
                     0.95
                     : lastestCandle[2] / lastestCandle[3] > 1.015;
-            const CONDITION_6__ = maxContinueUp <= 4;
+            const CONDITION_6__ = maxContinueUp < 6;
 
             const CONDITION_7__ = lastestCandle[2] / lastestCandle[3] >= 1.005;
 
-            const CONDITION_8__ = EstRR > 1.2;
+            const CONDITION_8__ = EstRR > 0.8;
 
             if (
                 // CONDITION_1__ &&
                 // CONDITION_2__ &&
                 // CONDITION_4__ &&
                 // CONDITION_5__ &&
-                // CONDITION_6__ &&
+                CONDITION_6__ &&
                 // CONDITION_7__ &&
                 CONDITION_8__ &&
                 lastestCandle[4] < LIMIT_ORDER
