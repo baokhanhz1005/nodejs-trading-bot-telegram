@@ -28,6 +28,7 @@ export const COMMAND = {
   ORDER: "order",
   EXECUTE_BIG_PRICE: "execute-big-price",
   EXECUTE_BIG_PRICE_V2: "execute-big-price-v2",
+  EXECUTE_SIMPLE_METHOD: "execute-simple-method",
   TEST_FUNCTION: "test-function",
 };
 

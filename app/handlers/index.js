@@ -10,9 +10,10 @@ import { TrackingBigPriceTrend } from "./TrackingBigPriceTrend/index.js";
 import { TrackingEngulfing } from "./TrackingEngulfing/index.js";
 import { TrackingPriceSafety } from "./TrackingPriceSafety/index.js";
 import { ExecuteBigPriceTrendV2 } from "../execute/ExecuteBigPriceTrendV2/index.js";
+import { ExecuteSympleMethod } from "../execute/ExecuteSympleMethod/index.js";
 
 export const handleRunBot = async (payload) => {
-  const { bot = () => {}, chatId, command } = payload;
+  const { bot = () => { }, chatId, command } = payload;
   const [textCommand, timeLine] = command.split(" ");
   const newPayload = {
     ...payload,
@@ -44,16 +45,21 @@ export const handleRunBot = async (payload) => {
     case COMMAND.ORDER:
       OrderMarket({});
       break;
-    case COMMAND.EXECUTE_BIG_PRICE:
-      ExecuteBigPriceTrend(newPayload);
-      break;
     case COMMAND.TEST_FUNCTION:
       TestingFunction(newPayload);
+      break;
+    case COMMAND.EXECUTE_BIG_PRICE:
+      ExecuteBigPriceTrend(newPayload);
       break;
 
     case COMMAND.EXECUTE_BIG_PRICE_V2:
       ExecuteBigPriceTrendV2(newPayload);
       break;
+
+    case COMMAND.EXECUTE_SIMPLE_METHOD:
+      ExecuteSympleMethod(newPayload);
+      break;
+
     default:
       await bot.sendMessage(chatId, MESSAGE.NO_COMMAND);
   }

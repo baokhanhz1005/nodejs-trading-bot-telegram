@@ -2,13 +2,17 @@ import OrderServices from "../../../services/Order.js";
 import { getQuantity } from "../utils.js";
 import { CONFIG_EXEC_BIG_PRICE, TEST_CONFIG } from "../../../constant.js";
 import { TYPE_MARKET } from "../contants.js";
+import { REWARD } from "../../execute/ExecuteSMC/constant.js";
 
 export const OrderMarket = async (payload) => {
-  const { symbol, entry, type, stickPrice } = payload;
+  const { symbol, entry, type, stickPrice, tp, sl, levelPow } = payload;
 
   // Thực thi 1 lệnh market và lấy orderId
   const side = type === "up" ? "BUY" : "SELL";
-  const quantity = getQuantity(entry);
+  const volume = (REWARD * Math.pow(2, levelPow)) * 100 / sl;
+  const quantity = getQuantity(entry, volume);
+
+  if (!quantity) return;
   const params = {
     data: {
       symbol,
@@ -26,12 +30,12 @@ export const OrderMarket = async (payload) => {
   if (resMarket && resMarket.data && resMarket.data.orderId) {
     const ratePriceTP =
       type === "up"
-        ? 1 + CONFIG_EXEC_BIG_PRICE.tpPercent / 100
-        : 1 - CONFIG_EXEC_BIG_PRICE.tpPercent / 100;
+        ? 1 + tp / 100
+        : 1 - tp / 100;
     const ratePriceSL =
       type === "up"
-        ? 1 - CONFIG_EXEC_BIG_PRICE.slPercent / 100
-        : 1 + CONFIG_EXEC_BIG_PRICE.slPercent / 100;
+        ? 1 - sl / 100
+        : 1 + sl / 100;
 
     [TYPE_MARKET.TAKE_PROFIT_MARKET, TYPE_MARKET.STOP_MARKET].forEach(
       async (type) => {

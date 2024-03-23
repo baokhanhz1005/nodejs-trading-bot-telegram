@@ -82,118 +82,122 @@ export const Test = async (payload) => {
     chatId,
     `Tài khoản hiện tại của bạn là ${dataAccount.account}$`
   );
-  const handleData = (listSymbols) => {
+  const handleData = async (listSymbols) => {
     if (dataAccount.orders.length) {
-      dataAccount.orders.forEach(async (order, index) => {
-        const { symbol, type, tp, sl, isCheckMinMax, startTime, percent, levelPow } =
-          order;
-        const params = {
-          data: {
-            symbol: symbol,
-            interval: timeLine,
-            limit: 2,
-          },
+      try {
+        for (const order of dataAccount.orders) {
+          const { symbol, type, tp, sl, isCheckMinMax, startTime, percent, levelPow } =
+            order;
+          const params = {
+            data: {
+              symbol: symbol,
+              interval: timeLine,
+              limit: 2,
+            },
+          };
+
+          if (isCheckMinMax) {
+            const endTime = new Date();
+            params.data.interval = "1m";
+            params.data.limit = 1000;
+            params.data.startTime = startTime;
+            params.data.endTime = endTime.getTime();
+          }
+
+          const { data: candleStickData } = await fetchApiGetCandleStickData(
+            params
+          );
+          if (candleStickData && candleStickData.length) {
+            const [candleCheck, lastestCandle] = candleStickData;
+
+            const maxPrice = isCheckMinMax
+              ? Math.max(...candleStickData.map((price) => parseFloat(price[2])))
+              : candleCheck[2];
+            const minPrice = isCheckMinMax
+              ? Math.min(...candleStickData.map((price) => parseFloat(price[3])))
+              : candleCheck[3];
+            if (dataAccount.orders[index]) {
+              dataAccount.orders[index].isCheckMinMax = false;
+            }
+
+            if (type === "up" && minPrice <= sl) {
+              dataAccount.account =
+                dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+              dataAccount.orders = dataAccount.orders.filter(
+                (order) => order.symbol !== symbol
+              );
+              countSL += 1;
+              if (dataAccount.mapLevelPow[symbol] === 8) {
+                dataAccount.mapLevelPow[symbol] = 0;
+                bot.sendMessage(
+                  chatId,
+                  `### ${symbol} dính lệnh lose liên tục`
+                );
+              } else {
+                dataAccount.mapLevelPow[symbol] += 1;
+              }
+              bot.sendMessage(
+                chatId,
+                `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
+                } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol}`,
+                { parse_mode: "HTML", disable_web_page_preview: true }
+              );
+            } else if (type === "down" && maxPrice >= sl) {
+              dataAccount.account =
+                dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+              dataAccount.orders = dataAccount.orders.filter(
+                (order) => order.symbol !== symbol
+              );
+              if (dataAccount.mapLevelPow[symbol] === 8) {
+                dataAccount.mapLevelPow[symbol] = 0;
+                bot.sendMessage(
+                  chatId,
+                  `### ${symbol} dính lệnh lose liên tục`
+                );
+              } else {
+                dataAccount.mapLevelPow[symbol] += 1;
+              }
+              countSL += 1;
+              bot.sendMessage(
+                chatId,
+                `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
+                } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol}`,
+                { parse_mode: "HTML", disable_web_page_preview: true }
+              );
+            } else if (type === "up" && maxPrice >= tp) {
+              dataAccount.account =
+                dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+              dataAccount.orders = dataAccount.orders.filter(
+                (order) => order.symbol !== symbol
+              );
+              dataAccount.mapLevelPow[symbol] = 0;
+              countTP += 1;
+              bot.sendMessage(
+                chatId,
+                `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
+                } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol}`,
+                { parse_mode: "HTML", disable_web_page_preview: true }
+              );
+            } else if (type === "down" && minPrice <= tp) {
+              dataAccount.account =
+                dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+              dataAccount.orders = dataAccount.orders.filter(
+                (order) => order.symbol !== symbol
+              );
+              dataAccount.mapLevelPow[symbol] = 0;
+              countTP += 1;
+              bot.sendMessage(
+                chatId,
+                `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
+                } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol}`,
+                { parse_mode: "HTML", disable_web_page_preview: true }
+              );
+            }
+          }
         };
-
-        if (isCheckMinMax) {
-          const endTime = new Date();
-          params.data.interval = "1m";
-          params.data.limit = 1000;
-          params.data.startTime = startTime;
-          params.data.endTime = endTime.getTime();
-        }
-
-        const { data: candleStickData } = await fetchApiGetCandleStickData(
-          params
-        );
-        if (candleStickData && candleStickData.length) {
-          const [candleCheck, lastestCandle] = candleStickData;
-
-          const maxPrice = isCheckMinMax
-            ? Math.max(...candleStickData.map((price) => parseFloat(price[2])))
-            : candleCheck[2];
-          const minPrice = isCheckMinMax
-            ? Math.min(...candleStickData.map((price) => parseFloat(price[3])))
-            : candleCheck[3];
-          if (dataAccount.orders[index]) {
-            dataAccount.orders[index].isCheckMinMax = false;
-          }
-
-          if (type === "up" && minPrice <= sl) {
-            dataAccount.account =
-              dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-            dataAccount.orders = dataAccount.orders.filter(
-              (order) => order.symbol !== symbol
-            );
-            countSL += 1;
-            if (dataAccount.mapLevelPow[symbol] === 8) {
-              dataAccount.mapLevelPow[symbol] = 0;
-              bot.sendMessage(
-                chatId,
-                `### ${symbol} dính lệnh lose liên tục`
-              );
-            } else {
-              dataAccount.mapLevelPow[symbol] += 1;
-            }
-            bot.sendMessage(
-              chatId,
-              `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
-              } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol}`,
-              { parse_mode: "HTML", disable_web_page_preview: true }
-            );
-          } else if (type === "down" && maxPrice >= sl) {
-            dataAccount.account =
-              dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-            dataAccount.orders = dataAccount.orders.filter(
-              (order) => order.symbol !== symbol
-            );
-            if (dataAccount.mapLevelPow[symbol] === 8) {
-              dataAccount.mapLevelPow[symbol] = 0;
-              bot.sendMessage(
-                chatId,
-                `### ${symbol} dính lệnh lose liên tục`
-              );
-            } else {
-              dataAccount.mapLevelPow[symbol] += 1;
-            }
-            countSL += 1;
-            bot.sendMessage(
-              chatId,
-              `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
-              } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol}`,
-              { parse_mode: "HTML", disable_web_page_preview: true }
-            );
-          } else if (type === "up" && maxPrice >= tp) {
-            dataAccount.account =
-              dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-            dataAccount.orders = dataAccount.orders.filter(
-              (order) => order.symbol !== symbol
-            );
-            dataAccount.mapLevelPow[symbol] = 0;
-            countTP += 1;
-            bot.sendMessage(
-              chatId,
-              `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
-              } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol}`,
-              { parse_mode: "HTML", disable_web_page_preview: true }
-            );
-          } else if (type === "down" && minPrice <= tp) {
-            dataAccount.account =
-              dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-            dataAccount.orders = dataAccount.orders.filter(
-              (order) => order.symbol !== symbol
-            );
-            dataAccount.mapLevelPow[symbol] = 0;
-            countTP += 1;
-            bot.sendMessage(
-              chatId,
-              `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
-              } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol}`,
-              { parse_mode: "HTML", disable_web_page_preview: true }
-            );
-          }
-        }
-      });
+      } catch (error) {
+        console.error("Error handling data:", error);
+      }
     }
 
     bot.sendMessage(
