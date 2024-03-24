@@ -109,8 +109,8 @@ const checkPattern = (candleStickData, symbol) => {
                 // CONDITION_4__ &&
                 // CONDITION_5__ &&
                 CONDITION_6__ &&
-                CONDITION_7__ &&
-                lastestCandle[4] < LIMIT_ORDER
+                CONDITION_7__
+                // lastestCandle[4] < LIMIT_ORDER
             ) {
                 slPercent = EstRR;
                 type = "up";
@@ -184,8 +184,8 @@ const checkPattern = (candleStickData, symbol) => {
                 // CONDITION_5__ &&
                 CONDITION_6__ &&
                 // CONDITION_7__ &&
-                CONDITION_8__ &&
-                lastestCandle[4] < LIMIT_ORDER
+                CONDITION_8__
+                // lastestCandle[4] < LIMIT_ORDER
             ) {
                 slPercent = EstRR;
                 type = "down";

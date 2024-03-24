@@ -260,6 +260,7 @@ export const ForeCastMethod = (data) => {
       if (isOtherMethod) {
         if (dataForeCast.levelPow > 8) {
           dataForeCast.isLoseFullPow = true;
+          dataForeCast.levelPow = 0;
           break;
         };
         handleOtherMethod(listCandleInfo, currentCandle, dataForeCast, methodFn, symbol);

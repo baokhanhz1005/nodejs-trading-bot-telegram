@@ -203,7 +203,7 @@ export const ExecuteSympleMethod = async (payload) => {
             const { totalWalletBalance: accountBalance } = resAccount.data;
             bot.sendMessage(
                 chatId,
-                `- Tài khoản hiện tại của bạn là: ${+accountBalance}\n- Có ${countTP} lệnh đạt TP    -    ${countSL} lệnh chạm SL\n- Hiện tại có ${Object.keys(tempMapListOrders).length} lệnh đang chạy...<${listSymbolWithCondition.length}>`
+                `📊📊📊📊\n- Tài khoản hiện tại của bạn là: ${+accountBalance}\n- Có ${countTP} lệnh đạt TP    -    ${countSL} lệnh chạm SL\n- Hiện tại có ${Object.keys(tempMapListOrders).length} lệnh đang chạy...<${listSymbolWithCondition.length}>`
             );
         }
 
@@ -248,7 +248,7 @@ export const ExecuteSympleMethod = async (payload) => {
 
                 bot.sendMessage(
                     chatId,
-                    `Thực hiện lệnh ${type === "up" ? "LONG" : "SHORT"
+                    `☘☘☘☘\n Thực hiện lệnh ${type === "up" ? "LONG" : "SHORT"
                     } ${symbol}  tại giá ${price} \n - Open chart: ${buildLinkToSymbol(
                         symbol
                     )} - L${levelPow}`,
