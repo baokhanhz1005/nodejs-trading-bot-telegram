@@ -31,16 +31,16 @@ export const checkPinbar = (candle, typeCheck) => {
       Math.abs(candle[LOW] - candle[OPEN]) /
         Math.abs(candle[HIGH] - candle[CLOSE]) >=
         2 &&
-      candle[HIGH] / candle[LOW] >= 1.0065;
+      candle[HIGH] / candle[LOW] >= 1.01;
   } else if (typeCheck === "up") {
     isPinbarCandle =
       Math.abs(candle[LOW] - candle[CLOSE]) /
         Math.abs(candle[OPEN] - candle[CLOSE]) >=
-        1.7 &&
+        3 &&
       Math.abs(candle[LOW] - candle[CLOSE]) /
         Math.abs(candle[HIGH] - candle[OPEN]) >=
-        2 &&
-      candle[HIGH] / candle[LOW] >= 1.0065;
+        5 &&
+      candle[HIGH] / candle[LOW] >= 1.01;
   } else if (typeCheck === "down" && isUp) {
     isPinbarCandle =
       Math.abs(candle[HIGH] - candle[CLOSE]) /
