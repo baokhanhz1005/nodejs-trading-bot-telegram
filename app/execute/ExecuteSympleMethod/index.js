@@ -90,29 +90,40 @@ export const ExecuteSympleMethod = async (payload) => {
                         const isTakeProfit = typeOrder === TYPE_MARKET.STOP_MARKET;
 
                         Promise.all(listPromiseDelete).then(res => {
-                            // send mess thông báo đã TP/SL lệnh
-                            if (isTakeProfit) {
-                                countTP += 1;
-                                mapLevelPow[symbol] = 0;
-                            } else {
-                                countSL += 1;
-                                if (mapLevelPow[symbol] === 8) {
-                                    mapLevelPow[symbol] = 0;
-                                } else {
-                                    mapLevelPow[symbol] += 1;
+                            if (res && res.length) {
+                                for (const response of res) {
+                                    if (response.status === 200) {
+                                        // send mess thông báo đã TP/SL lệnh
+                                        if (isTakeProfit) {
+                                            countTP += 1;
+                                            mapLevelPow[symbol] = 0;
+                                        } else {
+                                            countSL += 1;
+                                            if (mapLevelPow[symbol] === 8) {
+                                                mapLevelPow[symbol] = 0;
+                                            } else {
+                                                mapLevelPow[symbol] += 1;
+                                            }
+                                        }
+                                        bot.sendMessage(
+                                            chatId,
+                                            buildMessageTPSL(isTakeProfit, symbol, side, tempMapListOrders),
+                                            {
+                                                parse_mode: "HTML",
+                                                disable_web_page_preview: true,
+                                            }
+                                        );
+
+                                        delete mapListOrders[symbol];
+                                        delete tempMapListOrders[symbol];
+                                    } else {
+                                        bot.sendMessage(
+                                            chatId,
+                                            `⚠⚠⚠⚠\nKhông thể xóa symbol ${symbol}. Vui lòng kiểm tra lại`
+                                        );
+                                    }
                                 }
                             }
-                            bot.sendMessage(
-                                chatId,
-                                buildMessageTPSL(isTakeProfit, symbol, side, tempMapListOrders),
-                                {
-                                    parse_mode: "HTML",
-                                    disable_web_page_preview: true,
-                                }
-                            );
-
-                            delete mapListOrders[symbol];
-                            delete tempMapListOrders[symbol];
 
                         }).catch(err => {
                             console.error(err);
@@ -203,7 +214,7 @@ export const ExecuteSympleMethod = async (payload) => {
             const { totalWalletBalance: accountBalance } = resAccount.data;
             bot.sendMessage(
                 chatId,
-                `📊📊📊📊\n- Tài khoản hiện tại của bạn là: ${+accountBalance}\n- Có ${countTP} lệnh đạt TP    -    ${countSL} lệnh chạm SL\n- Hiện tại có ${Object.keys(tempMapListOrders).length} lệnh đang chạy...<${listSymbolWithCondition.length}>`
+                `📊📊📊📊\n- Tài khoản hiện tại của bạn là: ${+accountBalance}\n- Có ${countTP} lệnh đạt TP ✅\n- ${countSL} lệnh chạm SL ❌\n- Hiện tại có ${Object.keys(tempMapListOrders).length} lệnh đang chạy...\n♻${listSymbolWithCondition.length}♻`
             );
         }
 
@@ -248,7 +259,7 @@ export const ExecuteSympleMethod = async (payload) => {
 
                 bot.sendMessage(
                     chatId,
-                    `☘☘☘☘\n Thực hiện lệnh ${type === "up" ? "LONG" : "SHORT"
+                    `${type === "up" ? '☘☘☘☘' : '🍁🍁🍁🍁'}\n Thực hiện lệnh ${type === "up" ? "LONG" : "SHORT"
                     } ${symbol}  tại giá ${price} \n - Open chart: ${buildLinkToSymbol(
                         symbol
                     )} - L${levelPow}`,

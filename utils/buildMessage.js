@@ -5,7 +5,7 @@ export const buildMessageTPSL = (
   tempMapListOrders
 ) => {
   const textStyle = {
-    content: "😍 TP",
+    content: "😍😍 TP",
     color: "yellowgreen",
     type: type === "SELL" ? "LONG" : "SHORT",
   };
@@ -15,7 +15,7 @@ export const buildMessageTPSL = (
 
   if (!isTakeProfit) {
     // ===> SL
-    textStyle.content = "😭 SL";
+    textStyle.content = "😭😭 SL";
     textStyle.color = "red";
   }
   let moreInfo = "";
