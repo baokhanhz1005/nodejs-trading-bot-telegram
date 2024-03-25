@@ -101,8 +101,10 @@ export const ExecuteSympleMethod = async (payload) => {
                                             countSL += 1;
                                             if (mapLevelPow[symbol] === 8) {
                                                 mapLevelPow[symbol] = 0;
+                                            } else if (isNaN(mapLevelPow[symbol])) {
+                                                mapLevelPow[symbol] = 1;
                                             } else {
-                                                mapLevelPow[symbol] += 1;
+                                                mapLevelPow[symbol] = +1
                                             }
                                         }
                                         bot.sendMessage(
@@ -214,7 +216,7 @@ export const ExecuteSympleMethod = async (payload) => {
             const { totalWalletBalance: accountBalance } = resAccount.data;
             bot.sendMessage(
                 chatId,
-                `📊📊📊📊\n- Tài khoản hiện tại của bạn là: ${+accountBalance}\n- Có ${countTP} lệnh đạt TP ✅\n- ${countSL} lệnh chạm SL ❌\n- Hiện tại có ${Object.keys(tempMapListOrders).length} lệnh đang chạy...\n♻${listSymbolWithCondition.length}♻`
+                `📊📊📊📊\n- Tài khoản hiện tại của bạn là: ${+accountBalance}\n- Có ${countTP} lệnh đạt TP ✅\n- Có ${countSL} lệnh chạm SL ❌\n- Hiện tại có ${Object.keys(tempMapListOrders).length} lệnh đang chạy...\n♻${listSymbolWithCondition.length}`
             );
         }
 
