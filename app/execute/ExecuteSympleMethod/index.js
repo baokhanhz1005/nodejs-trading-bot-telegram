@@ -104,7 +104,7 @@ export const ExecuteSympleMethod = async (payload) => {
                                             } else if (isNaN(mapLevelPow[symbol])) {
                                                 mapLevelPow[symbol] = 1;
                                             } else {
-                                                mapLevelPow[symbol] = +1
+                                                mapLevelPow[symbol] += 1;
                                             }
                                         }
                                         bot.sendMessage(
