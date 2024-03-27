@@ -249,6 +249,7 @@ export const ForeCastMethod = (data) => {
     levelPow: 0,
     isLoseFullPow: false,
     profit: 0,
+    maxLevelPow: 0,
   };
 
   if (rangeCandleInfo && candleStickData.length > rangeCandleInfo) {
@@ -258,6 +259,9 @@ export const ForeCastMethod = (data) => {
       currentCandle = candleStickData[i - 1];
       index += 1;
       if (isOtherMethod) {
+        if (dataForeCast.maxLevelPow < dataForeCast.levelPow) {
+          dataForeCast.maxLevelPow = dataForeCast.levelPow;
+        }
         if (dataForeCast.levelPow > 8) {
           dataForeCast.isLoseFullPow = true;
           dataForeCast.levelPow = 0;

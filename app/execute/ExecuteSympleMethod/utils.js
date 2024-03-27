@@ -84,7 +84,7 @@ const checkPattern = (candleStickData, symbol) => {
             const EstRR = (lastestCandle[4] / minRange50 - 1) * 100 * 1.2;
 
             const CONDITION_6__ = maxContinueDown < 6;
-            const CONDITION_7__ = EstRR > 0.8;
+            const CONDITION_7__ = EstRR > 0.8 && EstRR < 2.5;
 
             if ( CONDITION_6__ && CONDITION_7__ ) {
                 slPercent = EstRR;
@@ -92,9 +92,9 @@ const checkPattern = (candleStickData, symbol) => {
                 isAllowOrder = true;
                 timeStamp = lastestCandle[0];
             }
-        } else if (true && maxRange45 < lastestCandle[2]) {
-            const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.5;
-            const CONDITION_2__ = EstRR > 1;
+        } else if (true && maxRange45 * 1.0015 < lastestCandle[2]) {
+            const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.85;
+            const CONDITION_2__ = EstRR > 1.2;
             if ( CONDITION_2__ ) {
                 slPercent = EstRR;
                 type = "up";
@@ -117,7 +117,7 @@ const checkPattern = (candleStickData, symbol) => {
         if (true && maxRange50 * 0.999 < lastestCandle[2]) {
             const EstRR = (maxRange50 / lastestCandle[4] - 1) * 100 * 1.2;
             const CONDITION_6__ = maxContinueUp < 6;
-            const CONDITION_8__ = EstRR > 0.8;
+            const CONDITION_8__ = EstRR > 0.8 && EstRR < 2.5;
 
             if ( CONDITION_6__ && CONDITION_8__ ) {
                 slPercent = EstRR;
@@ -125,9 +125,9 @@ const checkPattern = (candleStickData, symbol) => {
                 isAllowOrder = true;
                 timeStamp = lastestCandle[0];
             }
-        } else if (true && minRange45 > lastestCandle[3]) {
-            const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.5;
-            const CONDITION_1__ = EstRR > 1;
+        } else if (true && minRange45 * 0.9985 > lastestCandle[3]) {
+            const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.85;
+            const CONDITION_1__ = EstRR > 1.2;
             if (CONDITION_1__) {
                 slPercent = EstRR;
                 type = "down";

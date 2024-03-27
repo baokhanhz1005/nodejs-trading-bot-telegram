@@ -24,6 +24,7 @@ import { checkAvailableOrderV2 } from "../../execute/ExecuBuySellRestricted/util
 import { checkAbleOrderSMC } from "../../execute/ExecuteSMC/utils.js";
 import { COST, REWARD, RR } from "../../execute/ExecuteSMC/constant.js";
 import { checkAbleOrderBySympleMethod } from "../../execute/ExecuteSympleMethod/utils.js";
+import { isCheckCandleHistory, isOtherMethod, isTotalOrder } from "./constants.js";
 
 export const TestingFunction = async (payload) => {
   try {
@@ -32,8 +33,6 @@ export const TestingFunction = async (payload) => {
     const fileName = "DATA_CANDLE.json";
     const filePath = path.join("./", fileName);
     let dataCandle;
-    let isCheckCandleHistory = false; // <<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>></>
-    let isOtherMethod = true;
     try {
       if (isCheckCandleHistory) {
         const dataStoraged = await fs.readFile(filePath, "utf-8");
@@ -80,6 +79,7 @@ export const TestingFunction = async (payload) => {
     let countLoseFullMethod = 0;
     let stringSymbol = '';
     let countLevelHigh = 0;
+    const mapMaxLevelPow = {};
     if (listSymbols && listSymbols.length) {
       const promiseCandleData = dataCandle
         ? dataCandle
@@ -104,10 +104,10 @@ export const TestingFunction = async (payload) => {
           res.forEach((candleInfo, index) => {
             const { symbol: symbolCandle, data: candleStickData } = candleInfo;
 
-            if (candleStickData && candleStickData.length && candleStickData.slice(-1)[0][4] < 0.05) {
+            if (candleStickData && candleStickData.length && candleStickData.slice(-1)[0][4] < 0.1) {
               const payload = {
                 candleStickData:
-                  candleStickData || candleStickData.slice(0, 388),
+                  candleStickData || candleStickData.slice(-388),
                 method: {
                   methodFn: checkAbleOrderBySympleMethod,
                   // checkAbleOrderSMC,
@@ -133,6 +133,7 @@ export const TestingFunction = async (payload) => {
                 isLoseFullPow,
                 levelPow,
                 profit,
+                maxLevelPow,
               } = ForeCastMethod(payload);
               R = R + (winOrder * RR - loseOrder);
               totalWin += winOrder;
@@ -150,6 +151,9 @@ export const TestingFunction = async (payload) => {
               }
               if (levelPow >= 5) {
                 countLevelHigh += 1;
+              }
+              if (maxLevelPow > 0 && (isTotalOrder || levelPow < maxLevelPow)) {
+                mapMaxLevelPow[maxLevelPow] = mapMaxLevelPow[maxLevelPow] !== undefined ? mapMaxLevelPow[maxLevelPow] + 1 : 1;
               }
               if (count) {
                 percentAvg += +percent / +count;
@@ -188,7 +192,8 @@ export const TestingFunction = async (payload) => {
             bot.sendMessage(
               chatId,
               `- Tổng số lệnh: ${totalOrder} với: \n- Thu được: ${profitMethod}$ 
-              \n- Số lệnh mắc lose liên tiếp: ${countLoseFullMethod} - LEVEL: ${countLevelHigh}\n ${stringSymbol}\n+ ${totalWin} lệnh TP và ${totalLose} lệnh SL \n 
+              \n- Số lệnh mắc lose liên tiếp: ${countLoseFullMethod} - LEVEL: ${countLevelHigh}\n ${stringSymbol}\n+ ${totalWin} lệnh TP và ${totalLose} lệnh SL
+              \n ${Object.keys(mapMaxLevelPow).map(key => `** L${key}: ${mapMaxLevelPow[key]}`).join('\n')} 
               `
             );
           } else {
