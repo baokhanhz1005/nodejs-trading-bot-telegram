@@ -24,7 +24,7 @@ import { checkAvailableOrderV2 } from "../../execute/ExecuBuySellRestricted/util
 import { checkAbleOrderSMC } from "../../execute/ExecuteSMC/utils.js";
 import { COST, REWARD, RR } from "../../execute/ExecuteSMC/constant.js";
 import { checkAbleOrderBySympleMethod } from "../../execute/ExecuteSympleMethod/utils.js";
-import { isCheckCandleHistory, isOtherMethod, isTotalOrder } from "./constants.js";
+import { isCheckCandleHistory, isOtherMethod } from "./constants.js";
 
 export const TestingFunction = async (payload) => {
   try {
@@ -79,7 +79,8 @@ export const TestingFunction = async (payload) => {
     let countLoseFullMethod = 0;
     let stringSymbol = '';
     let countLevelHigh = 0;
-    const mapMaxLevelPow = {};
+    const mapMaxLevelPow1 = {};
+    const mapMaxLevelPow2 = {};
     if (listSymbols && listSymbols.length) {
       const promiseCandleData = dataCandle
         ? dataCandle
@@ -104,7 +105,7 @@ export const TestingFunction = async (payload) => {
           res.forEach((candleInfo, index) => {
             const { symbol: symbolCandle, data: candleStickData } = candleInfo;
 
-            if (candleStickData && candleStickData.length && candleStickData.slice(-1)[0][4] < 0.1) {
+            if (candleStickData && candleStickData.length && (false || candleStickData.slice(-1)[0][4] < 0.2)) {
               const payload = {
                 candleStickData:
                   candleStickData || candleStickData.slice(-388),
@@ -152,8 +153,11 @@ export const TestingFunction = async (payload) => {
               if (levelPow >= 5) {
                 countLevelHigh += 1;
               }
-              if (maxLevelPow > 0 && (isTotalOrder || levelPow < maxLevelPow)) {
-                mapMaxLevelPow[maxLevelPow] = mapMaxLevelPow[maxLevelPow] !== undefined ? mapMaxLevelPow[maxLevelPow] + 1 : 1;
+              if (maxLevelPow > 0) {
+                mapMaxLevelPow1[maxLevelPow] = mapMaxLevelPow1[maxLevelPow] !== undefined ? mapMaxLevelPow1[maxLevelPow] + 1 : 1;
+              }
+              if (maxLevelPow > 0 && levelPow < maxLevelPow) {
+                mapMaxLevelPow2[maxLevelPow] = mapMaxLevelPow2[maxLevelPow] !== undefined ? mapMaxLevelPow2[maxLevelPow] + 1 : 1;
               }
               if (count) {
                 percentAvg += +percent / +count;
@@ -193,7 +197,9 @@ export const TestingFunction = async (payload) => {
               chatId,
               `- Tổng số lệnh: ${totalOrder} với: \n- Thu được: ${profitMethod}$ 
               \n- Số lệnh mắc lose liên tiếp: ${countLoseFullMethod} - LEVEL: ${countLevelHigh}\n ${stringSymbol}\n+ ${totalWin} lệnh TP và ${totalLose} lệnh SL
-              \n ${Object.keys(mapMaxLevelPow).map(key => `** L${key}: ${mapMaxLevelPow[key]}`).join('\n')} 
+              \n ${Object.keys(mapMaxLevelPow1).map(key => `** L${key}: ${mapMaxLevelPow1[key]}`).join('\n')}
+              \n =========================
+              \n ${Object.keys(mapMaxLevelPow2).map(key => `** L${key}: ${mapMaxLevelPow2[key]}`).join('\n')} 
               `
             );
           } else {
