@@ -11,7 +11,6 @@ import { TrackingEngulfing } from "./TrackingEngulfing/index.js";
 import { TrackingPriceSafety } from "./TrackingPriceSafety/index.js";
 import { ExecuteBigPriceTrendV2 } from "../execute/ExecuteBigPriceTrendV2/index.js";
 import { ExecuteSympleMethod } from "../execute/ExecuteSympleMethod/index.js";
-import { MachineLearningTrading } from "../Test/TesingFunction/MachineLearningTrading.js";
 
 export const handleRunBot = async (payload) => {
   const { bot = () => { }, chatId, command } = payload;
@@ -48,10 +47,6 @@ export const handleRunBot = async (payload) => {
       break;
     case COMMAND.TEST_FUNCTION:
       TestingFunction(newPayload);
-      break;
-
-    case COMMAND.MACHINE:
-      MachineLearningTrading(newPayload);
       break;
 
     case COMMAND.EXECUTE_BIG_PRICE:
