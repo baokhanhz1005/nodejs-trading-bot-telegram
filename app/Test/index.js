@@ -31,6 +31,10 @@ export const Test = async (payload) => {
   let countSL = 0;
   let payloadAccount;
 
+  let countRound = 0;
+  let limitResetPow = 7;
+  let balancePerRound = 0;
+  let symbolWithCondition = []
   try {
     payloadAccount = TEST_CONFIG;
     // const dataStoraged = await fs.readFile(filePath, "utf-8");
@@ -83,221 +87,300 @@ export const Test = async (payload) => {
     `Tài khoản hiện tại của bạn là ${dataAccount.account}$`
   );
   const handleData = async (listSymbols) => {
-    if (dataAccount.orders.length) {
-      try {
-        for (const index in dataAccount.orders) {
-          const order = dataAccount.orders[index];
-          const { symbol, type, tp, sl, isCheckMinMax, startTime, percent, levelPow } =
-            order;
+    const timeMinute = new Date().getMinutes();
+    const isHasTrackingData = timeMinute % 5 === 0;
+
+    if (!isHasTrackingData) {
+      if (dataAccount.orders.length) {
+        try {
+          const listPromiseResult = [];
+          for (const index in dataAccount.orders) {
+            const order = dataAccount.orders[index];
+
+            if (!order) continue;
+            const { symbol, type, tp, sl, isCheckMinMax, startTime, percent, levelPow } =
+              order;
+            const params = {
+              data: {
+                symbol: symbol,
+                interval: timeLine,
+                limit: 2,
+              },
+            };
+
+            const res = await fetchApiGetCandleStickData(
+              params
+            );
+
+            listPromiseResult.push(res);
+          };
+
+          Promise.all(listPromiseResult).then(res => {
+            if (res.length) {
+              res.forEach(candleInfo => {
+                const { data: candleStickData, symbol: symbolCandle } = candleInfo;
+                const order = dataAccount.orders.find(each => each.symbol === symbolCandle);
+                const { symbol, type, tp, sl, isCheckMinMax, startTime, percent, levelPow } = order;
+
+                if (candleStickData && candleStickData.length) {
+                  const [candleCheck, lastestCandle] = candleStickData;
+
+                  const maxPrice = lastestCandle[2];
+                  const minPrice = lastestCandle[3];
+
+                  if (type === "up" && minPrice <= sl) {
+                    dataAccount.account =
+                      dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                    dataAccount.orders = dataAccount.orders.filter(
+                      (order) => order.symbol !== symbol
+                    );
+                    balancePerRound = balancePerRound - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent; ////////
+                    bot.sendMessage(
+                      chatId,
+                      `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
+                      } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
+                      { parse_mode: "HTML", disable_web_page_preview: true }
+                    );
+                    countSL += 1;
+                    if (dataAccount.mapLevelPow[symbol] === 8) {
+                      dataAccount.mapLevelPow[symbol] = 0;
+                      bot.sendMessage(
+                        chatId,
+                        `### ${symbol} dính lệnh lose liên tục`
+                      );
+                    } else {
+                      dataAccount.mapLevelPow[symbol] += 1;
+                    }
+                  } else if (type === "down" && maxPrice >= sl) {
+                    dataAccount.account =
+                      dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                    dataAccount.orders = dataAccount.orders.filter(
+                      (order) => order.symbol !== symbol
+                    );
+                    balancePerRound = balancePerRound - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent; /////////
+                    bot.sendMessage(
+                      chatId,
+                      `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
+                      } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
+                      { parse_mode: "HTML", disable_web_page_preview: true }
+                    );
+                    if (dataAccount.mapLevelPow[symbol] === 8) {
+                      dataAccount.mapLevelPow[symbol] = 0;
+                      bot.sendMessage(
+                        chatId,
+                        `### ${symbol} dính lệnh lose liên tục`
+                      );
+                    } else {
+                      dataAccount.mapLevelPow[symbol] += 1;
+                    }
+                    countSL += 1;
+                  } else if (type === "up" && maxPrice >= tp) {
+                    dataAccount.account =
+                      dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                    dataAccount.orders = dataAccount.orders.filter(
+                      (order) => order.symbol !== symbol
+                    );
+                    balancePerRound = balancePerRound + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                    bot.sendMessage(
+                      chatId,
+                      `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
+                      } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
+                      { parse_mode: "HTML", disable_web_page_preview: true }
+                    );
+                    dataAccount.mapLevelPow[symbol] = 0;
+                    countTP += 1;
+                  } else if (type === "down" && minPrice <= tp) {
+                    dataAccount.account =
+                      dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                    dataAccount.orders = dataAccount.orders.filter(
+                      (order) => order.symbol !== symbol
+                    );
+                    balancePerRound = balancePerRound + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                    bot.sendMessage(
+                      chatId,
+                      `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
+                      } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
+                      { parse_mode: "HTML", disable_web_page_preview: true }
+                    );
+                    dataAccount.mapLevelPow[symbol] = 0;
+                    countTP += 1;
+                  }
+                }
+              })
+            }
+          })
+
+          if (balancePerRound > limitResetPow) {
+            // reset data
+            countSL = 0;
+            countTP = 0;
+            Object.keys(dataAccount.mapLevelPow).forEach(symb => {
+              dataAccount.mapLevelPow[symb] = 0;
+            });
+            balancePerRound = 0;
+            countRound += 1;
+            ////////////
+
+            if (dataAccount.orders.length) {
+              let accountTemp = 0;
+              const listPromiseCandle = dataAccount.orders.map(order => {
+                const { symbol } = order;
+                const params = {
+                  data: {
+                    symbol: symbol,
+                    interval: timeLine,
+                    limit: 2,
+                  },
+                };
+                return fetchApiGetCandleStickData(params);
+              });
+
+              Promise.all(listPromiseCandle).then(res => {
+                if (res.length) {
+                  res.forEach(each => {
+                    const { data: candleStickData, symbol: symbolCandle } = each;
+
+                    if (candleStickData && candleStickData.length) {
+                      const [candleCheck, lastestCandle] = candleStickData;
+                      const currentPrice = lastestCandle[4];
+                      const order = dataAccount.orders.find(each => each.symbol === symbolCandle);
+                      const { symbol, type, volume, entry } = order;
+
+                      if (type === 'up') {
+                        if (currentPrice > entry) {
+                          accountTemp += (+currentPrice / +entry - 1) * volume;
+                        } else {
+                          accountTemp -= (1 - +currentPrice / +entry) * volume;
+                        }
+                      } else if (type === 'down') {
+                        if (currentPrice > entry) {
+                          accountTemp -= (+currentPrice / +entry - 1) * volume;
+                        } else {
+                          accountTemp += (1 - +currentPrice / +entry) * volume;
+                        }
+                      }
+                    }
+                  })
+                }
+              })
+
+              dataAccount.account = dataAccount.account + accountTemp;
+              dataAccount.orders = [];
+            }
+          }
+        } catch (error) {
+          console.error("Error handling data:", error);
+        }
+      }
+    } else {
+      bot.sendMessage(
+        chatId,
+        `Tài khoản hiện tại của bạn là ${dataAccount.account}$ và có ${dataAccount.orders.length} lệnh đang chạy, ${listSymbols.length}`
+      );
+
+      bot.sendMessage(
+        chatId,
+        `- Có ${countTP} lệnh đạt TP.\n- Có ${countSL} lệnh chạm SL.\n- Balance: ${balancePerRound}\n- Round: ${countRound}`
+      );
+
+      if (listSymbols && listSymbols.length) {
+        let listSymbolGetData = symbolWithCondition;
+        if (!listSymbolGetData.length) {
+          listSymbolGetData = listSymbols;
+        }
+        const listPromiseCandle = listSymbolGetData.map(token => {
+          const { symbol, stickPrice } = token;
           const params = {
             data: {
               symbol: symbol,
               interval: timeLine,
-              limit: 2,
+              limit: 100,
             },
           };
 
-          if (isCheckMinMax) {
-            const endTime = new Date();
-            params.data.interval = "1m";
-            params.data.limit = 1000;
-            params.data.startTime = startTime;
-            params.data.endTime = endTime.getTime();
+          return fetchApiGetCandleStickData(params);
+        });
+
+        Promise.all(listPromiseCandle).then(res => {
+          const temListSymbol = [];
+          if (res.length) {
+            res.forEach(async candleInfo => {
+              const { symbol: symbolCandle, data: candleStickData } = candleInfo;
+
+              if (candleStickData && candleStickData.length && candleStickData.slice(-1)[0][4] < 0.1) {
+                const symbolWithCondition = listSymbols.find(token => token.symbol === symbolCandle);
+                temListSymbol.push(symbolWithCondition);
+
+                candleStickData.pop();
+                // candleStickData.reverse();
+                const { isAbleOrder, type, tpPercent, slPercent } = checkAbleOrderBySympleMethod(
+                  candleStickData,
+                  symbolCandle
+                );
+
+                let typeOrder = type;
+                if (
+                  isAbleOrder &&
+                  dataAccount.orders.every((order) => order.symbol !== symbolCandle)
+                ) {
+                  const data = await fetchApiGetCurrentPrice({
+                    symbol: symbolCandle,
+                  });
+
+                  const { price } = data;
+                  let priceGap = 0;
+                  const lastestCandle = [...candleStickData.slice(-1)];
+
+                  if (typeOrder === "up") {
+                    priceGap =
+                      lastestCandle[4] < price ? price - lastestCandle[4] : 0;
+                  } else if (typeOrder === "down") {
+                    priceGap =
+                      lastestCandle[4] > price ? lastestCandle[4] - price : 0;
+                  }
+                  const dataTime = new Date();
+                  const ratePriceTP =
+                    typeOrder === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
+                  const ratePriceSL =
+                    typeOrder === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
+                  const newOrder = {
+                    symbol: symbolCandle,
+                    entry: +price,
+                    tp:
+                      ratePriceTP * price +
+                      (typeOrder === "up" ? priceGap * RR : -priceGap * RR),
+                    sl:
+                      ratePriceSL * price +
+                      (typeOrder === "up" ? - priceGap : priceGap),
+                    type: typeOrder,
+                    startTime: dataTime.getTime(),
+                    isCheckMinMax: true,
+                    percent: slPercent,
+                    levelPow: dataAccount.mapLevelPow[symbolCandle] || 0,
+                    volume: (REWARD * Math.pow(2, dataAccount.mapLevelPow[symbolCandle] || 0) * 100) / slPercent,
+                  };
+                  if (dataAccount.mapLevelPow[symbolCandle] === undefined) {
+                    dataAccount.mapLevelPow[symbolCandle] = 0;
+                  }
+                  dataAccount.orders.push(newOrder);
+                  bot.sendMessage(
+                    chatId,
+                    `Thực hiện lệnh ${typeOrder === "up" ? "LONG" : "SHORT"
+                    } ${buildLinkToSymbol(symbolCandle)} tại giá ${price} - L${dataAccount.mapLevelPow[symbolCandle]}`,
+                    { parse_mode: "HTML", disable_web_page_preview: true }
+                  );
+                }
+              }
+            })
           }
 
-          const { data: candleStickData } = await fetchApiGetCandleStickData(
-            params
-          );
-          if (candleStickData && candleStickData.length) {
-            const [candleCheck, lastestCandle] = candleStickData;
-
-            const maxPrice = isCheckMinMax
-              ? Math.max(...candleStickData.map((price) => parseFloat(price[2])))
-              : candleCheck[2];
-            const minPrice = isCheckMinMax
-              ? Math.min(...candleStickData.map((price) => parseFloat(price[3])))
-              : candleCheck[3];
-            if (dataAccount.orders[index]) {
-              dataAccount.orders[index].isCheckMinMax = false;
-            }
-
-            if (type === "up" && minPrice <= sl) {
-              dataAccount.account =
-                dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-              dataAccount.orders = dataAccount.orders.filter(
-                (order) => order.symbol !== symbol
-              );
-              bot.sendMessage(
-                chatId,
-                `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
-                } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}`,
-                { parse_mode: "HTML", disable_web_page_preview: true }
-              );
-              countSL += 1;
-              if (dataAccount.mapLevelPow[symbol] === 8) {
-                dataAccount.mapLevelPow[symbol] = 0;
-                bot.sendMessage(
-                  chatId,
-                  `### ${symbol} dính lệnh lose liên tục`
-                );
-              } else {
-                dataAccount.mapLevelPow[symbol] += 1;
-              }
-            } else if (type === "down" && maxPrice >= sl) {
-              dataAccount.account =
-                dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-              dataAccount.orders = dataAccount.orders.filter(
-                (order) => order.symbol !== symbol
-              );
-              bot.sendMessage(
-                chatId,
-                `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
-                } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}`,
-                { parse_mode: "HTML", disable_web_page_preview: true }
-              );
-              if (dataAccount.mapLevelPow[symbol] === 8) {
-                dataAccount.mapLevelPow[symbol] = 0;
-                bot.sendMessage(
-                  chatId,
-                  `### ${symbol} dính lệnh lose liên tục`
-                );
-              } else {
-                dataAccount.mapLevelPow[symbol] += 1;
-              }
-              countSL += 1;
-            } else if (type === "up" && maxPrice >= tp) {
-              dataAccount.account =
-                dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-              dataAccount.orders = dataAccount.orders.filter(
-                (order) => order.symbol !== symbol
-              );
-              bot.sendMessage(
-                chatId,
-                `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
-                } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}`,
-                { parse_mode: "HTML", disable_web_page_preview: true }
-              );
-              dataAccount.mapLevelPow[symbol] = 0;
-              countTP += 1;
-            } else if (type === "down" && minPrice <= tp) {
-              dataAccount.account =
-                dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-              dataAccount.orders = dataAccount.orders.filter(
-                (order) => order.symbol !== symbol
-              );
-              bot.sendMessage(
-                chatId,
-                `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
-                } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}`,
-                { parse_mode: "HTML", disable_web_page_preview: true }
-              );
-              dataAccount.mapLevelPow[symbol] = 0;
-              countTP += 1;
-            }
+          if (!symbolWithCondition.length) {
+            symbolWithCondition = temListSymbol;
           }
-        };
-      } catch (error) {
-        console.error("Error handling data:", error);
+        })
       }
     }
 
-    bot.sendMessage(
-      chatId,
-      `Tài khoản hiện tại của bạn là ${dataAccount.account}$ và có ${dataAccount.orders.length} lệnh đang chạy, ${listSymbols.length}`
-    );
-
-    bot.sendMessage(
-      chatId,
-      `Có ${countTP} lệnh đạt TP. \nCó ${countSL} lệnh chạm SL.
-      `
-    );
-
-    if (listSymbols && listSymbols.length) {
-      listSymbols.forEach(async (token, index) => {
-        const { symbol, stickPrice } = token;
-        const params = {
-          data: {
-            symbol: symbol,
-            interval: timeLine,
-            limit: 100,
-          },
-        };
-
-        const { data: candleStickData } = await fetchApiGetCandleStickData(
-          params
-        );
-        if (candleStickData && candleStickData.length && candleStickData.slice(-1)[0][4] < 0.05) {
-          candleStickData.pop();
-          // candleStickData.reverse();
-          const { isAbleOrder, type, tpPercent, slPercent } = checkAbleOrderBySympleMethod(
-            candleStickData,
-            symbol
-          );
-
-          let typeOrder = type;
-
-          // typeOrder = type === "up" ? "dowwn" : "up"; // reverse
-
-          // const { isHasBigPrice, level, type, isBuySellSafety } =
-          //   checkSafetyPrice(candleStickData, symbol);
-          const numberCurrentOrder = dataAccount.orders.length;
-          const numberOrderLong = dataAccount.orders.filter(
-            (order) => order.type === "up"
-          ).length;
-          const numberOrderShort = numberCurrentOrder - numberOrderLong;
-          if (
-            isAbleOrder &&
-            dataAccount.orders.every((order) => order.symbol !== symbol)
-          ) {
-            const data = await fetchApiGetCurrentPrice({
-              symbol,
-            });
-
-            const { price } = data;
-            let priceGap = 0;
-            const lastestCandle = [...candleStickData.slice(-1)];
-
-            if (typeOrder === "up") {
-              priceGap =
-                lastestCandle[4] < price ? price - lastestCandle[4] : 0;
-            } else if (typeOrder === "down") {
-              priceGap =
-                lastestCandle[4] > price ? lastestCandle[4] - price : 0;
-            }
-            const dataTime = new Date();
-            const ratePriceTP =
-              typeOrder === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
-            const ratePriceSL =
-              typeOrder === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
-            const newOrder = {
-              symbol,
-              entry: +price,
-              tp:
-                ratePriceTP * price +
-                (typeOrder === "up" ? priceGap * RR : -priceGap * RR),
-              sl:
-                ratePriceSL * price +
-                (typeOrder === "up" ? -priceGap : priceGap),
-              type: typeOrder,
-              startTime: dataTime.getTime(),
-              isCheckMinMax: true,
-              percent: slPercent,
-              levelPow: dataAccount.mapLevelPow[symbol] || 0,
-            };
-            if (dataAccount.mapLevelPow[symbol] === undefined) {
-              dataAccount.mapLevelPow[symbol] = 0;
-            }
-            dataAccount.orders.push(newOrder);
-            bot.sendMessage(
-              chatId,
-              `Thực hiện lệnh ${typeOrder === "up" ? "LONG" : "SHORT"
-              } ${buildLinkToSymbol(symbol)} tại giá ${price} - L${dataAccount.mapLevelPow[symbol]}`,
-              { parse_mode: "HTML", disable_web_page_preview: true }
-            );
-          }
-        }
-      });
-    }
   };
 
   setTimeout(
@@ -306,9 +389,6 @@ export const Test = async (payload) => {
       setInterval(() => {
         handleData(listSymbols);
         // console.log(JSON.stringify(dataAccount, null, 2));
-      }, 5 * 60 * 1000);
-    },
-    0
-    //  calculateTimeout15m()
-  );
+      }, 1 * 60 * 1000);
+    }, 0);
 };
