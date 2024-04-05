@@ -97,8 +97,9 @@ const checkPattern = (candleStickData, symbol) => {
         const rangeCandle50 = candleStickData.slice(-50);
         const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
         const maxRange45 = getMaxOnListCandle(rangeCandle50.slice(0, 45), 2);
-
+        const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
         const min4Range15 = getMinOnListCandle(candleStickData.slice(-15), 4);
+
         const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
             candleStickData.slice(-25)
         );
@@ -115,35 +116,18 @@ const checkPattern = (candleStickData, symbol) => {
                     timeStamp = lastestCandle[0];
                 }
             }
-        }
-
-        if (
-            false &&
-            isDownCandle(lastestCandle)
-        ) {
-            const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
-                candleStickData.slice(-25)
-            );
-            if (true && maxRange50 * 0.999 < lastestCandle[2]) {
-                const EstRR = (maxRange50 / lastestCandle[4] - 1) * 100 * 1.25;
-                const CONDITION_6__ = maxContinueUp < 6;
-                const CONDITION_8__ = EstRR > 0.8 && EstRR < 2;
-
-                if (CONDITION_6__ && CONDITION_8__) {
+        } else if (true && (checkFullCandle(lastestCandle, "up") || checkPinbar(lastestCandle, "up"))) {
+            const index = candleStickData.slice(-15).findIndex(candle => +candle[4] === +max4Range15);
+            if (index < 10) {
+                const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.8;
+                const CONDITION_1__ = maxContinueDown <= 3;
+                const CONDITION_2__ = EstRR > 1 && EstRR < 1.5;
+                if (CONDITION_1__ && CONDITION_2__) {
                     slPercent = EstRR;
-                    type = "down";
+                    type = "up";
                     isAllowOrder = true;
                     timeStamp = lastestCandle[0];
                 }
-            }
-        } else if (false && (checkFullCandle(lastestCandle, "up") || checkPinbar(lastestCandle, "up")) && maxRange45 * 1.004 < lastestCandle[4]) {
-            const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1;
-            const CONDITION_2__ = EstRR > 1.5;
-            if (CONDITION_2__) {
-                slPercent = EstRR;
-                type = "up";
-                isAllowOrder = true;
-                timeStamp = lastestCandle[0];
             }
         }
 
@@ -152,9 +136,9 @@ const checkPattern = (candleStickData, symbol) => {
         const rangeCandle50 = candleStickData.slice(-50);
         const minRange50 = getMinOnListCandle(candleStickData.slice(-50), 3);
         const minRange45 = getMinOnListCandle(rangeCandle50.slice(0, 45), 3);
-
-
+        const min4Range15 = getMinOnListCandle(candleStickData.slice(-15), 4);
         const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
+
         const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
             candleStickData.slice(-25)
         );
@@ -171,40 +155,22 @@ const checkPattern = (candleStickData, symbol) => {
                     timeStamp = lastestCandle[0];
                 }
             }
-        }
-
-        if (
-            false &&
-            isUpCandle(lastestCandle)
-        ) {
-
-            const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
-                candleStickData.slice(-25)
-            );
-
-            if (true && (checkFullCandle(lastestCandle, "up") || checkPinbar(lastestCandle, "up")) && minRange50 * 1.001 > lastestCandle[3]) {
-                const EstRR = (lastestCandle[4] / minRange50 - 1) * 100 * 1.25;
-
-                const CONDITION_6__ = maxContinueDown < 6;
-                const CONDITION_7__ = EstRR > 0.8 && EstRR < 2;
-
-                if (CONDITION_6__ && CONDITION_7__) {
+        } else if (true && (checkFullCandle(lastestCandle, "down") || checkPinbar(lastestCandle, "down"))) {
+            const index = candleStickData.slice(-15).findIndex(candle => +candle[4] === +min4Range15);
+            if (index < 10) {
+                const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.8;
+                const CONDITION_1__ = min4Range15 < lastestCandle[4] * 0.994;
+                const CONDITION_2__ = EstRR > 1 && EstRR < 1.5;
+                const CONDITION_3__ = maxContinueUp <= 3;
+                if (CONDITION_1__ && CONDITION_2__ && CONDITION_3__) {
                     slPercent = EstRR;
-                    type = "up";
+                    type = "down";
                     isAllowOrder = true;
                     timeStamp = lastestCandle[0];
                 }
             }
-        } else if (false && isDownCandle(lastestCandle) && minRange45 * 0.996 > lastestCandle[4]) {
-            const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1;
-            const CONDITION_1__ = EstRR > 1.5;
-            if (CONDITION_1__) {
-                slPercent = EstRR;
-                type = "down";
-                isAllowOrder = true;
-                timeStamp = lastestCandle[0];
-            }
         }
+
     } else {
         trend = 'No Significant Trend';
     }

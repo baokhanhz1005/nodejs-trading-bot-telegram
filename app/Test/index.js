@@ -210,7 +210,7 @@ export const Test = async (payload) => {
             }
           })
 
-          if (balancePerRound > limitResetPow) {
+          if (balancePerRound > 5) {
             // reset data
             countSL = 0;
             countTP = 0;
@@ -223,7 +223,10 @@ export const Test = async (payload) => {
 
             if (dataAccount.orders.length) {
               let accountTemp = 0;
+              let countRemainOrder = 0;
+              // console.log(dataAccount.orders);
               const listPromiseCandle = dataAccount.orders.map(order => {
+                if (!order) return null;
                 const { symbol } = order;
                 const params = {
                   data: {
@@ -233,39 +236,42 @@ export const Test = async (payload) => {
                   },
                 };
                 return fetchApiGetCandleStickData(params);
-              });
+              }).filter(Boolean);
 
               Promise.all(listPromiseCandle).then(res => {
                 if (res.length) {
                   res.forEach(each => {
+                    countRemainOrder += 1;
                     const { data: candleStickData, symbol: symbolCandle } = each;
-
                     if (candleStickData && candleStickData.length) {
                       const [candleCheck, lastestCandle] = candleStickData;
                       const currentPrice = lastestCandle[4];
-                      const order = dataAccount.orders.find(each => each.symbol === symbolCandle);
-                      const { symbol, type, volume, entry } = order;
-
-                      if (type === 'up') {
-                        if (currentPrice > entry) {
-                          accountTemp += (+currentPrice / +entry - 1) * volume;
-                        } else {
-                          accountTemp -= (1 - +currentPrice / +entry) * volume;
-                        }
-                      } else if (type === 'down') {
-                        if (currentPrice > entry) {
-                          accountTemp -= (+currentPrice / +entry - 1) * volume;
-                        } else {
-                          accountTemp += (1 - +currentPrice / +entry) * volume;
+                      const order = dataAccount.orders.find(each => each && each.symbol === symbolCandle);
+                      if (order) {
+                        const { symbol, type, volume, entry } = order;
+  
+                        if (type === 'up') {
+                          if (+currentPrice > +entry) {
+                            accountTemp += (+currentPrice / +entry - 1) * volume;
+                          } else {
+                            accountTemp -= (1 - +currentPrice / +entry) * volume;
+                          }
+                        } else if (type === 'down') {
+                          if (+currentPrice > +entry) {
+                            accountTemp -= (+currentPrice / +entry - 1) * volume;
+                          } else {
+                            accountTemp += (1 - +currentPrice / +entry) * volume;
+                          }
                         }
                       }
                     }
                   })
                 }
-              })
+              });
 
               dataAccount.account = dataAccount.account + accountTemp;
               dataAccount.orders = [];
+              bot.sendMessage(chatId, `Đã thu hồi tất cả các lệnh - thu về: ${accountTemp}`);
             }
           }
         } catch (error) {
