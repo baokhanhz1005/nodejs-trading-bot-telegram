@@ -90,6 +90,7 @@ const checkPattern = (candleStickData, symbol) => {
     // Xác định xu hướng dựa trên MACD và Signal line
     const lastMacd = macdLine[macdLine.length - 1];
     const lastSignal = signalLine[signalLine.length - 1];
+    const limit = 10;
 
     let trend;
     if (true && lastMacd > lastSignal) {
@@ -105,10 +106,10 @@ const checkPattern = (candleStickData, symbol) => {
         );
         if (true && (checkFullCandle(lastestCandle, "down") || checkPinbar(lastestCandle, "down"))) {
             const index = candleStickData.slice(-15).findIndex(candle => +candle[4] === +min4Range15);
-            if (index < 10) {
-                const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.8;
+            if (index < limit) {
+                const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.25;
                 const CONDITION_1__ = min4Range15 < lastestCandle[4] * 0.994;
-                const CONDITION_2__ = EstRR > 1 && EstRR < 2;
+                const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.5;
                 if (CONDITION_1__ && CONDITION_2__) {
                     slPercent = EstRR;
                     type = "down";
@@ -118,10 +119,10 @@ const checkPattern = (candleStickData, symbol) => {
             }
         } else if (true && (checkFullCandle(lastestCandle, "up") || checkPinbar(lastestCandle, "up"))) {
             const index = candleStickData.slice(-15).findIndex(candle => +candle[4] === +max4Range15);
-            if (index < 10) {
-                const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.8;
+            if (index < limit) {
+                const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.25;
                 const CONDITION_1__ = maxContinueDown <= 3;
-                const CONDITION_2__ = EstRR > 1 && EstRR < 1.5;
+                const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.5;
                 if (CONDITION_1__ && CONDITION_2__) {
                     slPercent = EstRR;
                     type = "up";
@@ -144,10 +145,10 @@ const checkPattern = (candleStickData, symbol) => {
         );
         if (true && (checkFullCandle(lastestCandle, "up") || checkPinbar(lastestCandle, "up"))) {
             const index = candleStickData.slice(-15).findIndex(candle => +candle[4] === +max4Range15);
-            if (index < 10) {
-                const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.8;
+            if (index < limit) {
+                const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.25;
                 const CONDITION_1__ = max4Range15 > lastestCandle[4] * 1.006;
-                const CONDITION_2__ = EstRR > 1 && EstRR < 2;
+                const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.5;
                 if (true && CONDITION_2__) {
                     slPercent = EstRR;
                     type = "up";
@@ -157,10 +158,10 @@ const checkPattern = (candleStickData, symbol) => {
             }
         } else if (true && (checkFullCandle(lastestCandle, "down") || checkPinbar(lastestCandle, "down"))) {
             const index = candleStickData.slice(-15).findIndex(candle => +candle[4] === +min4Range15);
-            if (index < 10) {
-                const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.8;
+            if (index < limit) {
+                const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.25;
                 const CONDITION_1__ = min4Range15 < lastestCandle[4] * 0.994;
-                const CONDITION_2__ = EstRR > 1 && EstRR < 1.5;
+                const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.5;
                 const CONDITION_3__ = maxContinueUp <= 3;
                 if (CONDITION_1__ && CONDITION_2__ && CONDITION_3__) {
                     slPercent = EstRR;
@@ -177,4 +178,3 @@ const checkPattern = (candleStickData, symbol) => {
 
     return { type, slPercent, isAllowOrder, timeStamp };
 };
-6
