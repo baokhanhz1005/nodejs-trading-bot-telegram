@@ -210,7 +210,7 @@ export const Test = async (payload) => {
             }
           })
 
-          if (balancePerRound > 5) {
+          if (balancePerRound > 7) {
             // reset data
             countSL = 0;
             countTP = 0;
@@ -240,27 +240,29 @@ export const Test = async (payload) => {
 
               Promise.all(listPromiseCandle).then(res => {
                 if (res.length) {
-                  res.forEach(each => {
-                    countRemainOrder += 1;
-                    const { data: candleStickData, symbol: symbolCandle } = each;
-                    if (candleStickData && candleStickData.length) {
-                      const [candleCheck, lastestCandle] = candleStickData;
-                      const currentPrice = lastestCandle[4];
-                      const order = dataAccount.orders.find(each => each && each.symbol === symbolCandle);
-                      if (order) {
-                        const { symbol, type, volume, entry } = order;
-  
-                        if (type === 'up') {
-                          if (+currentPrice > +entry) {
-                            accountTemp += (+currentPrice / +entry - 1) * volume;
-                          } else {
-                            accountTemp -= (1 - +currentPrice / +entry) * volume;
-                          }
-                        } else if (type === 'down') {
-                          if (+currentPrice > +entry) {
-                            accountTemp -= (+currentPrice / +entry - 1) * volume;
-                          } else {
-                            accountTemp += (1 - +currentPrice / +entry) * volume;
+                  res.forEach(async each => {
+                    if (each) {
+                      countRemainOrder += 1;
+                      const { data: candleStickData, symbol: symbolCandle } = each;
+                      if (candleStickData && candleStickData.length) {
+                        const [candleCheck, lastestCandle] = candleStickData;
+                        const currentPrice = lastestCandle[4];
+                        const order = dataAccount.orders.find(each => each && each.symbol === symbolCandle);
+                        if (order) {
+                          const { symbol, type, volume, entry } = order;
+
+                          if (type === 'up') {
+                            if (+currentPrice > +entry) {
+                              accountTemp += (+currentPrice / +entry - 1) * volume;
+                            } else {
+                              accountTemp -= (1 - +currentPrice / +entry) * volume;
+                            }
+                          } else if (type === 'down') {
+                            if (+currentPrice > +entry) {
+                              accountTemp -= (+currentPrice / +entry - 1) * volume;
+                            } else {
+                              accountTemp += (1 - +currentPrice / +entry) * volume;
+                            }
                           }
                         }
                       }
