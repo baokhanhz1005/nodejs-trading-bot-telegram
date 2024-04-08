@@ -84,7 +84,7 @@ export const TestingFunction = async (payload) => {
     if (listSymbols && listSymbols.length) {
       const promiseCandleData = dataCandle
         ? dataCandle
-        : listSymbols.filter(each => true || ['PEOPLEUSDT'].includes(each.symbol)).map(async (token) => {
+        : listSymbols.filter(each => each.symbol !== 'RSRUSDT').map(async (token) => {
           const { symbol, stickPrice } = token;
           const params = {
             data: {
@@ -105,7 +105,7 @@ export const TestingFunction = async (payload) => {
           res.forEach((candleInfo, index) => {
             const { symbol: symbolCandle, data: candleStickData } = candleInfo;
 
-            if (candleStickData && candleStickData.length && (false || candleStickData.slice(-1)[0][4] < 0.2)) {
+            if (candleStickData && candleStickData.length && (false || candleStickData.slice(-1)[0][4] < 0.1)) {
               const payload = {
                 candleStickData:
                   candleStickData || candleStickData.slice(-388),

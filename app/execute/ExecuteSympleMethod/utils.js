@@ -119,7 +119,7 @@ const checkPattern = (candleStickData, symbol) => {
             if (false || index < limit) {
                 const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.25;
                 const CONDITION_1__ = max4Range15 > lastestCandle[4] * 1.006;
-                const CONDITION_2__ = EstRR > 0.4 && EstRR < 0.8;
+                const CONDITION_2__ = EstRR > 0.4 && EstRR < 1;
                 if (true && CONDITION_2__) {
                     slPercent = EstRR;
                     type = "up";
@@ -176,8 +176,8 @@ const checkPattern = (candleStickData, symbol) => {
             if (indexMin < limit) {
                 const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.25;
                 const CONDITION_1__ = lastestCandle[4] / min4Range15 < 1.004;
-                const CONDITION_2__ = EstRR > 0.5 && EstRR < 1;
-                const CONDITION_3__ = candleStickData[0][4] / lastestCandle[4] > 1.01;
+                const CONDITION_2__ = EstRR > 0.4 && EstRR < 1;
+                const CONDITION_3__ = candleStickData[0][4] / lastestCandle[4] > 1;
                 if (true && CONDITION_2__ && CONDITION_3__) {
                     slPercent = EstRR;
                     type = "down";

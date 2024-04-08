@@ -181,7 +181,7 @@ export const ExecuteSympleMethod = async (payload) => {
 
                             const isHasOrderRunning = Object.keys(tempMapListOrders).some(key => key === symbolCandle);
 
-                            if (isAbleOrder && !isHasOrderRunning && (listSymbolWithCondition.length ? true : lastestCandlePrice <= 0.1)) {
+                            if (isAbleOrder && symbolCandle !== 'RSRUSDT' && !isHasOrderRunning && (listSymbolWithCondition.length ? true : lastestCandlePrice <= 0.1)) {
                                 const { stickPrice } = listSymbols.find(each => each.symbol === symbolCandle) || {};
                                 handleOrder({
                                     symbol: symbolCandle,

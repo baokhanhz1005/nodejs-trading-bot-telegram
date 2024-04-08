@@ -32,7 +32,7 @@ export const Test = async (payload) => {
   let payloadAccount;
 
   let countRound = 0;
-  let limitResetPow = 7;
+  let limitResetPow = 10;
   let balancePerRound = 0;
   let symbolWithCondition = []
   try {
@@ -210,7 +210,7 @@ export const Test = async (payload) => {
             }
           })
 
-          if (balancePerRound > 7) {
+          if (balancePerRound > limitResetPow) {
             // reset data
             countSL = 0;
             countTP = 0;
@@ -227,7 +227,7 @@ export const Test = async (payload) => {
               // console.log(dataAccount.orders);
               const listPromiseCandle = dataAccount.orders.map(order => {
                 if (!order) return null;
-                const { symbol } = order;
+                const { symbol } = order || {};
                 const params = {
                   data: {
                     symbol: symbol,
@@ -249,7 +249,7 @@ export const Test = async (payload) => {
                         const currentPrice = lastestCandle[4];
                         const order = dataAccount.orders.find(each => each && each.symbol === symbolCandle);
                         if (order) {
-                          const { symbol, type, volume, entry } = order;
+                          const { symbol, type, volume, entry } = order || {};
 
                           if (type === 'up') {
                             if (+currentPrice > +entry) {
@@ -328,7 +328,7 @@ export const Test = async (payload) => {
 
                 let typeOrder = type;
                 if (
-                  isAbleOrder &&
+                  isAbleOrder && symbolCandle !== 'RSRUSDT' &&
                   dataAccount.orders.every((order) => order.symbol !== symbolCandle)
                 ) {
                   const data = await fetchApiGetCurrentPrice({
