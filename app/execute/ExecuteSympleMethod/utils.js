@@ -102,7 +102,7 @@ const checkPattern = (candleStickData, symbol) => {
     const limit = 11;
 
     let trend;
-    if (true && lastMacd > lastSignal) {
+    if (true && lastMacd > lastSignal * 0.7) {
         trend = 'Trending Up';
         const rangeCandle50 = candleStickData.slice(-50);
         const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
@@ -115,18 +115,17 @@ const checkPattern = (candleStickData, symbol) => {
         );
 
         if (true && (checkFullCandle(lastestCandle, "up") || checkPinbar(lastestCandle, "up"))) {
-            const index = candleStickData.slice(-15).findIndex(candle => +candle[4] === +max4Range15);
-            if (false || index < limit) {
-                const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.25;
-                const CONDITION_1__ = max4Range15 > lastestCandle[4] * 1.006;
-                const CONDITION_2__ = EstRR > 0.4 && EstRR < 1;
-                if (true && CONDITION_2__) {
-                    slPercent = EstRR;
-                    type = "up";
-                    isAllowOrder = true;
-                    timeStamp = lastestCandle[0];
-                }
+            const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.8;
+            const CONDITION_2__ = EstRR > 0.5 && EstRR < 1.5;
+            const CONDITION_3__ = candleStickData.slice(-40)[0][4] / lastestCandle[4] < 0.98;
+            const CONDITION_4__ = candleStickData[0][4] / lastestCandle[4] > 0.96;
+            if (true && CONDITION_2__ && CONDITION_3__ && CONDITION_4__) {
+                slPercent = EstRR;
+                type = "up";
+                isAllowOrder = true;
+                timeStamp = lastestCandle[0];
             }
+
         }
 
         //////////////////////////
@@ -158,7 +157,7 @@ const checkPattern = (candleStickData, symbol) => {
         //     }
         // }
 
-    } else if (true && lastMacd < lastSignal) {
+    } else if (true && lastMacd < lastSignal * 0.7) {
         trend = 'Trending Down';
         const rangeCandle50 = candleStickData.slice(-50);
         // const minRange50 = getMinOnListCandle(candleStickData.slice(-50), 3);
@@ -174,15 +173,16 @@ const checkPattern = (candleStickData, symbol) => {
             const indexMin = candleStickData.slice(-15).findIndex(candle => +candle[4] === +min4Range15);
             const indexMax = candleStickData.slice(-15).findIndex(candle => +candle[4] === +max4Range15);
             if (indexMin < limit) {
-                const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.25;
-                const CONDITION_1__ = lastestCandle[4] / min4Range15 < 1.004;
-                const CONDITION_2__ = EstRR > 0.4 && EstRR < 1;
-                const CONDITION_3__ = candleStickData[0][4] / lastestCandle[4] > 1;
-                if (true && CONDITION_2__ && CONDITION_3__) {
-                    slPercent = EstRR;
-                    type = "down";
-                    isAllowOrder = true;
-                    timeStamp = lastestCandle[0];
+            const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.5;
+            const CONDITION_1__ = lastestCandle[4] / min4Range15 < 1.004;
+                const CONDITION_2__ = EstRR > 0.5 && EstRR < 1.2;
+                // const CONDITION_3__ = candleStickData[0][4] / lastestCandle[4] > 1.005;
+                const CONDITION_4__ = candleStickData.slice(-40)[0][4] / lastestCandle[4] > 1.01;
+                if (true && CONDITION_2__ && CONDITION_4__) {
+                slPercent = EstRR;
+                type = "down";
+                isAllowOrder = true;
+                timeStamp = lastestCandle[0];
                 }
             }
         }

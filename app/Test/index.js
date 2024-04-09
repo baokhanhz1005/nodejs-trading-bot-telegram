@@ -115,6 +115,7 @@ export const Test = async (payload) => {
             listPromiseResult.push(res);
           };
 
+          // check is has TP / SL
           Promise.all(listPromiseResult).then(res => {
             if (res.length) {
               res.forEach(candleInfo => {
@@ -210,7 +211,8 @@ export const Test = async (payload) => {
             }
           })
 
-          if (balancePerRound > limitResetPow) {
+          // reset levelPow when achieve limit reset
+          if (false && balancePerRound > limitResetPow) {
             // reset data
             countSL = 0;
             countTP = 0;
@@ -290,6 +292,25 @@ export const Test = async (payload) => {
         chatId,
         `- Có ${countTP} lệnh đạt TP.\n- Có ${countSL} lệnh chạm SL.\n- Balance: ${balancePerRound}\n- Round: ${countRound}`
       );
+
+      const mapListSymbolLevelPow = {};
+      dataAccount.orders.forEach(order => {
+        const { symbol } = order;
+        if (mapLevelPow[symbol]) {
+          const number = mapLevelPow[symbol];
+          if (Array.isArray(mapListSymbolLevelPow[number])) {
+            mapListSymbolLevelPow[number].push(symbol);
+          } else {
+            mapListSymbolLevelPow[number] = [symbol];
+          }
+        }
+      });
+
+      const contentLevelPow = Object.keys(mapListSymbolLevelPow).map(lvPow => {
+        return `** L${lvPow}: ${mapListSymbolLevelPow[lvPow].join(', ')}\n`;
+      });
+
+      bot.sendMessage(chatId, contentLevelPow);
 
       if (listSymbols && listSymbols.length) {
         let listSymbolGetData = symbolWithCondition;
