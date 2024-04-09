@@ -296,8 +296,8 @@ export const Test = async (payload) => {
       const mapListSymbolLevelPow = {};
       dataAccount.orders.forEach(order => {
         const { symbol } = order;
-        if (mapLevelPow[symbol]) {
-          const number = mapLevelPow[symbol];
+        if (dataAccount.mapLevelPow[symbol]) {
+          const number = dataAccount.mapLevelPow[symbol];
           if (Array.isArray(mapListSymbolLevelPow[number])) {
             mapListSymbolLevelPow[number].push(symbol);
           } else {
@@ -310,7 +310,9 @@ export const Test = async (payload) => {
         return `** L${lvPow}: ${mapListSymbolLevelPow[lvPow].join(', ')}\n`;
       });
 
-      bot.sendMessage(chatId, contentLevelPow);
+      if (contentLevelPow.length) {
+        bot.sendMessage(chatId, contentLevelPow);
+      }
 
       if (listSymbols && listSymbols.length) {
         let listSymbolGetData = symbolWithCondition;
