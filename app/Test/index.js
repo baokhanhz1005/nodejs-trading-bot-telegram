@@ -285,36 +285,6 @@ export const Test = async (payload) => {
         }
       }
     } else {
-      bot.sendMessage(
-        chatId,
-        `Tài khoản hiện tại của bạn là ${dataAccount.account}$ và có ${dataAccount.orders.length} lệnh đang chạy, ${listSymbols.length}`
-      );
-
-      bot.sendMessage(
-        chatId,
-        `- Có ${countTP} lệnh đạt TP.\n- Có ${countSL} lệnh chạm SL.\n- Balance: ${balancePerRound}\n- Round: ${countRound}`
-      );
-
-      const mapListSymbolLevelPow = {};
-      Object.keys(dataAccount.mapLevelPow).forEach(key => {
-        const level = dataAccount.mapLevelPow[key];
-        if (+level) {
-          if (Array.isArray(mapListSymbolLevelPow[level])) {
-            mapListSymbolLevelPow[level].push(key);
-          } else {
-            mapListSymbolLevelPow[level] = [key];
-          }
-        }
-      })
-
-      const contentLevelPow = Object.keys(mapListSymbolLevelPow).map(lvPow => {
-        return `- L${lvPow}: ${mapListSymbolLevelPow[lvPow].join(', ')}\n`;
-      });
-
-      if (contentLevelPow.length) {
-        bot.sendMessage(chatId, contentLevelPow);
-      }
-
       if (listSymbols && listSymbols.length) {
         let listSymbolGetData = symbolWithCondition;
         if (!listSymbolGetData.length) {
@@ -410,6 +380,36 @@ export const Test = async (payload) => {
             symbolWithCondition = temListSymbol;
           }
         })
+      }
+
+      bot.sendMessage(
+        chatId,
+        `Tài khoản hiện tại của bạn là ${dataAccount.account}$ và có ${dataAccount.orders.length} lệnh đang chạy, ${listSymbols.length}`
+      );
+
+      bot.sendMessage(
+        chatId,
+        `- Có ${countTP} lệnh đạt TP.\n- Có ${countSL} lệnh chạm SL.\n- Balance: ${balancePerRound}\n- Round: ${countRound}`
+      );
+
+      const mapListSymbolLevelPow = {};
+      Object.keys(dataAccount.mapLevelPow).forEach(key => {
+        const level = dataAccount.mapLevelPow[key];
+        if (+level) {
+          if (Array.isArray(mapListSymbolLevelPow[level])) {
+            mapListSymbolLevelPow[level].push(key);
+          } else {
+            mapListSymbolLevelPow[level] = [key];
+          }
+        }
+      })
+
+      const contentLevelPow = Object.keys(mapListSymbolLevelPow).map(lvPow => {
+        return `- L${lvPow}: ${mapListSymbolLevelPow[lvPow].join(', ')}\n`;
+      });
+
+      if (contentLevelPow.length) {
+        bot.sendMessage(chatId, `${contentLevelPow.join('')}`);
       }
     }
 
