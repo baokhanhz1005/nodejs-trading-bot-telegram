@@ -121,90 +121,92 @@ export const Test = async (payload) => {
               res.forEach(candleInfo => {
                 const { data: candleStickData, symbol: symbolCandle } = candleInfo;
                 const order = dataAccount.orders.find(each => each.symbol === symbolCandle);
-                const { symbol, type, tp, sl, isCheckMinMax, startTime, percent, levelPow } = order;
-
-                if (candleStickData && candleStickData.length) {
-                  const [candleCheck, lastestCandle] = candleStickData;
-
-                  const maxPrice = lastestCandle[2];
-                  const minPrice = lastestCandle[3];
-
-                  if (type === "up" && minPrice <= sl) {
-                    dataAccount.account =
-                      dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-                    dataAccount.orders = dataAccount.orders.filter(
-                      (order) => order.symbol !== symbol
-                    );
-                    balancePerRound = balancePerRound - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent; ////////
-                    bot.sendMessage(
-                      chatId,
-                      `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
-                      } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
-                      { parse_mode: "HTML", disable_web_page_preview: true }
-                    );
-                    countSL += 1;
-                    if (dataAccount.mapLevelPow[symbol] === 8) {
-                      dataAccount.mapLevelPow[symbol] = 0;
+                if (order) {
+                  const { symbol, type, tp, sl, isCheckMinMax, startTime, percent, levelPow } = order;
+  
+                  if (candleStickData && candleStickData.length) {
+                    const [candleCheck, lastestCandle] = candleStickData;
+  
+                    const maxPrice = lastestCandle[2];
+                    const minPrice = lastestCandle[3];
+  
+                    if (type === "up" && minPrice <= sl) {
+                      dataAccount.account =
+                        dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                      dataAccount.orders = dataAccount.orders.filter(
+                        (order) => order.symbol !== symbol
+                      );
+                      balancePerRound = balancePerRound - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent; ////////
                       bot.sendMessage(
                         chatId,
-                        `### ${symbol} dính lệnh lose liên tục`
+                        `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
+                        } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
+                        { parse_mode: "HTML", disable_web_page_preview: true }
                       );
-                    } else {
-                      dataAccount.mapLevelPow[symbol] += 1;
-                    }
-                  } else if (type === "down" && maxPrice >= sl) {
-                    dataAccount.account =
-                      dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-                    dataAccount.orders = dataAccount.orders.filter(
-                      (order) => order.symbol !== symbol
-                    );
-                    balancePerRound = balancePerRound - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent; /////////
-                    bot.sendMessage(
-                      chatId,
-                      `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
-                      } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
-                      { parse_mode: "HTML", disable_web_page_preview: true }
-                    );
-                    if (dataAccount.mapLevelPow[symbol] === 8) {
-                      dataAccount.mapLevelPow[symbol] = 0;
+                      countSL += 1;
+                      if (dataAccount.mapLevelPow[symbol] === 8) {
+                        dataAccount.mapLevelPow[symbol] = 0;
+                        bot.sendMessage(
+                          chatId,
+                          `### ${symbol} dính lệnh lose liên tục`
+                        );
+                      } else {
+                        dataAccount.mapLevelPow[symbol] += 1;
+                      }
+                    } else if (type === "down" && maxPrice >= sl) {
+                      dataAccount.account =
+                        dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                      dataAccount.orders = dataAccount.orders.filter(
+                        (order) => order.symbol !== symbol
+                      );
+                      balancePerRound = balancePerRound - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent; /////////
                       bot.sendMessage(
                         chatId,
-                        `### ${symbol} dính lệnh lose liên tục`
+                        `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
+                        } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
+                        { parse_mode: "HTML", disable_web_page_preview: true }
                       );
-                    } else {
-                      dataAccount.mapLevelPow[symbol] += 1;
+                      if (dataAccount.mapLevelPow[symbol] === 8) {
+                        dataAccount.mapLevelPow[symbol] = 0;
+                        bot.sendMessage(
+                          chatId,
+                          `### ${symbol} dính lệnh lose liên tục`
+                        );
+                      } else {
+                        dataAccount.mapLevelPow[symbol] += 1;
+                      }
+                      countSL += 1;
+                    } else if (type === "up" && maxPrice >= tp) {
+                      dataAccount.account =
+                        dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                      dataAccount.orders = dataAccount.orders.filter(
+                        (order) => order.symbol !== symbol
+                      );
+                      balancePerRound = balancePerRound + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                      bot.sendMessage(
+                        chatId,
+                        `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
+                        } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
+                        { parse_mode: "HTML", disable_web_page_preview: true }
+                      );
+                      dataAccount.mapLevelPow[symbol] = 0;
+                      countTP += 1;
+                    } else if (type === "down" && minPrice <= tp) {
+                      dataAccount.account =
+                        dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                      dataAccount.orders = dataAccount.orders.filter(
+                        (order) => order.symbol !== symbol
+                      );
+                      balancePerRound = balancePerRound + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                      bot.sendMessage(
+                        chatId,
+                        `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
+                        } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
+                        { parse_mode: "HTML", disable_web_page_preview: true }
+                      );
+                      dataAccount.mapLevelPow[symbol] = 0;
+                      countTP += 1;
                     }
-                    countSL += 1;
-                  } else if (type === "up" && maxPrice >= tp) {
-                    dataAccount.account =
-                      dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-                    dataAccount.orders = dataAccount.orders.filter(
-                      (order) => order.symbol !== symbol
-                    );
-                    balancePerRound = balancePerRound + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-                    bot.sendMessage(
-                      chatId,
-                      `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
-                      } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
-                      { parse_mode: "HTML", disable_web_page_preview: true }
-                    );
-                    dataAccount.mapLevelPow[symbol] = 0;
-                    countTP += 1;
-                  } else if (type === "down" && minPrice <= tp) {
-                    dataAccount.account =
-                      dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-                    dataAccount.orders = dataAccount.orders.filter(
-                      (order) => order.symbol !== symbol
-                    );
-                    balancePerRound = balancePerRound + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-                    bot.sendMessage(
-                      chatId,
-                      `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
-                      } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
-                      { parse_mode: "HTML", disable_web_page_preview: true }
-                    );
-                    dataAccount.mapLevelPow[symbol] = 0;
-                    countTP += 1;
                   }
                 }
               })
@@ -294,20 +296,19 @@ export const Test = async (payload) => {
       );
 
       const mapListSymbolLevelPow = {};
-      dataAccount.orders.forEach(order => {
-        const { symbol } = order;
-        if (dataAccount.mapLevelPow[symbol]) {
-          const number = dataAccount.mapLevelPow[symbol];
-          if (Array.isArray(mapListSymbolLevelPow[number])) {
-            mapListSymbolLevelPow[number].push(symbol);
+      Object.keys(dataAccount.mapLevelPow).forEach(key => {
+        const level = dataAccount.mapLevelPow[key];
+        if (+level) {
+          if (Array.isArray(mapListSymbolLevelPow[level])) {
+            mapListSymbolLevelPow[level].push(key);
           } else {
-            mapListSymbolLevelPow[number] = [symbol];
+            mapListSymbolLevelPow[level] = [key];
           }
         }
-      });
+      })
 
       const contentLevelPow = Object.keys(mapListSymbolLevelPow).map(lvPow => {
-        return `** L${lvPow}: ${mapListSymbolLevelPow[lvPow].join(', ')}\n`;
+        return `- L${lvPow}: ${mapListSymbolLevelPow[lvPow].join(', ')}\n`;
       });
 
       if (contentLevelPow.length) {
