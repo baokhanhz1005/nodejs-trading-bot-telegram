@@ -116,9 +116,9 @@ const checkPattern = (candleStickData, symbol) => {
 
         if (true && (checkFullCandle(lastestCandle, "up") || checkPinbar(lastestCandle, "up"))) {
             const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.8;
-            const CONDITION_2__ = EstRR > 0.5 && EstRR < 1.5;
+            const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.4;
             const CONDITION_3__ = candleStickData.slice(-40)[0][4] / lastestCandle[4] < 0.98;
-            const CONDITION_4__ = candleStickData[0][4] / lastestCandle[4] > 0.96;
+            const CONDITION_4__ = candleStickData[0][4] / lastestCandle[4] > 0.95;
             if (true && CONDITION_2__ && CONDITION_3__ && CONDITION_4__) {
                 slPercent = EstRR;
                 type = "up";
@@ -173,9 +173,9 @@ const checkPattern = (candleStickData, symbol) => {
             const indexMin = candleStickData.slice(-15).findIndex(candle => +candle[4] === +min4Range15);
             const indexMax = candleStickData.slice(-15).findIndex(candle => +candle[4] === +max4Range15);
             if (indexMin < limit) {
-            const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.5;
+            const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.8;
             const CONDITION_1__ = lastestCandle[4] / min4Range15 < 1.004;
-                const CONDITION_2__ = EstRR > 0.5 && EstRR < 1.2;
+                const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.4;
                 // const CONDITION_3__ = candleStickData[0][4] / lastestCandle[4] > 1.005;
                 const CONDITION_4__ = candleStickData.slice(-40)[0][4] / lastestCandle[4] > 1.01;
                 if (true && CONDITION_2__ && CONDITION_4__) {
