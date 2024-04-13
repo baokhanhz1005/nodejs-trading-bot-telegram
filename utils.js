@@ -90,8 +90,8 @@ export const fetchApiGetCurrentPrice = async (params) => {
   }
 };
 
-export const buildLinkToSymbol = (symbol) => {
-  const linkUrl = `https://en.tradingview.com/chart/?symbol=BINANCE%3A${symbol}.P`;
+export const buildLinkToSymbol = (symbol, timeStamp) => {
+  const linkUrl = `https://en.tradingview.com/chart/?symbol=BINANCE%3A${symbol}.P&timestamp=${timeStamp}`;
   const url = `<a href="${linkUrl}" target="_blank">${symbol}</a>`;
   return url;
 };

@@ -2,7 +2,7 @@ import { REWARD, RR } from "../app/execute/ExecuteSMC/constant.js";
 import { buildLinkToSymbol, buildTimeStampToDate } from "../utils.js";
 import { checkInRange, isDownCandle, isUpCandle } from "./TypeCandle.js";
 
-export const detectTrendPrice = (listCandle) => { };
+export const detectTrendPrice = (listCandle) => {};
 
 export const handleByTrend = (listCandle, type) => {
   if (type === "up") {
@@ -16,7 +16,7 @@ export const isIntoRangePrice = (
   priceCheck,
   range = 0.5,
   typeRange
-) => { };
+) => {};
 
 export const getListSupportRestricted = (listCandle) => {
   const data = {
@@ -239,7 +239,7 @@ export const ForeCastMethod = (data) => {
     winOrder: 0,
     loseOrder: 0,
     orderInfo: null,
-    info: null,
+    info: [],
     percent: 0,
     count: 0,
     cost: 0,
@@ -266,10 +266,22 @@ export const ForeCastMethod = (data) => {
           dataForeCast.isLoseFullPow = true;
           dataForeCast.levelPow = 0;
           break;
-        };
-        handleOtherMethod(listCandleInfo, currentCandle, dataForeCast, methodFn, symbol);
+        }
+        handleOtherMethod(
+          listCandleInfo,
+          currentCandle,
+          dataForeCast,
+          methodFn,
+          symbol
+        );
       } else {
-        handleData(listCandleInfo, currentCandle, dataForeCast, methodFn, symbol);
+        handleData(
+          listCandleInfo,
+          currentCandle,
+          dataForeCast,
+          methodFn,
+          symbol
+        );
       }
     }
   }
@@ -291,18 +303,18 @@ const handleData = (
     if (type === "up" && minPrice <= sl) {
       dataForeCast.loseOrder += 1;
       dataForeCast.orderInfo = null;
-      dataForeCast.info = `${buildTimeStampToDate(
-        timeStamp
-      )} - ${buildLinkToSymbol(symbol)}\n`;
+      dataForeCast.info.push(
+        `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)}\n`
+      );
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
     } else if (type === "down" && maxPrice >= sl) {
       dataForeCast.loseOrder += 1;
       dataForeCast.orderInfo = null;
-      dataForeCast.info = `${buildTimeStampToDate(
-        timeStamp
-      )} - ${buildLinkToSymbol(symbol)}\n`;
+      dataForeCast.info.push(
+        `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)}\n`
+      );
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
@@ -312,12 +324,18 @@ const handleData = (
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
+      // dataForeCast.info.push(
+      //   `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)}\n`
+      // );
     } else if (type === "down" && minPrice <= tp) {
       dataForeCast.winOrder += 1;
       dataForeCast.orderInfo = null;
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
+      // dataForeCast.info.push(
+      //   `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)}\n`
+      // );
     }
   } else {
     listCandleInfo.pop();
@@ -375,41 +393,59 @@ const handleOtherMethod = (
     if (type === "up" && minPrice <= sl) {
       dataForeCast.loseOrder += 1;
       dataForeCast.orderInfo = null;
-      dataForeCast.info = `${buildTimeStampToDate(
-        timeStamp
-      )} - ${buildLinkToSymbol(symbol)}\n`;
+      dataForeCast.info.push(
+        `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)}\n`
+      );
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
-      dataForeCast.profit = dataForeCast.profit - cost - REWARD * Math.pow(2, dataForeCast.levelPow);
+      dataForeCast.profit =
+        dataForeCast.profit -
+        cost -
+        REWARD * Math.pow(2, dataForeCast.levelPow);
       dataForeCast.levelPow += 1;
     } else if (type === "down" && maxPrice >= sl) {
       dataForeCast.loseOrder += 1;
       dataForeCast.orderInfo = null;
-      dataForeCast.info = `${buildTimeStampToDate(
-        timeStamp
-      )} - ${buildLinkToSymbol(symbol)}\n`;
+      dataForeCast.info.push(
+        `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)}\n`
+      );
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
-      dataForeCast.profit = dataForeCast.profit - cost - REWARD * Math.pow(2, dataForeCast.levelPow);
+      dataForeCast.profit =
+        dataForeCast.profit -
+        cost -
+        REWARD * Math.pow(2, dataForeCast.levelPow);
       dataForeCast.levelPow += 1;
     } else if (type === "up" && maxPrice >= tp) {
       dataForeCast.winOrder += 1;
       dataForeCast.orderInfo = null;
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
-      dataForeCast.profit = dataForeCast.profit - cost + REWARD * RR * Math.pow(2, dataForeCast.levelPow);
+      dataForeCast.profit =
+        dataForeCast.profit -
+        cost +
+        REWARD * RR * Math.pow(2, dataForeCast.levelPow);
       dataForeCast.cost += cost;
       dataForeCast.levelPow = 0;
+      // dataForeCast.info.push(
+      //   `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol, timeStamp)}\n`
+      // );
     } else if (type === "down" && minPrice <= tp) {
       dataForeCast.winOrder += 1;
       dataForeCast.orderInfo = null;
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
-      dataForeCast.profit = dataForeCast.profit - cost + REWARD * RR * Math.pow(2, dataForeCast.levelPow);
+      dataForeCast.profit =
+        dataForeCast.profit -
+        cost +
+        REWARD * RR * Math.pow(2, dataForeCast.levelPow);
       dataForeCast.cost += cost;
       dataForeCast.levelPow = 0;
+      // dataForeCast.info.push(
+      //   `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)}\n`
+      // );
     }
   } else {
     listCandleInfo.pop();

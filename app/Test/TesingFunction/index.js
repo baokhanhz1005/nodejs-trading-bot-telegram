@@ -77,25 +77,27 @@ export const TestingFunction = async (payload) => {
     let levelPowMethod = 0;
     let isLoseFullPowMethod = false;
     let countLoseFullMethod = 0;
-    let stringSymbol = '';
+    let stringSymbol = "";
     let countLevelHigh = 0;
     const mapMaxLevelPow1 = {};
     const mapMaxLevelPow2 = {};
     if (listSymbols && listSymbols.length) {
       const promiseCandleData = dataCandle
         ? dataCandle
-        : listSymbols.filter(each => each.symbol !== 'RSRUSDT').map(async (token) => {
-          const { symbol, stickPrice } = token;
-          const params = {
-            data: {
-              symbol: symbol,
-              interval: timeLine,
-              limit: 1000, // 388 -- 676 -- 964
-            },
-          };
-          const res = await fetchApiGetCandleStickData(params);
-          return res;
-        });
+        : listSymbols
+            .filter((each) => each.symbol !== "RSRUSDT")
+            .map(async (token) => {
+              const { symbol, stickPrice } = token;
+              const params = {
+                data: {
+                  symbol: symbol,
+                  interval: timeLine,
+                  limit: 1000, // 388 -- 676 -- 964
+                },
+              };
+              const res = await fetchApiGetCandleStickData(params);
+              return res;
+            });
 
       Promise.all(promiseCandleData).then(async (res) => {
         if (res.length) {
@@ -105,10 +107,13 @@ export const TestingFunction = async (payload) => {
           res.forEach((candleInfo, index) => {
             const { symbol: symbolCandle, data: candleStickData } = candleInfo;
 
-            if (candleStickData && candleStickData.length && (false || candleStickData.slice(-1)[0][4] < 0.1)) {
+            if (
+              candleStickData &&
+              candleStickData.length &&
+              (false || candleStickData.slice(-1)[0][4] < 0.1)
+            ) {
               const payload = {
-                candleStickData:
-                  candleStickData || candleStickData.slice(-388),
+                candleStickData: candleStickData || candleStickData.slice(-388),
                 method: {
                   methodFn: checkAbleOrderBySympleMethod,
                   // checkAbleOrderSMC,
@@ -154,25 +159,31 @@ export const TestingFunction = async (payload) => {
                 countLevelHigh += 1;
               }
               if (maxLevelPow > 0) {
-                mapMaxLevelPow1[maxLevelPow] = mapMaxLevelPow1[maxLevelPow] !== undefined ? mapMaxLevelPow1[maxLevelPow] + 1 : 1;
+                mapMaxLevelPow1[maxLevelPow] =
+                  mapMaxLevelPow1[maxLevelPow] !== undefined
+                    ? mapMaxLevelPow1[maxLevelPow] + 1
+                    : 1;
               }
               if (maxLevelPow > 0 && levelPow < maxLevelPow) {
-                mapMaxLevelPow2[maxLevelPow] = mapMaxLevelPow2[maxLevelPow] !== undefined ? mapMaxLevelPow2[maxLevelPow] + 1 : 1;
+                mapMaxLevelPow2[maxLevelPow] =
+                  mapMaxLevelPow2[maxLevelPow] !== undefined
+                    ? mapMaxLevelPow2[maxLevelPow] + 1
+                    : 1;
               }
               if (count) {
                 percentAvg += +percent / +count;
                 countSymbol += 1;
               }
-              if (info) {
-                listInfo.push(info);
+              if (info && info.length) {
+                listInfo.push(...info);
               }
             }
           });
           if (false) {
-            // Dùng cho việc log ra các lệnh SL, cho việc đánh giá lý do tại sao lệnh chạm SL
+            // Dùng cho việc log ra các lệnh SL\TP, cho việc đánh giá lý do tại sao lệnh chạm SL
             let tempMess = [];
             for (let i = 0; i < listInfo.length; i++) {
-              if (i > 9) break;
+              if (i > 20) break;
               if (i % 5 === 0 && i !== 0) {
                 tempMess.push(listInfo[i]);
                 bot.sendMessage(chatId, `${tempMess.join("")}`, {
@@ -197,9 +208,13 @@ export const TestingFunction = async (payload) => {
               chatId,
               `- Tổng số lệnh: ${totalOrder} với: \n- Thu được: ${profitMethod}$ 
               \n- Số lệnh mắc lose liên tiếp: ${countLoseFullMethod} - LEVEL: ${countLevelHigh}\n ${stringSymbol}\n+ ${totalWin} lệnh TP và ${totalLose} lệnh SL
-              \n ${Object.keys(mapMaxLevelPow1).map(key => `** L${key}: ${mapMaxLevelPow1[key]}`).join('\n')}
+              \n ${Object.keys(mapMaxLevelPow1)
+                .map((key) => `** L${key}: ${mapMaxLevelPow1[key]}`)
+                .join("\n")}
               \n =========================
-              \n ${Object.keys(mapMaxLevelPow2).map(key => `** L${key}: ${mapMaxLevelPow2[key]}`).join('\n')} 
+              \n ${Object.keys(mapMaxLevelPow2)
+                .map((key) => `** L${key}: ${mapMaxLevelPow2[key]}`)
+                .join("\n")} 
               `
             );
           } else {
@@ -210,7 +225,8 @@ export const TestingFunction = async (payload) => {
                 100
               ).toFixed(2)}%\n     + Profit: ${(R * REWARD - totalCost).toFixed(
                 2
-              )}\n     + Cost: ${percentAvg / countSymbol
+              )}\n     + Cost: ${
+                percentAvg / countSymbol
               } - ${totalCost}\n     + Gồm: ${totalLong} LONG và ${totalShort} SHORT`
             );
           }

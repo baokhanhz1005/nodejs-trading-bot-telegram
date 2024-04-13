@@ -34,7 +34,7 @@ export const Test = async (payload) => {
   let countRound = 0;
   let limitResetPow = 10;
   let balancePerRound = 0;
-  let symbolWithCondition = []
+  let symbolWithCondition = [];
   try {
     payloadAccount = TEST_CONFIG;
     // const dataStoraged = await fs.readFile(filePath, "utf-8");
@@ -98,8 +98,16 @@ export const Test = async (payload) => {
             const order = dataAccount.orders[index];
 
             if (!order) continue;
-            const { symbol, type, tp, sl, isCheckMinMax, startTime, percent, levelPow } =
-              order;
+            const {
+              symbol,
+              type,
+              tp,
+              sl,
+              isCheckMinMax,
+              startTime,
+              percent,
+              levelPow,
+            } = order;
             const params = {
               data: {
                 symbol: symbol,
@@ -108,39 +116,59 @@ export const Test = async (payload) => {
               },
             };
 
-            const res = await fetchApiGetCandleStickData(
-              params
-            );
+            const res = await fetchApiGetCandleStickData(params);
 
             listPromiseResult.push(res);
-          };
+          }
 
           // check is has TP / SL
-          Promise.all(listPromiseResult).then(res => {
+          Promise.all(listPromiseResult).then((res) => {
             if (res.length) {
-              res.forEach(candleInfo => {
-                const { data: candleStickData, symbol: symbolCandle } = candleInfo;
-                const order = dataAccount.orders.find(each => each.symbol === symbolCandle);
+              res.forEach((candleInfo) => {
+                const { data: candleStickData, symbol: symbolCandle } =
+                  candleInfo;
+                const order = dataAccount.orders.find(
+                  (each) => each.symbol === symbolCandle
+                );
                 if (order) {
-                  const { symbol, type, tp, sl, isCheckMinMax, startTime, percent, levelPow } = order;
-  
+                  const {
+                    symbol,
+                    type,
+                    tp,
+                    sl,
+                    isCheckMinMax,
+                    startTime,
+                    percent,
+                    levelPow,
+                  } = order;
+
                   if (candleStickData && candleStickData.length) {
                     const [candleCheck, lastestCandle] = candleStickData;
-  
+
                     const maxPrice = lastestCandle[2];
                     const minPrice = lastestCandle[3];
-  
+
                     if (type === "up" && minPrice <= sl) {
                       dataAccount.account =
-                        dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                        dataAccount.account -
+                        REWARD * Math.pow(2, levelPow) -
+                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
                       dataAccount.orders = dataAccount.orders.filter(
                         (order) => order.symbol !== symbol
                       );
-                      balancePerRound = balancePerRound - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent; ////////
+                      balancePerRound =
+                        balancePerRound -
+                        REWARD * Math.pow(2, levelPow) -
+                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent; ////////
                       bot.sendMessage(
                         chatId,
-                        `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
-                        } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
+                        `😭 SL lệnh ${
+                          type === "up" ? "LONG" : "SHORT"
+                        } ${buildLinkToSymbol(
+                          symbol
+                        )} tại giá ${sl} - ${symbol} - L${
+                          dataAccount.mapLevelPow[symbol]
+                        }\n-Balance: ${balancePerRound}`,
                         { parse_mode: "HTML", disable_web_page_preview: true }
                       );
                       countSL += 1;
@@ -155,15 +183,25 @@ export const Test = async (payload) => {
                       }
                     } else if (type === "down" && maxPrice >= sl) {
                       dataAccount.account =
-                        dataAccount.account - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                        dataAccount.account -
+                        REWARD * Math.pow(2, levelPow) -
+                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
                       dataAccount.orders = dataAccount.orders.filter(
                         (order) => order.symbol !== symbol
                       );
-                      balancePerRound = balancePerRound - REWARD * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent; /////////
+                      balancePerRound =
+                        balancePerRound -
+                        REWARD * Math.pow(2, levelPow) -
+                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent; /////////
                       bot.sendMessage(
                         chatId,
-                        `😭 SL lệnh ${type === "up" ? "LONG" : "SHORT"
-                        } ${buildLinkToSymbol(symbol)} tại giá ${sl} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
+                        `😭 SL lệnh ${
+                          type === "up" ? "LONG" : "SHORT"
+                        } ${buildLinkToSymbol(
+                          symbol
+                        )} tại giá ${sl} - ${symbol} - L${
+                          dataAccount.mapLevelPow[symbol]
+                        }\n-Balance: ${balancePerRound}`,
                         { parse_mode: "HTML", disable_web_page_preview: true }
                       );
                       if (dataAccount.mapLevelPow[symbol] === 8) {
@@ -178,30 +216,50 @@ export const Test = async (payload) => {
                       countSL += 1;
                     } else if (type === "up" && maxPrice >= tp) {
                       dataAccount.account =
-                        dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                        dataAccount.account +
+                        REWARD * RR * Math.pow(2, levelPow) -
+                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
                       dataAccount.orders = dataAccount.orders.filter(
                         (order) => order.symbol !== symbol
                       );
-                      balancePerRound = balancePerRound + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                      balancePerRound =
+                        balancePerRound +
+                        REWARD * RR * Math.pow(2, levelPow) -
+                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
                       bot.sendMessage(
                         chatId,
-                        `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
-                        } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
+                        `😍 TP lệnh ${
+                          type === "up" ? "LONG" : "SHORT"
+                        } ${buildLinkToSymbol(
+                          symbol
+                        )} tại giá ${tp} - ${symbol} - L${
+                          dataAccount.mapLevelPow[symbol]
+                        }\n-Balance: ${balancePerRound}`,
                         { parse_mode: "HTML", disable_web_page_preview: true }
                       );
                       dataAccount.mapLevelPow[symbol] = 0;
                       countTP += 1;
                     } else if (type === "down" && minPrice <= tp) {
                       dataAccount.account =
-                        dataAccount.account + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                        dataAccount.account +
+                        REWARD * RR * Math.pow(2, levelPow) -
+                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
                       dataAccount.orders = dataAccount.orders.filter(
                         (order) => order.symbol !== symbol
                       );
-                      balancePerRound = balancePerRound + REWARD * RR * Math.pow(2, levelPow) - (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                      balancePerRound =
+                        balancePerRound +
+                        REWARD * RR * Math.pow(2, levelPow) -
+                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
                       bot.sendMessage(
                         chatId,
-                        `😍 TP lệnh ${type === "up" ? "LONG" : "SHORT"
-                        } ${buildLinkToSymbol(symbol)} tại giá ${tp} - ${symbol} - L${dataAccount.mapLevelPow[symbol]}\n-Balance: ${balancePerRound}`,
+                        `😍 TP lệnh ${
+                          type === "up" ? "LONG" : "SHORT"
+                        } ${buildLinkToSymbol(
+                          symbol
+                        )} tại giá ${tp} - ${symbol} - L${
+                          dataAccount.mapLevelPow[symbol]
+                        }\n-Balance: ${balancePerRound}`,
                         { parse_mode: "HTML", disable_web_page_preview: true }
                       );
                       dataAccount.mapLevelPow[symbol] = 0;
@@ -209,16 +267,16 @@ export const Test = async (payload) => {
                     }
                   }
                 }
-              })
+              });
             }
-          })
+          });
 
           // reset levelPow when achieve limit reset
           if (false && balancePerRound > limitResetPow) {
             // reset data
             countSL = 0;
             countTP = 0;
-            Object.keys(dataAccount.mapLevelPow).forEach(symb => {
+            Object.keys(dataAccount.mapLevelPow).forEach((symb) => {
               dataAccount.mapLevelPow[symb] = 0;
             });
             balancePerRound = 0;
@@ -229,55 +287,67 @@ export const Test = async (payload) => {
               let accountTemp = 0;
               let countRemainOrder = 0;
               // console.log(dataAccount.orders);
-              const listPromiseCandle = dataAccount.orders.map(order => {
-                if (!order) return null;
-                const { symbol } = order || {};
-                const params = {
-                  data: {
-                    symbol: symbol,
-                    interval: timeLine,
-                    limit: 2,
-                  },
-                };
-                return fetchApiGetCandleStickData(params);
-              }).filter(Boolean);
+              const listPromiseCandle = dataAccount.orders
+                .map((order) => {
+                  if (!order) return null;
+                  const { symbol } = order || {};
+                  const params = {
+                    data: {
+                      symbol: symbol,
+                      interval: timeLine,
+                      limit: 2,
+                    },
+                  };
+                  return fetchApiGetCandleStickData(params);
+                })
+                .filter(Boolean);
 
-              Promise.all(listPromiseCandle).then(res => {
+              Promise.all(listPromiseCandle).then((res) => {
                 if (res.length) {
-                  res.forEach(async each => {
+                  res.forEach(async (each) => {
                     if (each) {
                       countRemainOrder += 1;
-                      const { data: candleStickData, symbol: symbolCandle } = each;
+                      const { data: candleStickData, symbol: symbolCandle } =
+                        each;
                       if (candleStickData && candleStickData.length) {
                         const [candleCheck, lastestCandle] = candleStickData;
                         const currentPrice = lastestCandle[4];
-                        const order = dataAccount.orders.find(each => each && each.symbol === symbolCandle);
+                        const order = dataAccount.orders.find(
+                          (each) => each && each.symbol === symbolCandle
+                        );
                         if (order) {
                           const { symbol, type, volume, entry } = order || {};
 
-                          if (type === 'up') {
+                          if (type === "up") {
                             if (+currentPrice > +entry) {
-                              accountTemp += (+currentPrice / +entry - 1) * volume;
+                              accountTemp +=
+                                (+currentPrice / +entry - 1) * volume;
                             } else {
-                              accountTemp -= (1 - +currentPrice / +entry) * volume;
+                              accountTemp -=
+                                (1 - +currentPrice / +entry) * volume;
                             }
-                          } else if (type === 'down') {
+                          } else if (type === "down") {
                             if (+currentPrice > +entry) {
-                              accountTemp -= (+currentPrice / +entry - 1) * volume;
+                              accountTemp -=
+                                (+currentPrice / +entry - 1) * volume;
                             } else {
-                              accountTemp += (1 - +currentPrice / +entry) * volume;
+                              accountTemp +=
+                                (1 - +currentPrice / +entry) * volume;
                             }
                           }
                         }
                       }
                     }
-                  })
+                  });
                 }
               });
 
               dataAccount.account = dataAccount.account + accountTemp;
               dataAccount.orders = [];
-              bot.sendMessage(chatId, `Đã thu hồi tất cả các lệnh - thu về: ${accountTemp}`);
+              bot.sendMessage(
+                chatId,
+                `Đã thu hồi tất cả các lệnh - thu về: ${accountTemp}`
+              );
             }
           }
         } catch (error) {
@@ -290,7 +360,7 @@ export const Test = async (payload) => {
         if (!listSymbolGetData.length) {
           listSymbolGetData = listSymbols;
         }
-        const listPromiseCandle = listSymbolGetData.map(token => {
+        const listPromiseCandle = listSymbolGetData.map((token) => {
           const { symbol, stickPrice } = token;
           const params = {
             data: {
@@ -303,27 +373,35 @@ export const Test = async (payload) => {
           return fetchApiGetCandleStickData(params);
         });
 
-        Promise.all(listPromiseCandle).then(res => {
+        Promise.all(listPromiseCandle).then((res) => {
           const temListSymbol = [];
           if (res.length) {
-            res.forEach(async candleInfo => {
-              const { symbol: symbolCandle, data: candleStickData } = candleInfo;
+            res.forEach(async (candleInfo) => {
+              const { symbol: symbolCandle, data: candleStickData } =
+                candleInfo;
 
-              if (candleStickData && candleStickData.length && candleStickData.slice(-1)[0][4] < 0.1) {
-                const symbolWithCondition = listSymbols.find(token => token.symbol === symbolCandle);
+              if (
+                candleStickData &&
+                candleStickData.length &&
+                candleStickData.slice(-1)[0][4] < 0.1
+              ) {
+                const symbolWithCondition = listSymbols.find(
+                  (token) => token.symbol === symbolCandle
+                );
                 temListSymbol.push(symbolWithCondition);
 
                 candleStickData.pop();
                 // candleStickData.reverse();
-                const { isAbleOrder, type, tpPercent, slPercent } = checkAbleOrderBySympleMethod(
-                  candleStickData,
-                  symbolCandle
-                );
+                const { isAbleOrder, type, tpPercent, slPercent } =
+                  checkAbleOrderBySympleMethod(candleStickData, symbolCandle);
 
                 let typeOrder = type;
                 if (
-                  isAbleOrder && symbolCandle !== 'RSRUSDT' &&
-                  dataAccount.orders.every((order) => order.symbol !== symbolCandle)
+                  isAbleOrder &&
+                  symbolCandle !== "RSRUSDT" &&
+                  dataAccount.orders.every(
+                    (order) => order.symbol !== symbolCandle
+                  )
                 ) {
                   const data = await fetchApiGetCurrentPrice({
                     symbol: symbolCandle,
@@ -342,9 +420,13 @@ export const Test = async (payload) => {
                   }
                   const dataTime = new Date();
                   const ratePriceTP =
-                    typeOrder === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
+                    typeOrder === "up"
+                      ? 1 + tpPercent / 100
+                      : 1 - tpPercent / 100;
                   const ratePriceSL =
-                    typeOrder === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
+                    typeOrder === "up"
+                      ? 1 - slPercent / 100
+                      : 1 + slPercent / 100;
                   const newOrder = {
                     symbol: symbolCandle,
                     entry: +price,
@@ -353,13 +435,20 @@ export const Test = async (payload) => {
                       (typeOrder === "up" ? priceGap * RR : -priceGap * RR),
                     sl:
                       ratePriceSL * price +
-                      (typeOrder === "up" ? - priceGap : priceGap),
+                      (typeOrder === "up" ? -priceGap : priceGap),
                     type: typeOrder,
                     startTime: dataTime.getTime(),
                     isCheckMinMax: true,
                     percent: slPercent,
                     levelPow: dataAccount.mapLevelPow[symbolCandle] || 0,
-                    volume: (REWARD * Math.pow(2, dataAccount.mapLevelPow[symbolCandle] || 0) * 100) / slPercent,
+                    volume:
+                      (REWARD *
+                        Math.pow(
+                          2,
+                          dataAccount.mapLevelPow[symbolCandle] || 0
+                        ) *
+                        100) /
+                      slPercent,
                   };
                   if (dataAccount.mapLevelPow[symbolCandle] === undefined) {
                     dataAccount.mapLevelPow[symbolCandle] = 0;
@@ -367,19 +456,22 @@ export const Test = async (payload) => {
                   dataAccount.orders.push(newOrder);
                   bot.sendMessage(
                     chatId,
-                    `Thực hiện lệnh ${typeOrder === "up" ? "LONG" : "SHORT"
-                    } ${buildLinkToSymbol(symbolCandle)} tại giá ${price} - L${dataAccount.mapLevelPow[symbolCandle]}`,
+                    `Thực hiện lệnh ${
+                      typeOrder === "up" ? "LONG" : "SHORT"
+                    } ${buildLinkToSymbol(symbolCandle)} tại giá ${price} - L${
+                      dataAccount.mapLevelPow[symbolCandle]
+                    }`,
                     { parse_mode: "HTML", disable_web_page_preview: true }
                   );
                 }
               }
-            })
+            });
           }
 
           if (!symbolWithCondition.length) {
             symbolWithCondition = temListSymbol;
           }
-        })
+        });
       }
 
       bot.sendMessage(
@@ -393,7 +485,7 @@ export const Test = async (payload) => {
       );
 
       const mapListSymbolLevelPow = {};
-      Object.keys(dataAccount.mapLevelPow).forEach(key => {
+      Object.keys(dataAccount.mapLevelPow).forEach((key) => {
         const level = dataAccount.mapLevelPow[key];
         if (+level) {
           if (Array.isArray(mapListSymbolLevelPow[level])) {
@@ -402,25 +494,27 @@ export const Test = async (payload) => {
             mapListSymbolLevelPow[level] = [key];
           }
         }
-      })
-
-      const contentLevelPow = Object.keys(mapListSymbolLevelPow).map(lvPow => {
-        return `- L${lvPow}: ${mapListSymbolLevelPow[lvPow].join(', ')}\n`;
       });
 
+      const contentLevelPow = Object.keys(mapListSymbolLevelPow).map(
+        (lvPow) => {
+          return `- L${lvPow} - [${
+            mapListSymbolLevelPow[lvPow].length
+          }]: ${mapListSymbolLevelPow[lvPow].join(", ")}\n\n`;
+        }
+      );
+
       if (contentLevelPow.length) {
-        bot.sendMessage(chatId, `${contentLevelPow.join('')}`);
+        bot.sendMessage(chatId, `${contentLevelPow.join("")}`);
       }
     }
-
   };
 
-  setTimeout(
-    () => {
+  setTimeout(() => {
+    handleData(listSymbols);
+    setInterval(() => {
       handleData(listSymbols);
-      setInterval(() => {
-        handleData(listSymbols);
-        // console.log(JSON.stringify(dataAccount, null, 2));
-      }, 1 * 60 * 1000);
-    }, 0);
+      // console.log(JSON.stringify(dataAccount, null, 2));
+    }, 1 * 60 * 1000);
+  }, 0);
 };
