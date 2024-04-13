@@ -23,7 +23,8 @@ import { checkAbleOrderBySympleMethod } from "../execute/ExecuteSympleMethod/uti
 export const Test = async (payload) => {
   const { bot, chatId, timeLine } = payload;
   const listSymbols = await fetchApiGetListingSymbols();
-
+  const currentSecond = new Date().getSeconds();
+  const timeRemaining = 60 - currentSecond;
   // directory
   const fileName = "MOCK_DATA_TRADE.json";
   const filePath = path.join(".", fileName);
@@ -390,7 +391,15 @@ export const Test = async (payload) => {
                 );
                 temListSymbol.push(symbolWithCondition);
 
-                candleStickData.pop();
+                const newestCandle = candleStickData.slice(-1);
+                const dateTimeCandle = new Date(newestCandle[0]);
+                const currentTime = new Date();
+                if (
+                  Number(dateTimeCandle.getMinutes()) ===
+                  Number(currentTime.getMinutes())
+                ) {
+                  candleStickData.pop();
+                }
                 // candleStickData.reverse();
                 const { isAbleOrder, type, tpPercent, slPercent } =
                   checkAbleOrderBySympleMethod(candleStickData, symbolCandle);
@@ -516,5 +525,5 @@ export const Test = async (payload) => {
       handleData(listSymbols);
       // console.log(JSON.stringify(dataAccount, null, 2));
     }, 1 * 60 * 1000);
-  }, 0);
+  }, timeRemaining * 1000 + 250);
 };
