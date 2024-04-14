@@ -123,150 +123,156 @@ export const Test = async (payload) => {
           }
 
           // check is has TP / SL
-          Promise.all(listPromiseResult).then((res) => {
+          Promise.allSettled(listPromiseResult).then((res) => {
             if (res.length) {
-              res.forEach((candleInfo) => {
-                const { data: candleStickData, symbol: symbolCandle } =
-                  candleInfo;
-                const order = dataAccount.orders.find(
-                  (each) => each.symbol === symbolCandle
-                );
-                if (order) {
-                  const {
-                    symbol,
-                    type,
-                    tp,
-                    sl,
-                    isCheckMinMax,
-                    startTime,
-                    percent,
-                    levelPow,
-                  } = order;
+              res.forEach((result) => {
+                if (result.status === "fulfilled") {
+                  const candleInfo = result.value;
+                  const { data: candleStickData, symbol: symbolCandle } =
+                    candleInfo;
+                  const order = dataAccount.orders.find(
+                    (each) => each.symbol === symbolCandle
+                  );
+                  if (order) {
+                    const {
+                      symbol,
+                      type,
+                      tp,
+                      sl,
+                      isCheckMinMax,
+                      startTime,
+                      percent,
+                      levelPow,
+                    } = order;
 
-                  if (candleStickData && candleStickData.length) {
-                    const [candleCheck, lastestCandle] = candleStickData;
+                    if (candleStickData && candleStickData.length) {
+                      const [candleCheck, lastestCandle] = candleStickData;
 
-                    const maxPrice = lastestCandle[2];
-                    const minPrice = lastestCandle[3];
+                      const maxPrice = lastestCandle[2];
+                      const minPrice = lastestCandle[3];
 
-                    if (type === "up" && minPrice <= sl) {
-                      dataAccount.account =
-                        dataAccount.account -
-                        REWARD * Math.pow(2, levelPow) -
-                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-                      dataAccount.orders = dataAccount.orders.filter(
-                        (order) => order.symbol !== symbol
-                      );
-                      balancePerRound =
-                        balancePerRound -
-                        REWARD * Math.pow(2, levelPow) -
-                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent; ////////
-                      bot.sendMessage(
-                        chatId,
-                        `😭 SL lệnh ${
-                          type === "up" ? "LONG" : "SHORT"
-                        } ${buildLinkToSymbol(
-                          symbol
-                        )} tại giá ${sl} - ${symbol} - L${
-                          dataAccount.mapLevelPow[symbol]
-                        }\n-Balance: ${balancePerRound}`,
-                        { parse_mode: "HTML", disable_web_page_preview: true }
-                      );
-                      countSL += 1;
-                      if (dataAccount.mapLevelPow[symbol] === 8) {
-                        dataAccount.mapLevelPow[symbol] = 0;
+                      if (type === "up" && minPrice <= sl) {
+                        dataAccount.account =
+                          dataAccount.account -
+                          REWARD * Math.pow(2, levelPow) -
+                          (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                        dataAccount.orders = dataAccount.orders.filter(
+                          (order) => order.symbol !== symbol
+                        );
+                        balancePerRound =
+                          balancePerRound -
+                          REWARD * Math.pow(2, levelPow) -
+                          (REWARD * 0.1 * Math.pow(2, levelPow)) / percent; ////////
                         bot.sendMessage(
                           chatId,
-                          `### ${symbol} dính lệnh lose liên tục`
+                          `😭 SL lệnh ${
+                            type === "up" ? "LONG" : "SHORT"
+                          } ${buildLinkToSymbol(
+                            symbol
+                          )} tại giá ${sl} - ${symbol} - L${
+                            dataAccount.mapLevelPow[symbol]
+                          }\n-Balance: ${balancePerRound}`,
+                          { parse_mode: "HTML", disable_web_page_preview: true }
                         );
-                      } else {
-                        dataAccount.mapLevelPow[symbol] += 1;
-                      }
-                    } else if (type === "down" && maxPrice >= sl) {
-                      dataAccount.account =
-                        dataAccount.account -
-                        REWARD * Math.pow(2, levelPow) -
-                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-                      dataAccount.orders = dataAccount.orders.filter(
-                        (order) => order.symbol !== symbol
-                      );
-                      balancePerRound =
-                        balancePerRound -
-                        REWARD * Math.pow(2, levelPow) -
-                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent; /////////
-                      bot.sendMessage(
-                        chatId,
-                        `😭 SL lệnh ${
-                          type === "up" ? "LONG" : "SHORT"
-                        } ${buildLinkToSymbol(
-                          symbol
-                        )} tại giá ${sl} - ${symbol} - L${
-                          dataAccount.mapLevelPow[symbol]
-                        }\n-Balance: ${balancePerRound}`,
-                        { parse_mode: "HTML", disable_web_page_preview: true }
-                      );
-                      if (dataAccount.mapLevelPow[symbol] === 8) {
-                        dataAccount.mapLevelPow[symbol] = 0;
+                        countSL += 1;
+                        if (dataAccount.mapLevelPow[symbol] === 8) {
+                          dataAccount.mapLevelPow[symbol] = 0;
+                          bot.sendMessage(
+                            chatId,
+                            `### ${symbol} dính lệnh lose liên tục`
+                          );
+                        } else {
+                          dataAccount.mapLevelPow[symbol] += 1;
+                        }
+                      } else if (type === "down" && maxPrice >= sl) {
+                        dataAccount.account =
+                          dataAccount.account -
+                          REWARD * Math.pow(2, levelPow) -
+                          (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                        dataAccount.orders = dataAccount.orders.filter(
+                          (order) => order.symbol !== symbol
+                        );
+                        balancePerRound =
+                          balancePerRound -
+                          REWARD * Math.pow(2, levelPow) -
+                          (REWARD * 0.1 * Math.pow(2, levelPow)) / percent; /////////
                         bot.sendMessage(
                           chatId,
-                          `### ${symbol} dính lệnh lose liên tục`
+                          `😭 SL lệnh ${
+                            type === "up" ? "LONG" : "SHORT"
+                          } ${buildLinkToSymbol(
+                            symbol
+                          )} tại giá ${sl} - ${symbol} - L${
+                            dataAccount.mapLevelPow[symbol]
+                          }\n-Balance: ${balancePerRound}`,
+                          { parse_mode: "HTML", disable_web_page_preview: true }
                         );
-                      } else {
-                        dataAccount.mapLevelPow[symbol] += 1;
+                        if (dataAccount.mapLevelPow[symbol] === 8) {
+                          dataAccount.mapLevelPow[symbol] = 0;
+                          bot.sendMessage(
+                            chatId,
+                            `### ${symbol} dính lệnh lose liên tục`
+                          );
+                        } else {
+                          dataAccount.mapLevelPow[symbol] += 1;
+                        }
+                        countSL += 1;
+                      } else if (type === "up" && maxPrice >= tp) {
+                        dataAccount.account =
+                          dataAccount.account +
+                          REWARD * RR * Math.pow(2, levelPow) -
+                          (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                        dataAccount.orders = dataAccount.orders.filter(
+                          (order) => order.symbol !== symbol
+                        );
+                        balancePerRound =
+                          balancePerRound +
+                          REWARD * RR * Math.pow(2, levelPow) -
+                          (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                        bot.sendMessage(
+                          chatId,
+                          `😍 TP lệnh ${
+                            type === "up" ? "LONG" : "SHORT"
+                          } ${buildLinkToSymbol(
+                            symbol
+                          )} tại giá ${tp} - ${symbol} - L${
+                            dataAccount.mapLevelPow[symbol]
+                          }\n-Balance: ${balancePerRound}`,
+                          { parse_mode: "HTML", disable_web_page_preview: true }
+                        );
+                        dataAccount.mapLevelPow[symbol] = 0;
+                        countTP += 1;
+                      } else if (type === "down" && minPrice <= tp) {
+                        dataAccount.account =
+                          dataAccount.account +
+                          REWARD * RR * Math.pow(2, levelPow) -
+                          (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                        dataAccount.orders = dataAccount.orders.filter(
+                          (order) => order.symbol !== symbol
+                        );
+                        balancePerRound =
+                          balancePerRound +
+                          REWARD * RR * Math.pow(2, levelPow) -
+                          (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
+                        bot.sendMessage(
+                          chatId,
+                          `😍 TP lệnh ${
+                            type === "up" ? "LONG" : "SHORT"
+                          } ${buildLinkToSymbol(
+                            symbol
+                          )} tại giá ${tp} - ${symbol} - L${
+                            dataAccount.mapLevelPow[symbol]
+                          }\n-Balance: ${balancePerRound}`,
+                          { parse_mode: "HTML", disable_web_page_preview: true }
+                        );
+                        dataAccount.mapLevelPow[symbol] = 0;
+                        countTP += 1;
                       }
-                      countSL += 1;
-                    } else if (type === "up" && maxPrice >= tp) {
-                      dataAccount.account =
-                        dataAccount.account +
-                        REWARD * RR * Math.pow(2, levelPow) -
-                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-                      dataAccount.orders = dataAccount.orders.filter(
-                        (order) => order.symbol !== symbol
-                      );
-                      balancePerRound =
-                        balancePerRound +
-                        REWARD * RR * Math.pow(2, levelPow) -
-                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-                      bot.sendMessage(
-                        chatId,
-                        `😍 TP lệnh ${
-                          type === "up" ? "LONG" : "SHORT"
-                        } ${buildLinkToSymbol(
-                          symbol
-                        )} tại giá ${tp} - ${symbol} - L${
-                          dataAccount.mapLevelPow[symbol]
-                        }\n-Balance: ${balancePerRound}`,
-                        { parse_mode: "HTML", disable_web_page_preview: true }
-                      );
-                      dataAccount.mapLevelPow[symbol] = 0;
-                      countTP += 1;
-                    } else if (type === "down" && minPrice <= tp) {
-                      dataAccount.account =
-                        dataAccount.account +
-                        REWARD * RR * Math.pow(2, levelPow) -
-                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-                      dataAccount.orders = dataAccount.orders.filter(
-                        (order) => order.symbol !== symbol
-                      );
-                      balancePerRound =
-                        balancePerRound +
-                        REWARD * RR * Math.pow(2, levelPow) -
-                        (REWARD * 0.1 * Math.pow(2, levelPow)) / percent;
-                      bot.sendMessage(
-                        chatId,
-                        `😍 TP lệnh ${
-                          type === "up" ? "LONG" : "SHORT"
-                        } ${buildLinkToSymbol(
-                          symbol
-                        )} tại giá ${tp} - ${symbol} - L${
-                          dataAccount.mapLevelPow[symbol]
-                        }\n-Balance: ${balancePerRound}`,
-                        { parse_mode: "HTML", disable_web_page_preview: true }
-                      );
-                      dataAccount.mapLevelPow[symbol] = 0;
-                      countTP += 1;
                     }
                   }
+                } else if (result.status === "rejected") {
+                  const reason = result.reason;
+                  console.error("Request error:", reason);
                 }
               });
             }
@@ -374,105 +380,113 @@ export const Test = async (payload) => {
           return fetchApiGetCandleStickData(params);
         });
 
-        Promise.all(listPromiseCandle).then((res) => {
+        Promise.allSettled(listPromiseCandle).then((res) => {
           const temListSymbol = [];
           if (res.length) {
-            res.forEach(async (candleInfo) => {
-              const { symbol: symbolCandle, data: candleStickData } =
-                candleInfo;
+            res.forEach(async (result) => {
+              if (result.status === 'fulfilled') {
+                const candleInfo = result.value;
+                const { symbol: symbolCandle, data: candleStickData } =
+                  candleInfo;
 
-              if (
-                candleStickData &&
-                candleStickData.length &&
-                candleStickData.slice(-1)[0][4] < 0.1
-              ) {
-                const symbolWithCondition = listSymbols.find(
-                  (token) => token.symbol === symbolCandle
-                );
-                temListSymbol.push(symbolWithCondition);
-
-                const newestCandle = candleStickData.slice(-1);
-                const dateTimeCandle = new Date(newestCandle[0]);
-                const currentTime = new Date();
                 if (
-                  Number(dateTimeCandle.getMinutes()) ===
-                  Number(currentTime.getMinutes())
+                  candleStickData &&
+                  candleStickData.length &&
+                  candleStickData.slice(-1)[0][4] < 0.1
                 ) {
-                  candleStickData.pop();
-                }
-                // candleStickData.reverse();
-                const { isAbleOrder, type, tpPercent, slPercent } =
-                  checkAbleOrderBySympleMethod(candleStickData, symbolCandle);
-
-                let typeOrder = type;
-                if (
-                  isAbleOrder &&
-                  symbolCandle !== "RSRUSDT" &&
-                  dataAccount.orders.every(
-                    (order) => order.symbol !== symbolCandle
-                  )
-                ) {
-                  const data = await fetchApiGetCurrentPrice({
-                    symbol: symbolCandle,
-                  });
-
-                  const { price } = data;
-                  let priceGap = 0;
-                  const lastestCandle = [...candleStickData.slice(-1)];
-
-                  if (typeOrder === "up") {
-                    priceGap =
-                      lastestCandle[4] < price ? price - lastestCandle[4] : 0;
-                  } else if (typeOrder === "down") {
-                    priceGap =
-                      lastestCandle[4] > price ? lastestCandle[4] - price : 0;
-                  }
-                  const dataTime = new Date();
-                  const ratePriceTP =
-                    typeOrder === "up"
-                      ? 1 + tpPercent / 100
-                      : 1 - tpPercent / 100;
-                  const ratePriceSL =
-                    typeOrder === "up"
-                      ? 1 - slPercent / 100
-                      : 1 + slPercent / 100;
-                  const newOrder = {
-                    symbol: symbolCandle,
-                    entry: +price,
-                    tp:
-                      ratePriceTP * price +
-                      (typeOrder === "up" ? priceGap * RR : -priceGap * RR),
-                    sl:
-                      ratePriceSL * price +
-                      (typeOrder === "up" ? -priceGap : priceGap),
-                    type: typeOrder,
-                    startTime: dataTime.getTime(),
-                    isCheckMinMax: true,
-                    percent: slPercent,
-                    levelPow: dataAccount.mapLevelPow[symbolCandle] || 0,
-                    volume:
-                      (REWARD *
-                        Math.pow(
-                          2,
-                          dataAccount.mapLevelPow[symbolCandle] || 0
-                        ) *
-                        100) /
-                      slPercent,
-                  };
-                  if (dataAccount.mapLevelPow[symbolCandle] === undefined) {
-                    dataAccount.mapLevelPow[symbolCandle] = 0;
-                  }
-                  dataAccount.orders.push(newOrder);
-                  bot.sendMessage(
-                    chatId,
-                    `Thực hiện lệnh ${
-                      typeOrder === "up" ? "LONG" : "SHORT"
-                    } ${buildLinkToSymbol(symbolCandle)} tại giá ${price} - L${
-                      dataAccount.mapLevelPow[symbolCandle]
-                    }`,
-                    { parse_mode: "HTML", disable_web_page_preview: true }
+                  const symbolWithCondition = listSymbols.find(
+                    (token) => token.symbol === symbolCandle
                   );
+                  temListSymbol.push(symbolWithCondition);
+
+                  const newestCandle = candleStickData.slice(-1);
+                  const dateTimeCandle = new Date(newestCandle[0]);
+                  const currentTime = new Date();
+                  if (
+                    Number(dateTimeCandle.getMinutes()) ===
+                    Number(currentTime.getMinutes())
+                  ) {
+                    candleStickData.pop();
+                  }
+                  // candleStickData.reverse();
+                  const { isAbleOrder, type, tpPercent, slPercent } =
+                    checkAbleOrderBySympleMethod(candleStickData, symbolCandle);
+
+                  let typeOrder = type;
+                  if (
+                    isAbleOrder &&
+                    symbolCandle !== "RSRUSDT" &&
+                    dataAccount.orders.every(
+                      (order) => order.symbol !== symbolCandle
+                    )
+                  ) {
+                    const data = await fetchApiGetCurrentPrice({
+                      symbol: symbolCandle,
+                    });
+
+                    const { price } = data;
+                    let priceGap = 0;
+                    const lastestCandle = [...candleStickData.slice(-1)];
+
+                    if (typeOrder === "up") {
+                      priceGap =
+                        lastestCandle[4] < price ? price - lastestCandle[4] : 0;
+                    } else if (typeOrder === "down") {
+                      priceGap =
+                        lastestCandle[4] > price ? lastestCandle[4] - price : 0;
+                    }
+                    const dataTime = new Date();
+                    const ratePriceTP =
+                      typeOrder === "up"
+                        ? 1 + tpPercent / 100
+                        : 1 - tpPercent / 100;
+                    const ratePriceSL =
+                      typeOrder === "up"
+                        ? 1 - slPercent / 100
+                        : 1 + slPercent / 100;
+                    const newOrder = {
+                      symbol: symbolCandle,
+                      entry: +price,
+                      tp:
+                        ratePriceTP * price +
+                        (typeOrder === "up" ? priceGap * RR : -priceGap * RR),
+                      sl:
+                        ratePriceSL * price +
+                        (typeOrder === "up" ? -priceGap : priceGap),
+                      type: typeOrder,
+                      startTime: dataTime.getTime(),
+                      isCheckMinMax: true,
+                      percent: slPercent,
+                      levelPow: dataAccount.mapLevelPow[symbolCandle] || 0,
+                      volume:
+                        (REWARD *
+                          Math.pow(
+                            2,
+                            dataAccount.mapLevelPow[symbolCandle] || 0
+                          ) *
+                          100) /
+                        slPercent,
+                    };
+                    if (dataAccount.mapLevelPow[symbolCandle] === undefined) {
+                      dataAccount.mapLevelPow[symbolCandle] = 0;
+                    }
+                    dataAccount.orders.push(newOrder);
+                    bot.sendMessage(
+                      chatId,
+                      `Thực hiện lệnh ${
+                        typeOrder === "up" ? "LONG" : "SHORT"
+                      } ${buildLinkToSymbol(
+                        symbolCandle
+                      )} tại giá ${price} - L${
+                        dataAccount.mapLevelPow[symbolCandle]
+                      }`,
+                      { parse_mode: "HTML", disable_web_page_preview: true }
+                    );
+                  }
                 }
+              } else if (result.status === 'rejected') {
+                const reason = result.reason;
+                console.error('Request error:', reason);
               }
             });
           }
