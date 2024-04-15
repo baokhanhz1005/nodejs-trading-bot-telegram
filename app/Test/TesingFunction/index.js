@@ -110,7 +110,7 @@ export const TestingFunction = async (payload) => {
             if (
               candleStickData &&
               candleStickData.length &&
-              (false || candleStickData.slice(-1)[0][4] < 0.1)
+              (false || candleStickData[99][4] < 0.1)
             ) {
               const payload = {
                 candleStickData: candleStickData || candleStickData.slice(-388),

@@ -101,7 +101,7 @@ const checkPattern = (candleStickData, symbol) => {
   const limit = 11;
 
   let trend;
-  if (true && lastMacd > lastSignal * 0.7) {
+  if (true && lastMacd > lastSignal * 1) {
     trend = "Trending Up";
     // const rangeCandle50 = candleStickData.slice(-50);
     const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
@@ -122,7 +122,7 @@ const checkPattern = (candleStickData, symbol) => {
       lastestCandle[4] * 0.999 > prevCandle[1] &&
       lastestCandle[2] < maxRange50 * 0.97;
 
-    if (preCondition1 || preCondition2) {
+    if (true && (preCondition1 || preCondition2)) {
       const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.5;
       const CONDITION_2__ = EstRR > 0.7;
 
@@ -148,7 +148,7 @@ const checkPattern = (candleStickData, symbol) => {
         timeStamp = lastestCandle[0];
       }
     }
-  } else if (true && lastMacd < lastSignal * 0.7) {
+  } else if (true && lastMacd < lastSignal * 1) {
     trend = "Trending Down";
     // const rangeCandle50 = candleStickData.slice(-50);
     // const minRange50 = getMinOnListCandle(candleStickData.slice(-50), 3);

@@ -1,4 +1,3 @@
-import fs from "fs/promises";
 import path from "path";
 import { TEST_CONFIG } from "../../constant.js";
 import {
@@ -9,14 +8,6 @@ import {
   fetchApiGetListingSymbols,
   timeToSpecificTime,
 } from "../../utils.js";
-import util from "util";
-import { checkSafetyPrice } from "../handlers/TrackingPriceSafety/utils.js";
-import { checkHasBigPriceTrend } from "../handlers/TrackingBigPriceTrend/utils.js";
-import {
-  checkAvailableOrder,
-  checkAvailableOrderV2,
-} from "../execute/ExecuBuySellRestricted/utils.js";
-import { checkAbleOrderSMC } from "../execute/ExecuteSMC/utils.js";
 import { COST, REWARD, RR } from "../execute/ExecuteSMC/constant.js";
 import { checkAbleOrderBySympleMethod } from "../execute/ExecuteSympleMethod/utils.js";
 
@@ -25,9 +16,6 @@ export const Test = async (payload) => {
   const listSymbols = await fetchApiGetListingSymbols();
   const currentSecond = new Date().getSeconds();
   const timeRemaining = 60 - currentSecond;
-  // directory
-  const fileName = "MOCK_DATA_TRADE.json";
-  const filePath = path.join(".", fileName);
   let countTP = 0;
   let countSL = 0;
   let payloadAccount;
@@ -38,16 +26,6 @@ export const Test = async (payload) => {
   let symbolWithCondition = [];
   try {
     payloadAccount = TEST_CONFIG;
-    // const dataStoraged = await fs.readFile(filePath, "utf-8");
-    // payloadAccount = JSON.parse(dataStoraged);
-    // if (payloadAccount) {
-    //   payloadAccount.orders = payloadAccount.orders.map((order) => {
-    //     return {
-    //       ...order,
-    //       isCheckMinMax: true,
-    //     };
-    //   });
-    // }
     console.log("Get from try");
   } catch (e) {
     console.log("Get from catch");
@@ -55,33 +33,6 @@ export const Test = async (payload) => {
   }
 
   const dataAccount = payloadAccount;
-
-  const writeFile = util.promisify(fs.writeFile);
-  process.on("SIGINT", async () => {
-    console.log(
-      "Caught interrupt signal (Ctrl+C). Writing to file before exiting..."
-    );
-    await writeToDisk();
-    process.exit();
-  });
-
-  process.on("uncaughtException", async (error) => {
-    console.error(
-      "Uncaught exception. Writing to file before exiting...",
-      error
-    );
-    await writeToDisk();
-    process.exit(1);
-  });
-
-  const writeToDisk = async () => {
-    try {
-      await writeFile(filePath, JSON.stringify(dataAccount, null, 2));
-      console.log("Write to file successful!");
-    } catch (error) {
-      console.error("Error writing to file:", error);
-    }
-  };
 
   bot.sendMessage(
     chatId,
@@ -117,7 +68,11 @@ export const Test = async (payload) => {
               },
             };
 
-            const res = await fetchApiGetCandleStickData(params);
+            const res = await fetchApiGetCandleStickData(params).catch(
+              (error) => {
+                console.error("Error fetching candlestick data:", error);
+              }
+            );
 
             listPromiseResult.push(res);
           }
@@ -277,86 +232,6 @@ export const Test = async (payload) => {
               });
             }
           });
-
-          // reset levelPow when achieve limit reset
-          if (false && balancePerRound > limitResetPow) {
-            // reset data
-            countSL = 0;
-            countTP = 0;
-            Object.keys(dataAccount.mapLevelPow).forEach((symb) => {
-              dataAccount.mapLevelPow[symb] = 0;
-            });
-            balancePerRound = 0;
-            countRound += 1;
-            ////////////
-
-            if (dataAccount.orders.length) {
-              let accountTemp = 0;
-              let countRemainOrder = 0;
-              // console.log(dataAccount.orders);
-              const listPromiseCandle = dataAccount.orders
-                .map((order) => {
-                  if (!order) return null;
-                  const { symbol } = order || {};
-                  const params = {
-                    data: {
-                      symbol: symbol,
-                      interval: timeLine,
-                      limit: 2,
-                    },
-                  };
-                  return fetchApiGetCandleStickData(params);
-                })
-                .filter(Boolean);
-
-              Promise.all(listPromiseCandle).then((res) => {
-                if (res.length) {
-                  res.forEach(async (each) => {
-                    if (each) {
-                      countRemainOrder += 1;
-                      const { data: candleStickData, symbol: symbolCandle } =
-                        each;
-                      if (candleStickData && candleStickData.length) {
-                        const [candleCheck, lastestCandle] = candleStickData;
-                        const currentPrice = lastestCandle[4];
-                        const order = dataAccount.orders.find(
-                          (each) => each && each.symbol === symbolCandle
-                        );
-                        if (order) {
-                          const { symbol, type, volume, entry } = order || {};
-
-                          if (type === "up") {
-                            if (+currentPrice > +entry) {
-                              accountTemp +=
-                                (+currentPrice / +entry - 1) * volume;
-                            } else {
-                              accountTemp -=
-                                (1 - +currentPrice / +entry) * volume;
-                            }
-                          } else if (type === "down") {
-                            if (+currentPrice > +entry) {
-                              accountTemp -=
-                                (+currentPrice / +entry - 1) * volume;
-                            } else {
-                              accountTemp +=
-                                (1 - +currentPrice / +entry) * volume;
-                            }
-                          }
-                        }
-                      }
-                    }
-                  });
-                }
-              });
-
-              dataAccount.account = dataAccount.account + accountTemp;
-              dataAccount.orders = [];
-              bot.sendMessage(
-                chatId,
-                `Đã thu hồi tất cả các lệnh - thu về: ${accountTemp}`
-              );
-            }
-          }
         } catch (error) {
           console.error("Error handling data:", error);
         }
@@ -377,14 +252,16 @@ export const Test = async (payload) => {
             },
           };
 
-          return fetchApiGetCandleStickData(params);
+          return fetchApiGetCandleStickData(params).catch((error) => {
+            console.error("Error fetching candlestick data:", error);
+          });
         });
 
         Promise.allSettled(listPromiseCandle).then((res) => {
           const temListSymbol = [];
           if (res.length) {
             res.forEach(async (result) => {
-              if (result.status === 'fulfilled') {
+              if (result.status === "fulfilled") {
                 const candleInfo = result.value;
                 const { symbol: symbolCandle, data: candleStickData } =
                   candleInfo;
@@ -422,6 +299,8 @@ export const Test = async (payload) => {
                   ) {
                     const data = await fetchApiGetCurrentPrice({
                       symbol: symbolCandle,
+                    }).catch((error) => {
+                      console.error("Error fetching current price:", error);
                     });
 
                     const { price } = data;
@@ -484,9 +363,8 @@ export const Test = async (payload) => {
                     );
                   }
                 }
-              } else if (result.status === 'rejected') {
-                const reason = result.reason;
-                console.error('Request error:', reason);
+              } else if (result.status === "rejected") {
+                console.error("Request error");
               }
             });
           }
