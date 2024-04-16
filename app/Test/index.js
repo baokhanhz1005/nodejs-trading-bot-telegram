@@ -416,6 +416,6 @@ export const Test = async (payload) => {
     setInterval(() => {
       handleData(listSymbols);
       // console.log(JSON.stringify(dataAccount, null, 2));
-    }, 1 * 60 * 1000);
+    }, 1 * 100 * 1000);
   }, timeRemaining * 1000 + 250);
 };
