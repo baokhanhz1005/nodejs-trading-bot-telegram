@@ -44,15 +44,15 @@ export const checkAbleOrderBySympleMethod = (candleStickData, symbol) => {
 };
 
 const checkPattern = (candleStickData, symbol) => {
-//   const count = candleStickData.length;
+  //   const count = candleStickData.length;
   const [forthLastCandle, thirdLastCandle, prevCandle, lastestCandle] =
     candleStickData.slice(-4);
-//   const max = Math.max(
-//     ...candleStickData.slice(-50).map((candle) => parseFloat(candle[2]))
-//   );
-//   const min = Math.min(
-//     ...candleStickData.slice(-50).map((candle) => parseFloat(candle[3]))
-//   );
+  //   const max = Math.max(
+  //     ...candleStickData.slice(-50).map((candle) => parseFloat(candle[2]))
+  //   );
+  //   const min = Math.min(
+  //     ...candleStickData.slice(-50).map((candle) => parseFloat(candle[3]))
+  //   );
 
   let type = "";
   let isAllowOrder = false;
@@ -93,7 +93,7 @@ const checkPattern = (candleStickData, symbol) => {
   // Lấy giá trị MACD line, Signal line và Histogram
   const macdLine = macdResult.map((result) => result.MACD);
   const signalLine = macdResult.map((result) => result.signal);
-//   const histogram = macdResult.map((result) => result.histogram);
+  //   const histogram = macdResult.map((result) => result.histogram);
 
   // Xác định xu hướng dựa trên MACD và Signal line
   const lastMacd = macdLine[macdLine.length - 1];
@@ -107,7 +107,8 @@ const checkPattern = (candleStickData, symbol) => {
     const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
     // const maxRange45 = getMaxOnListCandle(rangeCandle50.slice(0, 45), 2);
     // const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
-    // const min4Range15 = getMinOnListCandle(candleStickData.slice(-15), 4);
+    const min3Range10 = getMinOnListCandle(candleStickData.slice(-10), 3);
+    const minRange50 = getMinOnListCandle(candleStickData.slice(-50), 3);
 
     const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
       candleStickData.slice(-25)
@@ -125,15 +126,15 @@ const checkPattern = (candleStickData, symbol) => {
     if (true && (preCondition1 || preCondition2)) {
       const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.5;
       const CONDITION_2__ = EstRR > 0.7;
-
-      if (CONDITION_2__) {
+      const CONDITION_1__ = +minRange50 === +min3Range10;
+      if (CONDITION_1__ && CONDITION_2__) {
         slPercent = EstRR;
         type = "up";
         isAllowOrder = true;
         timeStamp = lastestCandle[0];
       }
     } else if (
-      true &&
+      false &&
       (checkFullCandle(lastestCandle, "up") || checkPinbar(lastestCandle, "up"))
     ) {
       const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.8;
@@ -155,27 +156,34 @@ const checkPattern = (candleStickData, symbol) => {
     // const minRange45 = getMinOnListCandle(rangeCandle50.slice(0, 45), 3);
     const min4Range15 = getMinOnListCandle(candleStickData.slice(-15), 4);
     const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
+    const max2Rang10 = getMaxOnListCandle(candleStickData.slice(-10), 2);
+    const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
     // const max4Range50 = getMaxOnListCandle(candleStickData.slice(-50), 4);
     // const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
     //     candleStickData.slice(-25)
     // );
     const preCondition1 =
-      checkFullCandle(prevCandle, "up") && checkPinbar(lastestCandle, "down");
+      isUpCandle(prevCandle, "up") &&
+      checkFullCandle(lastestCandle, "down") && lastestCandle[4] < prevCandle[1] * 0.998;
 
-    const preCondition2 =
-      checkPinbar(prevCandle, "down") && checkPinbar(lastestCandle, "down");
+    // const preCondition2 =
+    //   checkPinbar(forthLastCandle, "down") &&
+    //   checkPinbar(thirdLastCandle, "down") &&
+    //   checkPinbar(prevCandle, "down") &&
+    //   checkPinbar(lastestCandle, "down");
 
-    if (true && (preCondition1 || preCondition2)) {
+    if (true && (preCondition1 || false)) {
       const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.8;
       const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.4;
-      if (true && CONDITION_2__) {
+      const CONDITION_1__ = +max2Rang10 === +maxRange50;
+      if (true && CONDITION_1__ && CONDITION_2__) {
         slPercent = EstRR;
         type = "down";
         isAllowOrder = true;
         timeStamp = lastestCandle[0];
       }
     } else if (
-      true &&
+      false &&
       (checkFullCandle(lastestCandle, "down") ||
         checkPinbar(lastestCandle, "down"))
     ) {
