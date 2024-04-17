@@ -127,7 +127,11 @@ const checkPattern = (candleStickData, symbol) => {
       const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.5;
       const CONDITION_2__ = EstRR > 0.7;
       const CONDITION_1__ = +minRange50 === +min3Range10;
-      if (CONDITION_1__ && CONDITION_2__) {
+      const CONDITION_3__ =
+        (lastestCandle[2] - minRange50) /
+          (lastestCandle[2] - lastestCandle[3]) <
+        3;
+      if (CONDITION_1__ && CONDITION_2__ && CONDITION_3__) {
         slPercent = EstRR;
         type = "up";
         isAllowOrder = true;
@@ -164,7 +168,8 @@ const checkPattern = (candleStickData, symbol) => {
     // );
     const preCondition1 =
       isUpCandle(prevCandle, "up") &&
-      checkFullCandle(lastestCandle, "down") && lastestCandle[4] < prevCandle[1] * 0.998;
+      checkFullCandle(lastestCandle, "down") &&
+      lastestCandle[4] < prevCandle[1] * 0.998;
 
     // const preCondition2 =
     //   checkPinbar(forthLastCandle, "down") &&
@@ -176,7 +181,11 @@ const checkPattern = (candleStickData, symbol) => {
       const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.8;
       const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.4;
       const CONDITION_1__ = +max2Rang10 === +maxRange50;
-      if (true && CONDITION_1__ && CONDITION_2__) {
+      const CONDITION_3__ =
+        (maxRange50 - lastestCandle[3]) /
+          (lastestCandle[2] - lastestCandle[3]) <
+        3;
+      if (true && CONDITION_1__ && CONDITION_2__ && CONDITION_3__) {
         slPercent = EstRR;
         type = "down";
         isAllowOrder = true;
