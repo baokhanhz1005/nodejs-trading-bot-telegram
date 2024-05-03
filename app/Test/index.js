@@ -260,7 +260,7 @@ export const Test = async (payload) => {
         Promise.allSettled(listPromiseCandle).then((res) => {
           const temListSymbol = [];
           if (res.length) {
-            res.forEach(async (result) => {
+            res.forEach((result) => {
               if (result.status === "fulfilled") {
                 const candleInfo = result.value;
                 const { symbol: symbolCandle, data: candleStickData } =
@@ -297,70 +297,72 @@ export const Test = async (payload) => {
                       (order) => order.symbol !== symbolCandle
                     )
                   ) {
-                    const data = await fetchApiGetCurrentPrice({
+                    fetchApiGetCurrentPrice({
                       symbol: symbolCandle,
+                    }).then(res => {
+                      const { price } = res;
+
+                      let priceGap = 0;
+                      const lastestCandle = [...candleStickData.slice(-1)];
+  
+                      if (typeOrder === "up") {
+                        priceGap =
+                          lastestCandle[4] < price ? price - lastestCandle[4] : 0;
+                      } else if (typeOrder === "down") {
+                        priceGap =
+                          lastestCandle[4] > price ? lastestCandle[4] - price : 0;
+                      }
+                      const dataTime = new Date();
+                      const ratePriceTP =
+                        typeOrder === "up"
+                          ? 1 + tpPercent / 100
+                          : 1 - tpPercent / 100;
+                      const ratePriceSL =
+                        typeOrder === "up"
+                          ? 1 - slPercent / 100
+                          : 1 + slPercent / 100;
+                      const newOrder = {
+                        symbol: symbolCandle,
+                        entry: +price,
+                        tp:
+                          ratePriceTP * price +
+                          (typeOrder === "up" ? priceGap * RR : -priceGap * RR),
+                        sl:
+                          ratePriceSL * price +
+                          (typeOrder === "up" ? -priceGap : priceGap),
+                        type: typeOrder,
+                        startTime: dataTime.getTime(),
+                        isCheckMinMax: true,
+                        percent: slPercent,
+                        levelPow: dataAccount.mapLevelPow[symbolCandle] || 0,
+                        volume:
+                          (REWARD *
+                            Math.pow(
+                              2,
+                              dataAccount.mapLevelPow[symbolCandle] || 0
+                            ) *
+                            100) /
+                          slPercent,
+                      };
+                      if (dataAccount.mapLevelPow[symbolCandle] === undefined) {
+                        dataAccount.mapLevelPow[symbolCandle] = 0;
+                      }
+                      dataAccount.orders.push(newOrder);
+                      bot.sendMessage(
+                        chatId,
+                        `Thực hiện lệnh ${
+                          typeOrder === "up" ? "LONG" : "SHORT"
+                        } ${buildLinkToSymbol(
+                          symbolCandle
+                        )} tại giá ${price} - L${
+                          dataAccount.mapLevelPow[symbolCandle]
+                        }`,
+                        { parse_mode: "HTML", disable_web_page_preview: true }
+                      );
                     }).catch((error) => {
                       console.error("Error fetching current price:", error);
                     });
-
-                    const { price } = data;
-                    let priceGap = 0;
-                    const lastestCandle = [...candleStickData.slice(-1)];
-
-                    if (typeOrder === "up") {
-                      priceGap =
-                        lastestCandle[4] < price ? price - lastestCandle[4] : 0;
-                    } else if (typeOrder === "down") {
-                      priceGap =
-                        lastestCandle[4] > price ? lastestCandle[4] - price : 0;
-                    }
-                    const dataTime = new Date();
-                    const ratePriceTP =
-                      typeOrder === "up"
-                        ? 1 + tpPercent / 100
-                        : 1 - tpPercent / 100;
-                    const ratePriceSL =
-                      typeOrder === "up"
-                        ? 1 - slPercent / 100
-                        : 1 + slPercent / 100;
-                    const newOrder = {
-                      symbol: symbolCandle,
-                      entry: +price,
-                      tp:
-                        ratePriceTP * price +
-                        (typeOrder === "up" ? priceGap * RR : -priceGap * RR),
-                      sl:
-                        ratePriceSL * price +
-                        (typeOrder === "up" ? -priceGap : priceGap),
-                      type: typeOrder,
-                      startTime: dataTime.getTime(),
-                      isCheckMinMax: true,
-                      percent: slPercent,
-                      levelPow: dataAccount.mapLevelPow[symbolCandle] || 0,
-                      volume:
-                        (REWARD *
-                          Math.pow(
-                            2,
-                            dataAccount.mapLevelPow[symbolCandle] || 0
-                          ) *
-                          100) /
-                        slPercent,
-                    };
-                    if (dataAccount.mapLevelPow[symbolCandle] === undefined) {
-                      dataAccount.mapLevelPow[symbolCandle] = 0;
-                    }
-                    dataAccount.orders.push(newOrder);
-                    bot.sendMessage(
-                      chatId,
-                      `Thực hiện lệnh ${
-                        typeOrder === "up" ? "LONG" : "SHORT"
-                      } ${buildLinkToSymbol(
-                        symbolCandle
-                      )} tại giá ${price} - L${
-                        dataAccount.mapLevelPow[symbolCandle]
-                      }`,
-                      { parse_mode: "HTML", disable_web_page_preview: true }
-                    );
+                   
                   }
                 }
               } else if (result.status === "rejected") {

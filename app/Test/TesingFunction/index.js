@@ -95,6 +95,9 @@ export const TestingFunction = async (payload) => {
                   limit: 1000, // 388 -- 676 -- 964
                 },
               };
+              // if (stickPrice <= 3) {
+              //   return null;
+              // }
               const res = await fetchApiGetCandleStickData(params);
               return res;
             });
@@ -104,16 +107,17 @@ export const TestingFunction = async (payload) => {
           if (!dataCandle && isCheckCandleHistory) {
             await writeToDisk(res);
           }
-          res.forEach((candleInfo, index) => {
+          res.filter(Boolean).forEach((candleInfo, index) => {
             const { symbol: symbolCandle, data: candleStickData } = candleInfo;
 
             if (
               candleStickData &&
               candleStickData.length &&
-              (false || candleStickData[99][4] < 0.1)
+              (false || candleStickData.slice(-1)[0][4] < 0.1)
             ) {
               const payload = {
-                candleStickData: candleStickData || candleStickData.slice(-388),
+                candleStickData:
+                  candleStickData || candleStickData.slice(0, 555),
                 method: {
                   methodFn: checkAbleOrderBySympleMethod,
                   // checkAbleOrderSMC,
@@ -183,7 +187,7 @@ export const TestingFunction = async (payload) => {
             // Dùng cho việc log ra các lệnh SL\TP, cho việc đánh giá lý do tại sao lệnh chạm SL
             let tempMess = [];
             for (let i = 0; i < listInfo.length; i++) {
-              if (i > 20) break;
+              if (i > 30) break;
               if (i % 5 === 0 && i !== 0) {
                 tempMess.push(listInfo[i]);
                 bot.sendMessage(chatId, `${tempMess.join("")}`, {
@@ -220,14 +224,19 @@ export const TestingFunction = async (payload) => {
           } else {
             bot.sendMessage(
               chatId,
-              `- Thu được ${R}R \n c     + ${totalWin} lệnh TP và ${totalLose} lệnh SL \n     + Tỷ lệ: ${(
-                (totalWin / totalOrder) *
-                100
-              ).toFixed(2)}%\n     + Profit: ${(R * REWARD - totalCost).toFixed(
+              `- Thu được ${R.toFixed(
+                2
+              )}R \n     + ${totalWin} lệnh TP và ${totalLose} lệnh SL >> ${
+                totalWin + totalLose
+              } \n     + Tỷ lệ: ${((totalWin / totalOrder) * 100).toFixed(
+                2
+              )}%\n     + Profit: ${(R * REWARD - totalCost).toFixed(
                 2
               )}\n     + Cost: ${
                 percentAvg / countSymbol
-              } - ${totalCost}\n     + Gồm: ${totalLong} LONG và ${totalShort} SHORT`
+              } - ${totalCost}\n     + Gồm: ${totalLong} LONG và ${totalShort} SHORT >> ${
+                totalLong + totalShort
+              }`
             );
           }
         }

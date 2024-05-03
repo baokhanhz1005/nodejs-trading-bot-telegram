@@ -124,8 +124,8 @@ const checkPattern = (candleStickData, symbol) => {
       lastestCandle[2] < maxRange50 * 0.97;
 
     if (true && (preCondition1 || preCondition2)) {
-      const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.5;
-      const CONDITION_2__ = EstRR > 0.7;
+      const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 2.5;
+      const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.4;
       const CONDITION_1__ = +minRange50 === +min3Range10;
       const CONDITION_3__ =
         (lastestCandle[2] - minRange50) /
@@ -138,10 +138,10 @@ const checkPattern = (candleStickData, symbol) => {
         timeStamp = lastestCandle[0];
       }
     } else if (
-      false &&
+      true &&
       (checkFullCandle(lastestCandle, "up") || checkPinbar(lastestCandle, "up"))
     ) {
-      const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.8;
+      const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 2.5;
       const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.4;
       const CONDITION_3__ =
         candleStickData.slice(-40)[0][4] / lastestCandle[4] < 0.98;
@@ -178,7 +178,7 @@ const checkPattern = (candleStickData, symbol) => {
     //   checkPinbar(lastestCandle, "down");
 
     if (true && (preCondition1 || false)) {
-      const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.8;
+      const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 2.5;
       const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.4;
       const CONDITION_1__ = +max2Rang10 === +maxRange50;
       const CONDITION_3__ =
@@ -192,7 +192,7 @@ const checkPattern = (candleStickData, symbol) => {
         timeStamp = lastestCandle[0];
       }
     } else if (
-      false &&
+      true &&
       (checkFullCandle(lastestCandle, "down") ||
         checkPinbar(lastestCandle, "down"))
     ) {
@@ -203,7 +203,7 @@ const checkPattern = (candleStickData, symbol) => {
         .slice(-15)
         .findIndex((candle) => +candle[4] === +max4Range15);
       if (indexMin < limit) {
-        const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.8;
+        const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 2.5;
         // const CONDITION_1__ = lastestCandle[4] / min4Range15 < 1.004;
         const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.4;
         // const CONDITION_3__ = candleStickData[0][4] / lastestCandle[4] > 1.005;
