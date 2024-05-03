@@ -10,6 +10,10 @@ let isBotRunning = false;
 if (!isBotRunning) {
   isBotRunning = true;
 
+  process.on("uncaughtException", (e) => {
+    console.error(`Something went wrong ${e}`);
+  });
+
   bot.on("message", async (msg) => {
     const chatId = msg.chat.id;
     const command = msg.text ? msg.text.toLowerCase() : "";
