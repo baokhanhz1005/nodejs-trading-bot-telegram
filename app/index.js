@@ -12,7 +12,7 @@ if (!isBotRunning) {
 
   bot.on("message", async (msg) => {
     const chatId = msg.chat.id;
-    const command = msg.text.toLowerCase();
+    const command = msg.text ? msg.text.toLowerCase() : "";
     const payload = {
       command,
       bot,
