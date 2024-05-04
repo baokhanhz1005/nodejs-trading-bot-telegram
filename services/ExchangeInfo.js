@@ -4,7 +4,11 @@ import { callApiBinanceFt } from "../utils/request.js";
 const API = {
   info: async (params) => {
     const URL = `${ENDPOINT_TYPE.fAPIv1}/exchangeInfo`;
-    return callApiBinanceFt(URL, "GET").then((res) => res);
+    return callApiBinanceFt(URL, "GET")
+      .then((res) => res)
+      .catch((err) => {
+        console.log(err);
+      });
   },
 };
 

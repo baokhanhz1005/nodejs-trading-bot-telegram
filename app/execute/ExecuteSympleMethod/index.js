@@ -26,6 +26,10 @@ export const ExecuteSympleMethod = async (payload) => {
   let listSymbolWithCondition = [];
   const mapLevelPow = {};
 
+  process.on("uncaughtException", (e) => {
+    console.error(`Something went wrong ${e}`);
+  });
+
   const executeBOT = async () => {
     const timeMinute = new Date().getMinutes();
     const isHasTrackingData = timeMinute % 5 === 0;
@@ -292,7 +296,7 @@ export const ExecuteSympleMethod = async (payload) => {
     }
   };
 
-  const handleOrder = (payload) => {
+  const handleOrder = async (payload) => {
     try {
       const {
         symbol,
@@ -309,7 +313,32 @@ export const ExecuteSympleMethod = async (payload) => {
       //   const { price } = data;
       const price = lastestCandlePrice;
       if (price) {
-        OrderMarket({
+        const ratePriceTP =
+          type === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
+        const ratePriceSL =
+          type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
+
+        const newOrder = {
+          symbol,
+          entry: +price,
+          tp: ratePriceTP * price,
+          sl: ratePriceSL * price,
+          type,
+          levelPow,
+        };
+        tempMapListOrders[symbol] = newOrder;
+
+        bot.sendMessage(
+          chatId,
+          `${type === "up" ? "☘☘☘☘" : "🍁🍁🍁🍁"}\n Thực hiện lệnh ${
+            type === "up" ? "LONG" : "SHORT"
+          } ${symbol}  tại giá ${price} \n - Open chart: ${buildLinkToSymbol(
+            symbol
+          )} - L${levelPow}`,
+          { parse_mode: "HTML", disable_web_page_preview: true }
+        );
+
+        await OrderMarket({
           symbol,
           entry: +price,
           type,
@@ -317,36 +346,7 @@ export const ExecuteSympleMethod = async (payload) => {
           tp: tpPercent,
           sl: slPercent,
           levelPow,
-        })
-          .then((res) => {
-            const ratePriceTP =
-              type === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
-            const ratePriceSL =
-              type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
-
-            const newOrder = {
-              symbol,
-              entry: +price,
-              tp: ratePriceTP * price,
-              sl: ratePriceSL * price,
-              type,
-              levelPow,
-            };
-            tempMapListOrders[symbol] = newOrder;
-
-            bot.sendMessage(
-              chatId,
-              `${type === "up" ? "☘☘☘☘" : "🍁🍁🍁🍁"}\n Thực hiện lệnh ${
-                type === "up" ? "LONG" : "SHORT"
-              } ${symbol}  tại giá ${price} \n - Open chart: ${buildLinkToSymbol(
-                symbol
-              )} - L${levelPow}`,
-              { parse_mode: "HTML", disable_web_page_preview: true }
-            );
-          })
-          .catch((err) => {
-            console.error(err);
-          });
+        });
       }
     } catch (error) {
       console.error("Something went wrong...", error);
