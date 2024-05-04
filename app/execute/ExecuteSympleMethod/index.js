@@ -177,7 +177,9 @@ export const ExecuteSympleMethod = async (payload) => {
               limit: 100,
             },
           };
-          return fetchApiGetCandleStickData(params);
+          return fetchApiGetCandleStickData(params).catch((err) =>
+            console.error("Error when get candle", err)
+          );
         });
 
         Promise.allSettled(promistCandleData)
