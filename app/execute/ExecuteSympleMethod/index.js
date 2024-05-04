@@ -289,7 +289,7 @@ export const ExecuteSympleMethod = async (payload) => {
     }
   };
 
-  const handleOrder = async (payload) => {
+  const handleOrder = (payload) => {
     try {
       const {
         symbol,
@@ -306,7 +306,7 @@ export const ExecuteSympleMethod = async (payload) => {
       //   const { price } = data;
       const price = lastestCandlePrice;
       if (price) {
-        await OrderMarket({
+        OrderMarket({
           symbol,
           entry: +price,
           type,
