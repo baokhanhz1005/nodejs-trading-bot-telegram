@@ -9,7 +9,7 @@ export const OrderMarket = async (payload) => {
 
   // Thực thi 1 lệnh market và lấy orderId
   const side = type === "up" ? "BUY" : "SELL";
-  const volume = (REWARD * Math.pow(2, levelPow)) * 100 / sl;
+  const volume = (REWARD * Math.pow(2, levelPow) * 100) / sl;
   const quantity = getQuantity(entry, volume);
 
   if (!quantity) return;
@@ -25,17 +25,13 @@ export const OrderMarket = async (payload) => {
     },
   };
 
-  const resMarket = await OrderServices.market(params);
+  const resMarket = await OrderServices.market(params).catch((err) =>
+    console.error("Error when order:", err)
+  );
 
   if (resMarket && resMarket.data && resMarket.data.orderId) {
-    const ratePriceTP =
-      type === "up"
-        ? 1 + tp / 100
-        : 1 - tp / 100;
-    const ratePriceSL =
-      type === "up"
-        ? 1 - sl / 100
-        : 1 + sl / 100;
+    const ratePriceTP = type === "up" ? 1 + tp / 100 : 1 - tp / 100;
+    const ratePriceSL = type === "up" ? 1 - sl / 100 : 1 + sl / 100;
 
     [TYPE_MARKET.TAKE_PROFIT_MARKET, TYPE_MARKET.STOP_MARKET].forEach(
       async (type) => {
@@ -55,7 +51,9 @@ export const OrderMarket = async (payload) => {
         delete params.data.quantity;
 
         // set Take profit || Stop loss
-        await OrderServices.market(params);
+        await OrderServices.market(params).catch((err) =>
+          console.error("Error when set TP SL:", err)
+        );
       }
     );
   }

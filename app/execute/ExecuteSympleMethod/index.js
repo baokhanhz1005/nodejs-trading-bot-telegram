@@ -38,121 +38,125 @@ export const ExecuteSympleMethod = async (payload) => {
           data: {
             timestamp: Date.now(),
           },
+        }).catch((err) => {
+          console.error("Error when get list order: ", err);
         });
 
-        // build thành Object
-        listOpenOrderData.forEach((order) => {
-          if (order) {
-            mapListOrders[order.symbol] = [
-              ...(mapListOrders[order.symbol] || []),
-              order,
-            ];
-          }
-        });
-
-        if (listSymbolDeleteRemain.length) {
-          listSymbolDeleteRemain.forEach((symb) => {
-            if (
-              !mapListOrders[symb] ||
-              (mapListOrders[symb] && !mapListOrders[symb].length)
-            ) {
-              listSymbolDeleteRemain = [...listSymbolDeleteRemain].filter(
-                (each) => each !== symb
-              );
+        if (listOpenOrderData && listOpenOrderData.length) {
+          // build thành Object
+          listOpenOrderData.forEach((order) => {
+            if (order) {
+              mapListOrders[order.symbol] = [
+                ...(mapListOrders[order.symbol] || []),
+                order,
+              ];
             }
           });
-          bot.sendMessage(
-            chatId,
-            `⚠⚠⚠⚠ ${listSymbolDeleteRemain.join(
-              "--"
-            )} chưa thể xóa các lệnh này được.`
-          );
-        }
 
-        listSymbolOpenOrder = Object.keys(mapListOrders);
-
-        for (const symbol of listSymbolOpenOrder) {
-          if (
-            mapListOrders[symbol].length &&
-            (mapListOrders[symbol].every(
-              (order) => order.type === TYPE_MARKET.STOP_MARKET
-            ) ||
-              mapListOrders[symbol].every(
-                (order) => order.type === TYPE_MARKET.TAKE_PROFIT_MARKET
-              ))
-          ) {
-            // thực thi xóa lệnh tồn đọng do đã TP || SL
-            const listPromiseDelete = mapListOrders[symbol].map(
-              (orderDelete) => {
-                const { symbol: symbolDelete, orderId: orderIdDelete } =
-                  orderDelete;
-
-                // nếu còn lệnh stop market ==> lệnh tp đã thực thi và ngược lại
-                return OrderServices.delete({
-                  data: {
-                    orderId: orderIdDelete,
-                    symbol: symbolDelete,
-                    timestamp: Date.now(),
-                  },
-                });
+          if (listSymbolDeleteRemain.length) {
+            listSymbolDeleteRemain.forEach((symb) => {
+              if (
+                !mapListOrders[symb] ||
+                (mapListOrders[symb] && !mapListOrders[symb].length)
+              ) {
+                listSymbolDeleteRemain = [...listSymbolDeleteRemain].filter(
+                  (each) => each !== symb
+                );
               }
+            });
+            bot.sendMessage(
+              chatId,
+              `⚠⚠⚠⚠ ${listSymbolDeleteRemain.join(
+                "--"
+              )} chưa thể xóa các lệnh này được.`
             );
+          }
 
-            const { type: typeOrder, side } = mapListOrders[symbol][0];
-            const isTakeProfit = typeOrder === TYPE_MARKET.STOP_MARKET;
+          listSymbolOpenOrder = Object.keys(mapListOrders);
 
-            Promise.all(listPromiseDelete)
-              .then((res) => {
-                if (res && res.length) {
-                  for (const response of res) {
-                    if (response.status === 200) {
-                      // send mess thông báo đã TP/SL lệnh
-                      if (isTakeProfit) {
-                        countTP += 1;
-                        mapLevelPow[symbol] = 0;
-                      } else {
-                        countSL += 1;
-                        if (mapLevelPow[symbol] === 8) {
+          for (const symbol of listSymbolOpenOrder) {
+            if (
+              mapListOrders[symbol].length &&
+              (mapListOrders[symbol].every(
+                (order) => order.type === TYPE_MARKET.STOP_MARKET
+              ) ||
+                mapListOrders[symbol].every(
+                  (order) => order.type === TYPE_MARKET.TAKE_PROFIT_MARKET
+                ))
+            ) {
+              // thực thi xóa lệnh tồn đọng do đã TP || SL
+              const listPromiseDelete = mapListOrders[symbol].map(
+                (orderDelete) => {
+                  const { symbol: symbolDelete, orderId: orderIdDelete } =
+                    orderDelete;
+
+                  // nếu còn lệnh stop market ==> lệnh tp đã thực thi và ngược lại
+                  return OrderServices.delete({
+                    data: {
+                      orderId: orderIdDelete,
+                      symbol: symbolDelete,
+                      timestamp: Date.now(),
+                    },
+                  });
+                }
+              );
+
+              const { type: typeOrder, side } = mapListOrders[symbol][0];
+              const isTakeProfit = typeOrder === TYPE_MARKET.STOP_MARKET;
+
+              Promise.all(listPromiseDelete)
+                .then((res) => {
+                  if (res && res.length) {
+                    for (const response of res) {
+                      if (response.status === 200) {
+                        // send mess thông báo đã TP/SL lệnh
+                        if (isTakeProfit) {
+                          countTP += 1;
                           mapLevelPow[symbol] = 0;
-                        } else if (isNaN(mapLevelPow[symbol])) {
-                          mapLevelPow[symbol] = 1;
                         } else {
-                          mapLevelPow[symbol] += 1;
+                          countSL += 1;
+                          if (mapLevelPow[symbol] === 8) {
+                            mapLevelPow[symbol] = 0;
+                          } else if (isNaN(mapLevelPow[symbol])) {
+                            mapLevelPow[symbol] = 1;
+                          } else {
+                            mapLevelPow[symbol] += 1;
+                          }
                         }
-                      }
-                      bot.sendMessage(
-                        chatId,
-                        buildMessageTPSL(
-                          isTakeProfit,
-                          symbol,
-                          side,
-                          tempMapListOrders
-                        ),
-                        {
-                          parse_mode: "HTML",
-                          disable_web_page_preview: true,
-                        }
-                      );
+                        bot.sendMessage(
+                          chatId,
+                          buildMessageTPSL(
+                            isTakeProfit,
+                            symbol,
+                            side,
+                            tempMapListOrders
+                          ),
+                          {
+                            parse_mode: "HTML",
+                            disable_web_page_preview: true,
+                          }
+                        );
 
-                      delete mapListOrders[symbol];
-                      delete tempMapListOrders[symbol];
-                    } else {
-                      bot.sendMessage(
-                        chatId,
-                        `⚠⚠⚠⚠\nKhông thể xóa symbol ${symbol}. Vui lòng kiểm tra lại`
-                      );
+                        delete mapListOrders[symbol];
+                        delete tempMapListOrders[symbol];
+                      } else {
+                        bot.sendMessage(
+                          chatId,
+                          `⚠⚠⚠⚠\nKhông thể xóa symbol ${symbol}. Vui lòng kiểm tra lại`
+                        );
+                      }
                     }
                   }
-                }
-              })
-              .catch((err) => {
-                console.error(err);
-                bot.sendMessage(
-                  chatId,
-                  `⚠⚠⚠⚠ ${symbol} -- tôi không thể xóa lệnh tồn đọng này, vui lòng gỡ lệnh này giúp tôi.`
-                );
-                listSymbolDeleteRemain.push(symbol);
-              });
+                })
+                .catch((err) => {
+                  console.error(err);
+                  bot.sendMessage(
+                    chatId,
+                    `⚠⚠⚠⚠ ${symbol} -- tôi không thể xóa lệnh tồn đọng này, vui lòng gỡ lệnh này giúp tôi.`
+                  );
+                  listSymbolDeleteRemain.push(symbol);
+                });
+            }
           }
         }
       } catch (error) {
@@ -176,76 +180,84 @@ export const ExecuteSympleMethod = async (payload) => {
           return fetchApiGetCandleStickData(params);
         });
 
-        Promise.all(promistCandleData)
+        Promise.allSettled(promistCandleData)
           .then((res) => {
             const temListSymbol = [];
             if (res.length) {
-              res.forEach((candleInfo) => {
-                const { symbol: symbolCandle, data: candleStickData } =
-                  candleInfo;
+              res.forEach((result) => {
+                if (result.status === "fulfilled") {
+                  const candleInfo = result.value;
 
-                if (candleStickData && candleStickData.length) {
-                  const newestCandle = candleStickData.slice(-1);
-                  const dateTimeCandle = new Date(newestCandle[0]);
-                  const currentTime = new Date();
-                  if (
-                    Number(dateTimeCandle.getMinutes()) ===
-                    Number(currentTime.getMinutes())
-                  ) {
-                    candleStickData.pop();
-                  }
-                  const {
-                    isAbleOrder,
-                    type,
-                    tpPercent,
-                    slPercent,
-                    timeStamp = "",
-                  } = checkAbleOrderBySympleMethod(
-                    candleStickData,
-                    symbolCandle
-                  ) || {};
+                  const { symbol: symbolCandle, data: candleStickData } =
+                    candleInfo;
 
-                  const lastestCandlePrice = candleStickData.slice(-1)[0][4];
-                  if (
-                    lastestCandlePrice <= 0.1 &&
-                    !listSymbolWithCondition.length
-                  ) {
-                    const symbolInfo = listSymbols.find(
-                      (each) => each.symbol === symbolCandle
-                    );
-                    temListSymbol.push(symbolInfo);
-                  }
-
-                  const isHasOrderRunning = Object.keys(tempMapListOrders).some(
-                    (key) => key === symbolCandle
-                  );
-
-                  if (
-                    isAbleOrder &&
-                    symbolCandle !== "RSRUSDT" &&
-                    !isHasOrderRunning &&
-                    (listSymbolWithCondition.length
-                      ? true
-                      : lastestCandlePrice <= 0.1)
-                  ) {
-                    const { stickPrice } =
-                      listSymbols.find(
-                        (each) => each.symbol === symbolCandle
-                      ) || {};
-                    handleOrder({
-                      symbol: symbolCandle,
+                  if (candleStickData && candleStickData.length) {
+                    const newestCandle = candleStickData.slice(-1);
+                    const dateTimeCandle = new Date(newestCandle[0]);
+                    const currentTime = new Date();
+                    if (
+                      Number(dateTimeCandle.getMinutes()) ===
+                      Number(currentTime.getMinutes())
+                    ) {
+                      candleStickData.pop();
+                    }
+                    const {
+                      isAbleOrder,
                       type,
                       tpPercent,
                       slPercent,
-                      stickPrice,
-                      levelPow: mapLevelPow[symbolCandle] || 0,
-                      lastestCandlePrice,
-                    });
+                      timeStamp = "",
+                    } = checkAbleOrderBySympleMethod(
+                      candleStickData,
+                      symbolCandle
+                    ) || {};
 
-                    if (!mapLevelPow[symbolCandle]) {
-                      mapLevelPow[symbolCandle] = 0;
+                    const lastestCandlePrice = candleStickData.slice(-1)[0][4];
+                    if (
+                      lastestCandlePrice <= 0.1 &&
+                      !listSymbolWithCondition.length
+                    ) {
+                      const symbolInfo = listSymbols.find(
+                        (each) => each.symbol === symbolCandle
+                      );
+                      temListSymbol.push(symbolInfo);
+                    }
+
+                    const isHasOrderRunning = Object.keys(
+                      tempMapListOrders
+                    ).some((key) => key === symbolCandle);
+
+                    if (
+                      isAbleOrder &&
+                      symbolCandle !== "RSRUSDT" &&
+                      !isHasOrderRunning &&
+                      (listSymbolWithCondition.length
+                        ? true
+                        : lastestCandlePrice <= 0.1)
+                    ) {
+                      const { stickPrice } =
+                        listSymbols.find(
+                          (each) => each.symbol === symbolCandle
+                        ) || {};
+
+                      handleOrder({
+                        symbol: symbolCandle,
+                        type,
+                        tpPercent,
+                        slPercent,
+                        stickPrice,
+                        levelPow: mapLevelPow[symbolCandle] || 0,
+                        lastestCandlePrice,
+                      });
+
+                      if (!mapLevelPow[symbolCandle]) {
+                        mapLevelPow[symbolCandle] = 0;
+                      }
                     }
                   }
+                } else {
+                  const reason = result?.reason;
+                  console.error("Request error:", reason);
                 }
               });
 
@@ -278,7 +290,7 @@ export const ExecuteSympleMethod = async (payload) => {
     }
   };
 
-  const handleOrder = async (payload) => {
+  const handleOrder = (payload) => {
     try {
       const {
         symbol,
@@ -295,7 +307,7 @@ export const ExecuteSympleMethod = async (payload) => {
       //   const { price } = data;
       const price = lastestCandlePrice;
       if (price) {
-        await OrderMarket({
+        OrderMarket({
           symbol,
           entry: +price,
           type,
@@ -303,32 +315,36 @@ export const ExecuteSympleMethod = async (payload) => {
           tp: tpPercent,
           sl: slPercent,
           levelPow,
-        });
+        })
+          .then((res) => {
+            const ratePriceTP =
+              type === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
+            const ratePriceSL =
+              type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
 
-        const ratePriceTP =
-          type === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
-        const ratePriceSL =
-          type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
+            const newOrder = {
+              symbol,
+              entry: +price,
+              tp: ratePriceTP * price,
+              sl: ratePriceSL * price,
+              type,
+              levelPow,
+            };
+            tempMapListOrders[symbol] = newOrder;
 
-        const newOrder = {
-          symbol,
-          entry: +price,
-          tp: ratePriceTP * price,
-          sl: ratePriceSL * price,
-          type,
-          levelPow,
-        };
-        tempMapListOrders[symbol] = newOrder;
-
-        bot.sendMessage(
-          chatId,
-          `${type === "up" ? "☘☘☘☘" : "🍁🍁🍁🍁"}\n Thực hiện lệnh ${
-            type === "up" ? "LONG" : "SHORT"
-          } ${symbol}  tại giá ${price} \n - Open chart: ${buildLinkToSymbol(
-            symbol
-          )} - L${levelPow}`,
-          { parse_mode: "HTML", disable_web_page_preview: true }
-        );
+            bot.sendMessage(
+              chatId,
+              `${type === "up" ? "☘☘☘☘" : "🍁🍁🍁🍁"}\n Thực hiện lệnh ${
+                type === "up" ? "LONG" : "SHORT"
+              } ${symbol}  tại giá ${price} \n - Open chart: ${buildLinkToSymbol(
+                symbol
+              )} - L${levelPow}`,
+              { parse_mode: "HTML", disable_web_page_preview: true }
+            );
+          })
+          .catch((err) => {
+            console.error(err);
+          });
       }
     } catch (error) {
       console.error("Something went wrong...", error);
