@@ -186,84 +186,77 @@ export const ExecuteSympleMethod = async (payload) => {
           );
         });
 
-        Promise.allSettled(promistCandleData)
+        Promise.all(promistCandleData)
           .then((res) => {
             const temListSymbol = [];
             if (res.length) {
-              res.forEach((result) => {
-                if (result.status === "fulfilled") {
-                  const candleInfo = result.value;
+              res.forEach((candleInfo) => {
+                const { symbol: symbolCandle, data: candleStickData } =
+                  candleInfo;
 
-                  const { symbol: symbolCandle, data: candleStickData } =
-                    candleInfo;
+                if (candleStickData && candleStickData.length) {
+                  const newestCandle = candleStickData.slice(-1);
+                  const dateTimeCandle = new Date(newestCandle[0]);
+                  const currentTime = new Date();
+                  if (
+                    Number(dateTimeCandle.getMinutes()) ===
+                    Number(currentTime.getMinutes())
+                  ) {
+                    candleStickData.pop();
+                  }
+                  const {
+                    isAbleOrder,
+                    type,
+                    tpPercent,
+                    slPercent,
+                    timeStamp = "",
+                  } = checkAbleOrderBySympleMethod(
+                    candleStickData,
+                    symbolCandle
+                  ) || {};
 
-                  if (candleStickData && candleStickData.length) {
-                    const newestCandle = candleStickData.slice(-1);
-                    const dateTimeCandle = new Date(newestCandle[0]);
-                    const currentTime = new Date();
-                    if (
-                      Number(dateTimeCandle.getMinutes()) ===
-                      Number(currentTime.getMinutes())
-                    ) {
-                      candleStickData.pop();
-                    }
-                    const {
-                      isAbleOrder,
+                  const lastestCandlePrice = candleStickData.slice(-1)[0][4];
+                  if (
+                    lastestCandlePrice <= 0.1 &&
+                    !listSymbolWithCondition.length
+                  ) {
+                    const symbolInfo = listSymbols.find(
+                      (each) => each.symbol === symbolCandle
+                    );
+                    temListSymbol.push(symbolInfo);
+                  }
+
+                  const isHasOrderRunning = Object.keys(tempMapListOrders).some(
+                    (key) => key === symbolCandle
+                  );
+
+                  if (
+                    isAbleOrder &&
+                    symbolCandle !== "RSRUSDT" &&
+                    !isHasOrderRunning &&
+                    (listSymbolWithCondition.length
+                      ? true
+                      : lastestCandlePrice <= 0.1)
+                  ) {
+                    const { stickPrice } =
+                      listSymbols.find(
+                        (each) => each.symbol === symbolCandle
+                      ) || {};
+
+                    handleOrder({
+                      symbol: symbolCandle,
                       type,
                       tpPercent,
                       slPercent,
-                      timeStamp = "",
-                    } = checkAbleOrderBySympleMethod(
-                      candleStickData,
-                      symbolCandle
-                    ) || {};
+                      stickPrice,
+                      levelPow: mapLevelPow[symbolCandle] || 0,
+                      lastestCandlePrice,
+                    });
 
-                    const lastestCandlePrice = candleStickData.slice(-1)[0][4];
-                    if (
-                      lastestCandlePrice <= 0.1 &&
-                      !listSymbolWithCondition.length
-                    ) {
-                      const symbolInfo = listSymbols.find(
-                        (each) => each.symbol === symbolCandle
-                      );
-                      temListSymbol.push(symbolInfo);
-                    }
-
-                    const isHasOrderRunning = Object.keys(
-                      tempMapListOrders
-                    ).some((key) => key === symbolCandle);
-
-                    if (
-                      isAbleOrder &&
-                      symbolCandle !== "RSRUSDT" &&
-                      !isHasOrderRunning &&
-                      (listSymbolWithCondition.length
-                        ? true
-                        : lastestCandlePrice <= 0.1)
-                    ) {
-                      const { stickPrice } =
-                        listSymbols.find(
-                          (each) => each.symbol === symbolCandle
-                        ) || {};
-
-                      handleOrder({
-                        symbol: symbolCandle,
-                        type,
-                        tpPercent,
-                        slPercent,
-                        stickPrice,
-                        levelPow: mapLevelPow[symbolCandle] || 0,
-                        lastestCandlePrice,
-                      });
-
-                      if (!mapLevelPow[symbolCandle]) {
-                        mapLevelPow[symbolCandle] = 0;
-                      }
+                    if (!mapLevelPow[symbolCandle]) {
+                      mapLevelPow[symbolCandle] = 0;
                     }
                   }
-                } else {
-                  const reason = result?.reason;
-                  console.error("Request error:", reason);
                 }
               });
 
@@ -313,6 +306,16 @@ export const ExecuteSympleMethod = async (payload) => {
       //   const { price } = data;
       const price = lastestCandlePrice;
       if (price) {
+        await OrderMarket({
+          symbol,
+          entry: +price,
+          type,
+          stickPrice,
+          tp: tpPercent,
+          sl: slPercent,
+          levelPow,
+        });
+
         const ratePriceTP =
           type === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
         const ratePriceSL =
@@ -337,16 +340,6 @@ export const ExecuteSympleMethod = async (payload) => {
           )} - L${levelPow}`,
           { parse_mode: "HTML", disable_web_page_preview: true }
         );
-
-        await OrderMarket({
-          symbol,
-          entry: +price,
-          type,
-          stickPrice,
-          tp: tpPercent,
-          sl: slPercent,
-          levelPow,
-        });
       }
     } catch (error) {
       console.error("Something went wrong...", error);
