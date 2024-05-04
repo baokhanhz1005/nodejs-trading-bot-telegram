@@ -26,6 +26,9 @@ export const ExecuteSympleMethod = async (payload) => {
   let listSymbolWithCondition = [];
   const mapLevelPow = {};
 
+  const currentSecond = new Date().getSeconds();
+  const timeRemaining = 60 - currentSecond;
+
   process.on("uncaughtException", (e) => {
     console.error(`Something went wrong ${e}`);
   });
@@ -194,6 +197,8 @@ export const ExecuteSympleMethod = async (payload) => {
                 const { symbol: symbolCandle, data: candleStickData } =
                   candleInfo;
 
+                console.log(symbolCandle, (candleStickData || []).length);
+
                 if (candleStickData && candleStickData.length) {
                   const newestCandle = candleStickData.slice(-1);
                   const dateTimeCandle = new Date(newestCandle[0]);
@@ -351,5 +356,5 @@ export const ExecuteSympleMethod = async (payload) => {
     setInterval(() => {
       executeBOT();
     }, 1 * 60 * 1000);
-  }, 0);
+  }, timeRemaining * 1000 + 500);
 };
