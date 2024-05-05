@@ -278,8 +278,8 @@ export const ExecuteSympleMethod = async (payload) => {
           });
 
         try {
-          listOrderInfo.filter(Boolean).forEach((each) => {
-            handleOrder(each);
+          listOrderInfo.filter(Boolean).forEach(async (each) => {
+            await handleOrder(each);
           });
         } catch (error) {
           console.error(error);
@@ -302,7 +302,7 @@ export const ExecuteSympleMethod = async (payload) => {
     }
   };
 
-  const handleOrder = (payload) => {
+  const handleOrder = async (payload) => {
     try {
       const {
         symbol,
@@ -319,7 +319,7 @@ export const ExecuteSympleMethod = async (payload) => {
       //   const { price } = data;
       const price = lastestCandlePrice;
       if (price) {
-        OrderMarket({
+        await OrderMarket({
           symbol,
           entry: +price,
           type,
