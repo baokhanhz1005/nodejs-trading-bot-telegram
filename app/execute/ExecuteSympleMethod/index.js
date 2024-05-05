@@ -260,6 +260,8 @@ export const ExecuteSympleMethod = async (payload) => {
                       lastestCandlePrice,
                     };
                   }
+
+                  return null;
                 }
               });
 
@@ -274,8 +276,11 @@ export const ExecuteSympleMethod = async (payload) => {
               err
             );
           });
+
         try {
-          await Promise.all(listOrderInfo.map((info) => handleOrder(info)));
+          listOrderInfo.filter(Boolean).forEach((each) => {
+            handleOrder(each);
+          });
         } catch (error) {
           console.error(error);
         }
