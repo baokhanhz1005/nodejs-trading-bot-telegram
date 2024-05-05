@@ -189,15 +189,15 @@ export const ExecuteSympleMethod = async (payload) => {
           );
         });
 
+        let listOrderInfo = [];
+
         Promise.all(promistCandleData)
           .then((res) => {
             const temListSymbol = [];
             if (res.length) {
-              res.forEach((candleInfo) => {
+              listOrderInfo = res.map((candleInfo) => {
                 const { symbol: symbolCandle, data: candleStickData } =
                   candleInfo;
-
-                console.log(symbolCandle, (candleStickData || []).length);
 
                 if (candleStickData && candleStickData.length) {
                   const newestCandle = candleStickData.slice(-1);
@@ -231,9 +231,7 @@ export const ExecuteSympleMethod = async (payload) => {
                     temListSymbol.push(symbolInfo);
                   }
 
-                  const isHasOrderRunning = Object.keys(tempMapListOrders).some(
-                    (key) => key === symbolCandle
-                  );
+                  const isHasOrderRunning = !!tempMapListOrders[symbolCandle];
 
                   if (
                     isAbleOrder &&
@@ -248,7 +246,11 @@ export const ExecuteSympleMethod = async (payload) => {
                         (each) => each.symbol === symbolCandle
                       ) || {};
 
-                    handleOrder({
+                    if (!mapLevelPow[symbolCandle]) {
+                      mapLevelPow[symbolCandle] = 0;
+                    }
+
+                    return {
                       symbol: symbolCandle,
                       type,
                       tpPercent,
@@ -256,11 +258,7 @@ export const ExecuteSympleMethod = async (payload) => {
                       stickPrice,
                       levelPow: mapLevelPow[symbolCandle] || 0,
                       lastestCandlePrice,
-                    });
-
-                    if (!mapLevelPow[symbolCandle]) {
-                      mapLevelPow[symbolCandle] = 0;
-                    }
+                    };
                   }
                 }
               });
@@ -276,6 +274,11 @@ export const ExecuteSympleMethod = async (payload) => {
               err
             );
           });
+        try {
+          await Promise.all(listOrderInfo.map((info) => handleOrder(info)));
+        } catch (error) {
+          console.error(error);
+        }
       }
 
       // Noti tài khoản hiện tại
