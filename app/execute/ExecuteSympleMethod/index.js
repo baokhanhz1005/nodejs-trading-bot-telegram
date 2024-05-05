@@ -191,7 +191,7 @@ export const ExecuteSympleMethod = async (payload) => {
 
         let listOrderInfo = [];
 
-        Promise.all(promistCandleData)
+        await Promise.all(promistCandleData)
           .then((res) => {
             const temListSymbol = [];
             if (res.length) {
