@@ -10,6 +10,7 @@ import {
   fetchApiGetListingSymbols,
 } from "../../../utils.js";
 import { buildMessageTPSL } from "../../../utils/buildMessage.js";
+import { shuffleArr } from "../../../utils/handleDataCandle.js";
 import { checkHasBigPriceTrend } from "../../handlers/TrackingBigPriceTrend/utils.js";
 import { OrderMarket } from "../../orders/MarketOrder/index.js";
 import { TYPE_MARKET } from "../../orders/contants.js";
@@ -18,14 +19,15 @@ import { checkAbleOrderBySympleMethod } from "./utils.js";
 export const ExecuteSympleMethod = async (payload) => {
   const { bot, chatId, timeLine } = payload;
   const listSymbols = await fetchApiGetListingSymbols();
-
+  const isRunSingle = true;
   let countTP = 0;
   let countSL = 0;
   const tempMapListOrders = {};
   let listSymbolDeleteRemain = [];
   let listSymbolWithCondition = [];
   const mapLevelPow = {};
-
+  let singleLevelPow = 0;
+  let currentSingleOrder = {};
   const currentSecond = new Date().getSeconds();
   const timeRemaining = 60 - currentSecond;
 
@@ -35,7 +37,7 @@ export const ExecuteSympleMethod = async (payload) => {
 
   const executeBOT = async () => {
     const timeMinute = new Date().getMinutes();
-    const isHasTrackingData = timeMinute % 5 === 0;
+    const isHasTrackingData = timeMinute % 15 === 0; // use candle 15m
     const mapListOrders = {};
     let listSymbolOpenOrder = [];
 
@@ -120,6 +122,7 @@ export const ExecuteSympleMethod = async (payload) => {
                         if (isTakeProfit) {
                           countTP += 1;
                           mapLevelPow[symbol] = 0;
+                          singleLevelPow = 0;
                         } else {
                           countSL += 1;
                           if (mapLevelPow[symbol] === 8) {
@@ -129,7 +132,21 @@ export const ExecuteSympleMethod = async (payload) => {
                           } else {
                             mapLevelPow[symbol] += 1;
                           }
+
+                          // run single order mode
+                          if (isRunSingle) {
+                            if (singleLevelPow === 8) {
+                              singleLevelPow = 0;
+                            } else {
+                              singleLevelPow += 1;
+                            }
+                          }
                         }
+
+                        if (isRunSingle) {
+                          currentSingleOrder = {};
+                        }
+
                         bot.sendMessage(
                           chatId,
                           buildMessageTPSL(
@@ -171,116 +188,130 @@ export const ExecuteSympleMethod = async (payload) => {
       }
     } else {
       if (listSymbols && listSymbols.length) {
-        let listSymbolGetCandle = listSymbolWithCondition;
-        if (!listSymbolWithCondition.length) {
-          listSymbolGetCandle = listSymbols;
-        }
-        const promistCandleData = listSymbolGetCandle.map(async (token) => {
-          const { symbol, stickPrice } = token;
-          const params = {
-            data: {
-              symbol: symbol,
-              interval: timeLine,
-              limit: 100,
-            },
-          };
-          return fetchApiGetCandleStickData(params).catch((err) =>
-            console.error("Error when get candle", err)
-          );
-        });
-
-        let listOrderInfo = [];
-
-        await Promise.all(promistCandleData)
-          .then((res) => {
-            const temListSymbol = [];
-            if (res.length) {
-              listOrderInfo = res.map((candleInfo) => {
-                const { symbol: symbolCandle, data: candleStickData } =
-                  candleInfo;
-
-                if (candleStickData && candleStickData.length) {
-                  const newestCandle = candleStickData.slice(-1);
-                  const dateTimeCandle = new Date(newestCandle[0]);
-                  const currentTime = new Date();
-                  if (
-                    Number(dateTimeCandle.getMinutes()) ===
-                    Number(currentTime.getMinutes())
-                  ) {
-                    candleStickData.pop();
-                  }
-                  const {
-                    isAbleOrder,
-                    type,
-                    tpPercent,
-                    slPercent,
-                    timeStamp = "",
-                  } = checkAbleOrderBySympleMethod(
-                    candleStickData,
-                    symbolCandle
-                  ) || {};
-
-                  const lastestCandlePrice = candleStickData.slice(-1)[0][4];
-                  if (
-                    lastestCandlePrice <= 0.1 &&
-                    !listSymbolWithCondition.length
-                  ) {
-                    const symbolInfo = listSymbols.find(
-                      (each) => each.symbol === symbolCandle
-                    );
-                    temListSymbol.push(symbolInfo);
-                  }
-
-                  const isHasOrderRunning = !!tempMapListOrders[symbolCandle];
-
-                  if (
-                    isAbleOrder &&
-                    symbolCandle !== "RSRUSDT" &&
-                    !isHasOrderRunning &&
-                    (listSymbolWithCondition.length
-                      ? true
-                      : lastestCandlePrice <= 0.1)
-                  ) {
-                    const { stickPrice } =
-                      listSymbols.find(
-                        (each) => each.symbol === symbolCandle
-                      ) || {};
-
-                    if (!mapLevelPow[symbolCandle]) {
-                      mapLevelPow[symbolCandle] = 0;
-                    }
-
-                    return {
-                      symbol: symbolCandle,
-                      type,
-                      tpPercent,
-                      slPercent,
-                      stickPrice,
-                      levelPow: mapLevelPow[symbolCandle] || 0,
-                      lastestCandlePrice,
-                    };
-                  }
-
-                  return null;
-                }
-              });
-
-              if (!listSymbolWithCondition.length) {
-                listSymbolWithCondition = temListSymbol;
-              }
-            }
-          })
-          .catch((err) => {
-            console.error(
-              "Some thing went wrong while get candle stick data",
-              err
+        try {
+          let listSymbolGetCandle = shuffleArr(listSymbolWithCondition);
+          if (!listSymbolWithCondition.length) {
+            listSymbolGetCandle = listSymbols;
+          }
+          const promiseCandleData = listSymbolGetCandle.map(async (token) => {
+            const { symbol, stickPrice } = token;
+            const params = {
+              data: {
+                symbol: symbol,
+                interval: timeLine,
+                limit: 100,
+              },
+            };
+            return fetchApiGetCandleStickData(params).catch((err) =>
+              console.error("Error when get candle", err)
             );
           });
 
-        try {
-          listOrderInfo.filter(Boolean).forEach(async (each) => {
-            await handleOrder(each);
-          });
+          let listOrderInfo = [];
+
+          await Promise.all(promiseCandleData)
+            .then((res) => {
+              const temListSymbol = [];
+              if (res.length) {
+                listOrderInfo = res.map((candleInfo) => {
+                  const { symbol: symbolCandle, data: candleStickData } =
+                    candleInfo;
+
+                  if (candleStickData && candleStickData.length) {
+                    const newestCandle = candleStickData.slice(-1);
+                    const dateTimeCandle = new Date(newestCandle[0]);
+                    const currentTime = new Date();
+                    if (
+                      Number(dateTimeCandle.getMinutes()) ===
+                      Number(currentTime.getMinutes())
+                    ) {
+                      candleStickData.pop();
+                    }
+                    const {
+                      isAbleOrder,
+                      type,
+                      tpPercent,
+                      slPercent,
+                      timeStamp = "",
+                    } = checkAbleOrderBySympleMethod(
+                      candleStickData,
+                      symbolCandle
+                    ) || {};
+
+                    const lastestCandlePrice = candleStickData.slice(-1)[0][4];
+                    if (
+                      lastestCandlePrice <= 0.1 &&
+                      !listSymbolWithCondition.length
+                    ) {
+                      const symbolInfo = listSymbols.find(
+                        (each) => each.symbol === symbolCandle
+                      );
+                      temListSymbol.push(symbolInfo);
+                    }
+
+                    const isHasOrderRunning = !!tempMapListOrders[symbolCandle];
+
+                    if (
+                      isAbleOrder &&
+                      symbolCandle !== "RSRUSDT" &&
+                      !isHasOrderRunning &&
+                      (listSymbolWithCondition.length
+                        ? true
+                        : lastestCandlePrice <= 0.1)
+                    ) {
+                      const { stickPrice } =
+                        listSymbols.find(
+                          (each) => each.symbol === symbolCandle
+                        ) || {};
+
+                      if (!mapLevelPow[symbolCandle]) {
+                        mapLevelPow[symbolCandle] = 0;
+                      }
+
+                      return {
+                        symbol: symbolCandle,
+                        type,
+                        tpPercent,
+                        slPercent,
+                        stickPrice,
+                        levelPow: mapLevelPow[symbolCandle] || 0,
+                        lastestCandlePrice,
+                      };
+                    }
+
+                    return null;
+                  }
+                });
+
+                if (!listSymbolWithCondition.length) {
+                  listSymbolWithCondition = temListSymbol;
+                }
+              }
+            })
+            .catch((err) => {
+              console.error(
+                "Some thing went wrong while get candle stick data",
+                err
+              );
+            });
+
+          try {
+            if (isRunSingle) {
+              if (!Object.keys(currentSingleOrder).length) {
+                const orderInfo = listOrderInfo.filter(Boolean)[0];
+                if (orderInfo) {
+                  orderInfo.levelPow = singleLevelPow;
+                  await handleOrder(orderInfo);
+                }
+              }
+            } else {
+              listOrderInfo.filter(Boolean).forEach(async (each) => {
+                await handleOrder(each);
+              });
+            }
+          } catch (error) {
+            console.error(error);
+          }
         } catch (error) {
           console.error(error);
         }
@@ -297,7 +328,9 @@ export const ExecuteSympleMethod = async (payload) => {
         chatId,
         `📊📊📊📊\n- Tài khoản hiện tại của bạn là: ${+accountBalance}\n- Có ${countTP} lệnh đạt TP ✅\n- Có ${countSL} lệnh chạm SL ❌\n- Hiện tại có ${
           Object.keys(tempMapListOrders).length
-        } lệnh đang chạy...\n♻${listSymbolWithCondition.length}`
+        } lệnh đang chạy...\n♻${
+          listSymbolWithCondition.length
+        }\n - Single level: ${singleLevelPow}`
       );
     }
   };
@@ -343,14 +376,16 @@ export const ExecuteSympleMethod = async (payload) => {
           levelPow,
         };
         tempMapListOrders[symbol] = newOrder;
-
+        if (isRunSingle) {
+          currentSingleOrder = newOrder;
+        }
         bot.sendMessage(
           chatId,
           `${type === "up" ? "☘☘☘☘" : "🍁🍁🍁🍁"}\n Thực hiện lệnh ${
             type === "up" ? "LONG" : "SHORT"
           } ${symbol}  tại giá ${price} \n - Open chart: ${buildLinkToSymbol(
             symbol
-          )} - L${levelPow}`,
+          )} - L${levelPow}\n - Single level: ${singleLevelPow}`,
           { parse_mode: "HTML", disable_web_page_preview: true }
         );
       }

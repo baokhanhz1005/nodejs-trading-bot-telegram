@@ -430,7 +430,10 @@ const handleOtherMethod = (
       dataForeCast.cost += cost;
       dataForeCast.levelPow = 0;
       dataForeCast.info.push(
-        `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol, timeStamp)} - LONG\n`
+        `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
+          symbol,
+          timeStamp
+        )} - LONG\n`
       );
     } else if (type === "down" && minPrice <= tp) {
       dataForeCast.winOrder += 1;
@@ -444,7 +447,9 @@ const handleOtherMethod = (
       dataForeCast.cost += cost;
       dataForeCast.levelPow = 0;
       dataForeCast.info.push(
-        `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)} - SHORT\n`
+        `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
+          symbol
+        )} - SHORT\n`
       );
     }
   } else {
@@ -498,6 +503,18 @@ export const getMaxOnListCandle = (listCandle, type = 1) => {
   // type:1 - OPEN    2 - HIGH    3 - LOW    4 - CLOSE
   const max = Math.max(...listCandle.map((candle) => +candle[type]));
   return max;
+};
+
+export const getMinMaxAndIndexOnListCandle = (
+  listCandle,
+  key = "", // min --- max
+  type = 1
+) => {
+  const value = Math[key](...listCandle.map((candle) => candle[type]));
+
+  const indexOfValue = listCandle.findIndex((candle) => candle[type] === value);
+
+  return { index: indexOfValue, value };
 };
 
 export const checkCurrentTrending = (candleStickData, type) => {
@@ -592,4 +609,12 @@ export const findContinueSameTypeCandle = (candleStickData) => {
   const maxContinueDown = Math.max(...listCountDown);
 
   return { maxContinueUp, maxContinueDown };
+};
+
+export const shuffleArr = (array) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 };

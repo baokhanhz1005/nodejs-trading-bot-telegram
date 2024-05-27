@@ -123,7 +123,7 @@ const checkPattern = (candleStickData, symbol) => {
       lastestCandle[4] * 0.999 > prevCandle[1] &&
       lastestCandle[2] < maxRange50 * 0.97;
 
-    if (true && (preCondition1 || preCondition2)) {
+    if (false && (preCondition1 || preCondition2)) {
       const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 2.5;
       const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.4;
       const CONDITION_1__ = +minRange50 === +min3Range10;
@@ -177,7 +177,7 @@ const checkPattern = (candleStickData, symbol) => {
     //   checkPinbar(prevCandle, "down") &&
     //   checkPinbar(lastestCandle, "down");
 
-    if (true && (preCondition1 || false)) {
+    if (false && (preCondition1 || false)) {
       const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 2.5;
       const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.4;
       const CONDITION_1__ = +max2Rang10 === +maxRange50;
