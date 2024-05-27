@@ -240,7 +240,7 @@ export const ExecuteSympleMethod = async (payload) => {
 
                     const lastestCandlePrice = candleStickData.slice(-1)[0][4];
                     if (
-                      lastestCandlePrice <= 0.1 &&
+                      lastestCandlePrice <= 5 &&
                       !listSymbolWithCondition.length
                     ) {
                       const symbolInfo = listSymbols.find(
@@ -257,7 +257,7 @@ export const ExecuteSympleMethod = async (payload) => {
                       !isHasOrderRunning &&
                       (listSymbolWithCondition.length
                         ? true
-                        : lastestCandlePrice <= 0.1)
+                        : lastestCandlePrice <= 5)
                     ) {
                       const { stickPrice } =
                         listSymbols.find(
