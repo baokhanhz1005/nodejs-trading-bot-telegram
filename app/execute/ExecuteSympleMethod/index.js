@@ -19,7 +19,8 @@ import { checkAbleOrderBySympleMethod } from "./utils.js";
 export const ExecuteSympleMethod = async (payload) => {
   const { bot, chatId, timeLine } = payload;
   const listSymbols = await fetchApiGetListingSymbols();
-  const isRunSingle = true;
+  const isRunSingle = false;
+  const isUseLevelPow = false;
   let countTP = 0;
   let countSL = 0;
   const tempMapListOrders = {};
@@ -32,7 +33,7 @@ export const ExecuteSympleMethod = async (payload) => {
   const timeRemaining = 60 - currentSecond;
 
   process.on("uncaughtException", (e) => {
-    console.error(`Something went wrong ${e}`);
+    console.error(`Something went wrong ... ${e}`);
   });
 
   const executeBOT = async () => {
@@ -187,7 +188,7 @@ export const ExecuteSympleMethod = async (payload) => {
         console.error(error);
       }
     } else {
-      if (listSymbols && listSymbols.length) {
+      if (listSymbols) {
         try {
           let listSymbolGetCandle = shuffleArr(listSymbolWithCondition);
           if (!listSymbolWithCondition.length) {
@@ -209,83 +210,99 @@ export const ExecuteSympleMethod = async (payload) => {
 
           let listOrderInfo = [];
 
-          await Promise.all(promiseCandleData)
-            .then((res) => {
+          await Promise.allSettled(promiseCandleData)
+            .then((results) => {
               const temListSymbol = [];
-              if (res.length) {
-                listOrderInfo = res.map((candleInfo) => {
-                  const { symbol: symbolCandle, data: candleStickData } =
-                    candleInfo;
+              for (const result of results) {
+                if (result.status === "fulfilled") {
+                  const candleInfo = result.value;
+                  if (candleInfo) {
+                    const { symbol: symbolCandle, data: candleStickData } =
+                      candleInfo;
 
-                  if (candleStickData && candleStickData.length) {
-                    const newestCandle = candleStickData.slice(-1);
-                    const dateTimeCandle = new Date(newestCandle[0]);
-                    const currentTime = new Date();
-                    if (
-                      Number(dateTimeCandle.getMinutes()) ===
-                      Number(currentTime.getMinutes())
-                    ) {
-                      candleStickData.pop();
-                    }
-                    const {
-                      isAbleOrder,
-                      type,
-                      tpPercent,
-                      slPercent,
-                      timeStamp = "",
-                    } = checkAbleOrderBySympleMethod(
-                      candleStickData,
-                      symbolCandle
-                    ) || {};
-
-                    const lastestCandlePrice = candleStickData.slice(-1)[0][4];
-                    if (
-                      lastestCandlePrice <= 5 &&
-                      !listSymbolWithCondition.length
-                    ) {
-                      const symbolInfo = listSymbols.find(
-                        (each) => each.symbol === symbolCandle
-                      );
-                      temListSymbol.push(symbolInfo);
-                    }
-
-                    const isHasOrderRunning = !!tempMapListOrders[symbolCandle];
-
-                    if (
-                      isAbleOrder &&
-                      symbolCandle !== "RSRUSDT" &&
-                      !isHasOrderRunning &&
-                      (listSymbolWithCondition.length
-                        ? true
-                        : lastestCandlePrice <= 5)
-                    ) {
-                      const { stickPrice } =
-                        listSymbols.find(
-                          (each) => each.symbol === symbolCandle
-                        ) || {};
-
-                      if (!mapLevelPow[symbolCandle]) {
-                        mapLevelPow[symbolCandle] = 0;
+                    if (candleStickData && candleStickData.length) {
+                      const newestCandle = candleStickData.slice(-1)[0];
+                      const dateTimeCandle = new Date(newestCandle[0]);
+                      const currentTime = new Date();
+                      if (
+                        Number(dateTimeCandle.getMinutes()) ===
+                        Number(currentTime.getMinutes())
+                      ) {
+                        candleStickData.pop();
                       }
-
-                      return {
-                        symbol: symbolCandle,
+                      const {
+                        isAbleOrder,
                         type,
                         tpPercent,
                         slPercent,
-                        stickPrice,
-                        levelPow: mapLevelPow[symbolCandle] || 0,
-                        lastestCandlePrice,
-                      };
+                        timeStamp = "",
+                      } = checkAbleOrderBySympleMethod(
+                        candleStickData,
+                        symbolCandle
+                      ) || {};
+
+                      const lastestCandlePrice =
+                        candleStickData.slice(-1)[0][4];
+                      if (
+                        lastestCandlePrice <= 5 &&
+                        !listSymbolWithCondition.length
+                      ) {
+                        const symbolInfo = listSymbols.find(
+                          (each) => each.symbol === symbolCandle
+                        );
+                        temListSymbol.push(symbolInfo);
+                      }
+
+                      const isHasOrderRunning =
+                        !!tempMapListOrders[symbolCandle];
+
+                      const isHasSingleOrder =
+                        !!Object.keys(currentSingleOrder).length;
+
+                      const isAllowGetOrder = isRunSingle
+                        ? !isHasSingleOrder
+                        : !isHasOrderRunning;
+
+                      if (
+                        isAbleOrder &&
+                        symbolCandle !== "RSRUSDT" &&
+                        isAllowGetOrder &&
+                        (listSymbolWithCondition.length
+                          ? true
+                          : lastestCandlePrice <= 5)
+                      ) {
+                        const { stickPrice } =
+                          listSymbols.find(
+                            (each) => each.symbol === symbolCandle
+                          ) || {};
+
+                        if (!mapLevelPow[symbolCandle]) {
+                          mapLevelPow[symbolCandle] = 0;
+                        }
+
+                        listOrderInfo.push({
+                          symbol: symbolCandle,
+                          type,
+                          tpPercent,
+                          slPercent,
+                          stickPrice,
+                          levelPow: isUseLevelPow
+                            ? mapLevelPow[symbolCandle] || 0
+                            : 0,
+                          lastestCandlePrice,
+                        });
+                      }
                     }
-
-                    return null;
                   }
-                });
-
-                if (!listSymbolWithCondition.length) {
-                  listSymbolWithCondition = temListSymbol;
+                } else {
+                  console.error(
+                    `Failed to fetch candle data for symbol: ${result.reason}`
+                  );
                 }
+              }
+
+              if (!listSymbolWithCondition.length) {
+                listSymbolWithCondition = temListSymbol;
               }
             })
             .catch((err) => {
@@ -305,9 +322,9 @@ export const ExecuteSympleMethod = async (payload) => {
                 }
               }
             } else {
-              listOrderInfo.filter(Boolean).forEach(async (each) => {
-                await handleOrder(each);
-              });
+              await Promise.allSettled(
+                listOrderInfo.filter(Boolean).map(handleOrder)
+              );
             }
           } catch (error) {
             console.error(error);
@@ -323,15 +340,18 @@ export const ExecuteSympleMethod = async (payload) => {
           timestamp: Date.now(),
         },
       });
-      const { totalWalletBalance: accountBalance } = resAccount.data;
-      bot.sendMessage(
-        chatId,
-        `📊📊📊📊\n- Tài khoản hiện tại của bạn là: ${+accountBalance}\n- Có ${countTP} lệnh đạt TP ✅\n- Có ${countSL} lệnh chạm SL ❌\n- Hiện tại có ${
-          Object.keys(tempMapListOrders).length
-        } lệnh đang chạy...\n♻${
-          listSymbolWithCondition.length
-        }\n - Single level: ${singleLevelPow}`
-      );
+
+      if (resAccount?.data) {
+        const { totalWalletBalance: accountBalance } = resAccount?.data || {};
+        bot.sendMessage(
+          chatId,
+          `📊📊📊📊\n- Tài khoản hiện tại của bạn là: ${+accountBalance}\n- Có ${countTP} lệnh đạt TP ✅\n- Có ${countSL} lệnh chạm SL ❌\n- Hiện tại có ${
+            Object.keys(tempMapListOrders).length
+          } lệnh đang chạy...\n♻${
+            listSymbolWithCondition.length
+          }\n - Single level: ${singleLevelPow}`
+        );
+      }
     }
   };
 

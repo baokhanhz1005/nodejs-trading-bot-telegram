@@ -113,7 +113,7 @@ export const TestingFunction = async (payload) => {
             if (
               candleStickData &&
               candleStickData.length &&
-              (false || candleStickData.slice(-1)[0][4] < 0.1)
+              (false || candleStickData.slice(-1)[0][4] < 5)
             ) {
               const payload = {
                 candleStickData:
@@ -187,7 +187,7 @@ export const TestingFunction = async (payload) => {
             // Dùng cho việc log ra các lệnh SL\TP, cho việc đánh giá lý do tại sao lệnh chạm SL
             let tempMess = [];
             for (let i = 0; i < listInfo.length; i++) {
-              if (i > 30) break;
+              if (i > 60) break;
               if (i % 5 === 0 && i !== 0) {
                 tempMess.push(listInfo[i]);
                 bot.sendMessage(chatId, `${tempMess.join("")}`, {
@@ -211,7 +211,9 @@ export const TestingFunction = async (payload) => {
             bot.sendMessage(
               chatId,
               `- Tổng số lệnh: ${totalOrder} với: \n- Thu được: ${profitMethod}$ 
-              \n- Số lệnh mắc lose liên tiếp: ${countLoseFullMethod} - LEVEL: ${countLevelHigh}\n ${stringSymbol}\n+ ${totalWin} lệnh TP và ${totalLose} lệnh SL
+              \n- Số lệnh mắc lose liên tiếp: ${countLoseFullMethod} - LEVEL: ${countLevelHigh}\n ${stringSymbol}\n+ ${totalWin} lệnh TP và ${totalLose} lệnh SL\n+ Rate: ${
+                (totalWin / (totalWin + totalLose)).toFixed(4) * 100
+              }%
               \n ${Object.keys(mapMaxLevelPow1)
                 .map((key) => `** L${key}: ${mapMaxLevelPow1[key]}`)
                 .join("\n")}

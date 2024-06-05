@@ -75,18 +75,18 @@ const checkPattern = (candleStickData, symbol) => {
     values: closePrices,
     fastPeriod: 6,
     slowPeriod: 13,
-    signalPeriod: 4,
+    signalPeriod: 9,
     SimpleMAOscillator: false,
     SimpleMASignal: false,
   };
 
   // const macdInput = {
-  //     values: closePrices,
-  //     fastPeriod: 12,
-  //     slowPeriod: 26,
-  //     signalPeriod: 9,
-  //     SimpleMAOscillator: false,
-  //     SimpleMASignal: false,
+  //   values: closePrices,
+  //   fastPeriod: 6,
+  //   slowPeriod: 13,
+  //   signalPeriod: 4,
+  //   SimpleMAOscillator: false,
+  //   SimpleMASignal: false,
   // };
 
   const macdResult = MACD.calculate(macdInput);
@@ -101,10 +101,11 @@ const checkPattern = (candleStickData, symbol) => {
   const limit = 11;
 
   let trend;
-  if (true && lastMacd > lastSignal * 0.7) {
+  if (true && lastMacd > lastSignal * 1.2) {
     trend = "Trending Up";
     // const rangeCandle50 = candleStickData.slice(-50);
     const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
+    const maxRangeAll = getMaxOnListCandle(candleStickData, 2);
     // const maxRange45 = getMaxOnListCandle(rangeCandle50.slice(0, 45), 2);
     // const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
     const min3Range10 = getMinOnListCandle(candleStickData.slice(-10), 3);
@@ -114,107 +115,83 @@ const checkPattern = (candleStickData, symbol) => {
       candleStickData.slice(-25)
     );
 
-    const preCondition1 =
-      checkFullCandle(prevCandle, "down") && checkPinbar(lastestCandle, "up");
-
-    const preCondition2 =
-      checkFullCandle(prevCandle, "down") &&
-      checkFullCandle(lastestCandle, "up") &&
-      lastestCandle[4] * 0.999 > prevCandle[1] &&
-      lastestCandle[2] < maxRange50 * 0.97;
-
-    if (false && (preCondition1 || preCondition2)) {
-      const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 2.5;
-      const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.4;
-      const CONDITION_1__ = +minRange50 === +min3Range10;
-      const CONDITION_3__ =
-        (lastestCandle[2] - minRange50) /
-          (lastestCandle[2] - lastestCandle[3]) <
-        3;
-      if (CONDITION_1__ && CONDITION_2__ && CONDITION_3__) {
-        slPercent = EstRR;
-        type = "up";
-        isAllowOrder = true;
-        timeStamp = lastestCandle[0];
-      }
-    } else if (
+    if (
       true &&
-      (checkFullCandle(lastestCandle, "up") || checkPinbar(lastestCandle, "up"))
+      isUpCandle(lastestCandle) &&
+      lastestCandle[4] / lastestCandle[1] > 1.0035
     ) {
-      const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 2.5;
-      const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.4;
-      const CONDITION_3__ =
-        candleStickData.slice(-40)[0][4] / lastestCandle[4] < 0.98;
-      const CONDITION_4__ = candleStickData[0][4] / lastestCandle[4] > 0.95;
-      if (true && CONDITION_2__ && CONDITION_3__ && CONDITION_4__) {
+      const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.8;
+      const { countUp } = rateUpAndDown(candleStickData.slice(-50), 1, false);
+      const candleStickRange15 = candleStickData.slice(-15);
+      const { countUp: countUpShortTerm } = rateUpAndDown(
+        candleStickRange15,
+        1,
+        false
+      );
+
+      // condition
+      const isPassCondition = [
+        EstRR > 0.7 && EstRR < 2,
+        maxRangeAll === lastestCandle[2]
+          ? false
+          : lastestCandle[4] * 1.05 < maxRangeAll,
+        candleStickData.slice(-50)[0][4] / lastestCandle[4] > 0.97,
+        countUp / candleStickData.slice(-50).length > 0.47,
+        countUpShortTerm / candleStickRange15.length < 0.65,
+        candleStickRange15[0][4] * 0.99 > lastestCandle[4],
+        maxRange50 / lastestCandle[4] < 1.05,
+      ].every((cond) => !!cond);
+
+      if (true && isPassCondition) {
         slPercent = EstRR;
         type = "up";
         isAllowOrder = true;
         timeStamp = lastestCandle[0];
       }
     }
-  } else if (true && lastMacd < lastSignal * 0.7) {
+  } else if (true && lastMacd < lastSignal * 1.4) {
     trend = "Trending Down";
-    // const rangeCandle50 = candleStickData.slice(-50);
-    // const minRange50 = getMinOnListCandle(candleStickData.slice(-50), 3);
-    // const minRange45 = getMinOnListCandle(rangeCandle50.slice(0, 45), 3);
-    const min4Range15 = getMinOnListCandle(candleStickData.slice(-15), 4);
-    const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
-    const max2Rang10 = getMaxOnListCandle(candleStickData.slice(-10), 2);
-    const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
-    // const max4Range50 = getMaxOnListCandle(candleStickData.slice(-50), 4);
-    // const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
-    //     candleStickData.slice(-25)
-    // );
-    const preCondition1 =
-      isUpCandle(prevCandle, "up") &&
-      checkFullCandle(lastestCandle, "down") &&
-      lastestCandle[4] < prevCandle[1] * 0.998;
+    const minRangeAll = getMinOnListCandle(candleStickData, 3);
+    const minRange15 = getMinOnListCandle(candleStickData.slice(-15), 3);
 
-    // const preCondition2 =
-    //   checkPinbar(forthLastCandle, "down") &&
-    //   checkPinbar(thirdLastCandle, "down") &&
-    //   checkPinbar(prevCandle, "down") &&
-    //   checkPinbar(lastestCandle, "down");
+    const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
+      candleStickData.slice(-25)
+    );
 
-    if (false && (preCondition1 || false)) {
-      const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 2.5;
-      const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.4;
-      const CONDITION_1__ = +max2Rang10 === +maxRange50;
-      const CONDITION_3__ =
-        (maxRange50 - lastestCandle[3]) /
-          (lastestCandle[2] - lastestCandle[3]) <
-        3;
-      if (true && CONDITION_1__ && CONDITION_2__ && CONDITION_3__) {
+    if (
+      true &&
+      isDownCandle(lastestCandle) &&
+      lastestCandle[1] / lastestCandle[4] > 1.0035
+    ) {
+      const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.8;
+      const { countDown } = rateUpAndDown(candleStickData.slice(-50), 1, false);
+      const candleStickRange15 = candleStickData.slice(-15);
+      const { countDown: countDownShortTerm } = rateUpAndDown(
+        candleStickRange15,
+        1,
+        false
+      );
+
+      // condition
+      const isPassCondition = [
+        EstRR > 0.7 && EstRR < 2,
+        minRangeAll === lastestCandle[3]
+          ? false
+          : lastestCandle[4] * 0.95 > minRangeAll,
+        candleStickData.slice(-50)[0][4] / lastestCandle[4] < 0.985,
+        // countDown / 50 > 0.5,
+        countDownShortTerm / candleStickRange15.length < 0.6,
+        candleStickRange15[0][4] * 0.99 < lastestCandle[4],
+        lastestCandle[4] / minRange15 < 1.025,
+        candleStickData[0][4] / lastestCandle[4] > 0.975,
+        maxContinueUp <= 5,
+        minRangeAll / lastestCandle[4] > 0.94,
+      ].every((cond) => !!cond);
+      if (true && isPassCondition) {
         slPercent = EstRR;
         type = "down";
         isAllowOrder = true;
         timeStamp = lastestCandle[0];
-      }
-    } else if (
-      true &&
-      (checkFullCandle(lastestCandle, "down") ||
-        checkPinbar(lastestCandle, "down"))
-    ) {
-      const indexMin = candleStickData
-        .slice(-15)
-        .findIndex((candle) => +candle[4] === +min4Range15);
-      const indexMax = candleStickData
-        .slice(-15)
-        .findIndex((candle) => +candle[4] === +max4Range15);
-      if (indexMin < limit) {
-        const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 2.5;
-        // const CONDITION_1__ = lastestCandle[4] / min4Range15 < 1.004;
-        const CONDITION_2__ = EstRR > 0.7 && EstRR < 1.4;
-        // const CONDITION_3__ = candleStickData[0][4] / lastestCandle[4] > 1.005;
-        const CONDITION_4__ =
-          candleStickData.slice(-40)[0][4] / lastestCandle[4] > 1.01;
-        if (true && CONDITION_2__ && CONDITION_4__) {
-          slPercent = EstRR;
-          type = "down";
-          isAllowOrder = true;
-          timeStamp = lastestCandle[0];
-        }
       }
     }
   } else {

@@ -11,7 +11,7 @@ const API = {
       .then((res) => res)
       .catch((err) => console.log(err));
   },
-  getListPosition: async params => {
+  getListPosition: async (params) => {
     const URL = `${ENDPOINT_TYPE.fAPIv2}/positionRisk`;
     return callApiBinanceFutureWithAuth(URL, "GET", params.data)
       .then((res) => res)
@@ -21,7 +21,10 @@ const API = {
     const URL = `${ENDPOINT_TYPE.fAPIv1}/order`;
     return callApiBinanceFutureWithAuth(URL, "POST", params.data)
       .then((res) => res)
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        // console.log(err);
+        return {};
+      });
   },
   updateOrder: async (params) => {
     const URL = `${ENDPOINT_TYPE.fAPIv1}/order`;
@@ -29,7 +32,7 @@ const API = {
       .then((res) => res)
       .catch((err) => console.log(err));
   },
-  delete: async params => {
+  delete: async (params) => {
     const URL = `${ENDPOINT_TYPE.fAPIv1}/order`;
     return callApiBinanceFutureWithAuth(URL, "DELETE", params.data)
       .then((res) => res)
