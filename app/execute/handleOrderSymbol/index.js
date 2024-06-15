@@ -1,4 +1,5 @@
-import { OrderMarket } from "../../orders/MarketOrder";
+import { fetchApiGetCurrentPrice } from "../../../utils.js";
+import { OrderMarket } from "../../orders/MarketOrder/index.js";
 
 export const handleOrderSymbol = async (payload) => {
   const { bot, chatId, timeLine, command } = payload;
