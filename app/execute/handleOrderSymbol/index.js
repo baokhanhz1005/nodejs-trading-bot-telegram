@@ -1,4 +1,7 @@
-import { fetchApiGetCurrentPrice, fetchApiGetListingSymbols } from "../../../utils.js";
+import {
+  fetchApiGetCurrentPrice,
+  fetchApiGetListingSymbols,
+} from "../../../utils.js";
 import { OrderMarket } from "../../orders/MarketOrder/index.js";
 
 export const handleOrderSymbol = async (payload) => {
@@ -9,7 +12,7 @@ export const handleOrderSymbol = async (payload) => {
   const arrayCommand = command.split(" ");
 
   const tokenInfo = listSymbols.find(
-    (token) => token.symbol === arrayCommand[1]
+    (token) => token.symbol.toLowerCase() === arrayCommand[1].toLowerCase()
   );
   if (tokenInfo) {
     const { symbol, stickPrice } = tokenInfo;
