@@ -21,14 +21,14 @@ export const handleOrderSymbol = async (payload) => {
       symbol: arrayCommand[1],
     });
 
-    const volumeOrder = (arrayCommand[2] * 100) / sl;
+    const volumeOrder = (+arrayCommand[2] * 100) / +arrayCommand[3];
 
     const orderInfo = {
       symbol,
-      entry: price,
+      entry: +price,
       stickPrice,
-      tp: arrayCommand[3] * 1.4,
-      sl: arrayCommand[3],
+      tp: +arrayCommand[3] * 1.4,
+      sl: +arrayCommand[3],
       volumeOrder,
       type: arrayCommand[4],
     };
