@@ -5,11 +5,11 @@ import { TYPE_MARKET } from "../contants.js";
 import { REWARD } from "../../execute/ExecuteSMC/constant.js";
 
 export const OrderMarket = async (payload) => {
-  const { symbol, entry, type, stickPrice, tp, sl, levelPow } = payload;
+  const { symbol, entry, type, stickPrice, tp, sl, levelPow, volumeOrder = '' } = payload;
 
   // Thực thi 1 lệnh market và lấy orderId
   const side = type === "up" ? "BUY" : "SELL";
-  const volume = (REWARD * Math.pow(2, levelPow) * 100) / sl;
+  const volume = volumeOrder || (REWARD * Math.pow(2, levelPow) * 100) / sl;
   const quantity = getQuantity(entry, volume);
 
   if (!quantity) return;

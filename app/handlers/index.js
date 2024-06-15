@@ -11,6 +11,7 @@ import { TrackingEngulfing } from "./TrackingEngulfing/index.js";
 import { TrackingPriceSafety } from "./TrackingPriceSafety/index.js";
 import { ExecuteBigPriceTrendV2 } from "../execute/ExecuteBigPriceTrendV2/index.js";
 import { ExecuteSympleMethod } from "../execute/ExecuteSympleMethod/index.js";
+import { handleOrderSymbol } from "../execute/handleOrderSymbol/index.js";
 
 export const handleRunBot = async (payload) => {
   const { bot = () => { }, chatId, command } = payload;
@@ -43,7 +44,7 @@ export const handleRunBot = async (payload) => {
       Test(newPayload);
       break;
     case COMMAND.ORDER:
-      OrderMarket({});
+      handleOrderSymbol(newPayload);
       break;
     case COMMAND.TEST_FUNCTION:
       TestingFunction(newPayload);
