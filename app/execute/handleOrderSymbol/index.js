@@ -1,4 +1,4 @@
-import { fetchApiGetCurrentPrice } from "../../../utils.js";
+import { fetchApiGetCurrentPrice, fetchApiGetListingSymbols } from "../../../utils.js";
 import { OrderMarket } from "../../orders/MarketOrder/index.js";
 
 export const handleOrderSymbol = async (payload) => {
