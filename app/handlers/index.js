@@ -12,9 +12,10 @@ import { TrackingPriceSafety } from "./TrackingPriceSafety/index.js";
 import { ExecuteBigPriceTrendV2 } from "../execute/ExecuteBigPriceTrendV2/index.js";
 import { ExecuteSympleMethod } from "../execute/ExecuteSympleMethod/index.js";
 import { handleOrderSymbol } from "../execute/handleOrderSymbol/index.js";
+import { AnalysisByTimeLine } from "./AnalysistByTimeLine/index.js";
 
 export const handleRunBot = async (payload) => {
-  const { bot = () => { }, chatId, command } = payload;
+  const { bot = () => {}, chatId, command } = payload;
   const [textCommand, timeLine] = command.split(" ");
   const newPayload = {
     ...payload,
@@ -62,6 +63,9 @@ export const handleRunBot = async (payload) => {
       ExecuteSympleMethod(newPayload);
       break;
 
+    case COMMAND.CHECK:
+      AnalysisByTimeLine(newPayload);
+      break;
     default:
       await bot.sendMessage(chatId, MESSAGE.NO_COMMAND);
   }

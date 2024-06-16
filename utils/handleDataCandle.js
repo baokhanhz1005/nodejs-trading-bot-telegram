@@ -303,18 +303,22 @@ const handleData = (
     if (type === "up" && minPrice <= sl) {
       dataForeCast.loseOrder += 1;
       dataForeCast.orderInfo = null;
-      // dataForeCast.info.push(
-      //   `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)} - LONG\n`
-      // );
+      dataForeCast.info.push(
+        `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
+          symbol
+        )} - LONG\n`
+      );
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
     } else if (type === "down" && maxPrice >= sl) {
       dataForeCast.loseOrder += 1;
       dataForeCast.orderInfo = null;
-      // dataForeCast.info.push(
-      //   `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)} - SHORT\n`
-      // );
+      dataForeCast.info.push(
+        `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
+          symbol
+        )} - SHORT\n`
+      );
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
@@ -324,18 +328,18 @@ const handleData = (
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
-      dataForeCast.info.push(
-        `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)}\n`
-      );
+      // dataForeCast.info.push(
+      //   `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)}\n`
+      // );
     } else if (type === "down" && minPrice <= tp) {
       dataForeCast.winOrder += 1;
       dataForeCast.orderInfo = null;
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
-      dataForeCast.info.push(
-        `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)}\n`
-      );
+      // dataForeCast.info.push(
+      //   `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)}\n`
+      // );
     }
   } else {
     listCandleInfo.pop();
@@ -510,9 +514,11 @@ export const getMinMaxAndIndexOnListCandle = (
   key = "", // min --- max
   type = 1
 ) => {
-  const value = Math[key](...listCandle.map((candle) => candle[type]));
+  const value = Math[key](...listCandle.map((candle) => +candle[type]));
 
-  const indexOfValue = listCandle.findIndex((candle) => candle[type] === value);
+  const indexOfValue = listCandle.findIndex(
+    (candle) => +candle[type] === +value
+  );
 
   return { index: indexOfValue, value };
 };
@@ -594,11 +600,17 @@ export const findContinueSameTypeCandle = (candleStickData) => {
   let countDown = 0;
 
   candleStickData.forEach((candle) => {
-    if (isDownCandle(candle)) {
+    if (
+      isDownCandle(candle) ||
+      (isUpCandle(candle) && candle[4] / candle[1] < 1.003)
+    ) {
       countDown += 1;
       listCountUp.push(countUp);
       countUp = 0;
-    } else {
+    } else if (
+      isUpCandle(candle) ||
+      (isDownCandle(candle) && candle[1] / candle[4] < 1.003)
+    ) {
       countUp += 1;
       listCountDown.push(countDown);
       countDown = 0;

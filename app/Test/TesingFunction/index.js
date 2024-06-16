@@ -25,6 +25,7 @@ import { checkAbleOrderSMC } from "../../execute/ExecuteSMC/utils.js";
 import { COST, REWARD, RR } from "../../execute/ExecuteSMC/constant.js";
 import { checkAbleOrderBySympleMethod } from "../../execute/ExecuteSympleMethod/utils.js";
 import { isCheckCandleHistory, isOtherMethod } from "./constants.js";
+import { checkIsAbleOrder } from "../../handlers/AnalysistByTimeLine/utils.js";
 
 export const TestingFunction = async (payload) => {
   try {
@@ -119,7 +120,9 @@ export const TestingFunction = async (payload) => {
                 candleStickData:
                   candleStickData || candleStickData.slice(0, 555),
                 method: {
-                  methodFn: checkAbleOrderBySympleMethod,
+                  methodFn: false
+                    ? checkAbleOrderBySympleMethod
+                    : checkIsAbleOrder,
                   // checkAbleOrderSMC,
                   config: {
                     rangeCandleInfo: 100,
@@ -183,11 +186,11 @@ export const TestingFunction = async (payload) => {
               }
             }
           });
-          if (false) {
+          if (true) {
             // Dùng cho việc log ra các lệnh SL\TP, cho việc đánh giá lý do tại sao lệnh chạm SL
             let tempMess = [];
             for (let i = 0; i < listInfo.length; i++) {
-              if (i > 60) break;
+              if (i > 20) break;
               if (i % 5 === 0 && i !== 0) {
                 tempMess.push(listInfo[i]);
                 bot.sendMessage(chatId, `${tempMess.join("")}`, {
