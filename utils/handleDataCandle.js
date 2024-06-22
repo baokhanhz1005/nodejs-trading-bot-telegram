@@ -630,3 +630,8 @@ export const shuffleArr = (array) => {
   }
   return array;
 };
+
+
+export const getAlertByType = type => {
+  return `${type === 'up' ? "🟢🟢🟢🟢" : "🔴🔴🔴🔴"}\n`;
+}

@@ -3,6 +3,7 @@ import {
   fetchApiGetCandleStickData,
   fetchApiGetListingSymbols,
 } from "../../../utils.js";
+import { getAlertByType } from "../../../utils/handleDataCandle.js";
 import { checkSafetyPrice } from "./utils.js";
 
 export const TrackingPriceSafety = async (payload) => {
@@ -34,7 +35,7 @@ export const TrackingPriceSafety = async (payload) => {
           count += 1;
           bot.sendMessage(
             chatId,
-            `Symbol ${buildLinkToSymbol(
+            `${getAlertByType(type)} Symbol ${buildLinkToSymbol(
               symbol
             )} có vùng mua an toàn trong xu hướng ${trend} ở khung thời gian ${timeLine} !! [${level}][${index}]`,
             { parse_mode: "HTML", disable_web_page_preview: true }

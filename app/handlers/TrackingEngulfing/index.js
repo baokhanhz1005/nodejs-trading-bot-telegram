@@ -5,6 +5,12 @@ import {
   fetchApiGetCandleStickData,
   fetchApiGetListingSymbols,
 } from "../../../utils.js";
+import { getAlertByType } from "../../../utils/handleDataCandle.js";
+import {
+  checkFullCandle,
+  isDownCandle,
+  isUpCandle,
+} from "../../../utils/TypeCandle.js";
 import { checkExchangeBigPrice, isMarubozu } from "./utils.js";
 
 export const TrackingEngulfing = async (payload) => {
@@ -27,20 +33,27 @@ export const TrackingEngulfing = async (payload) => {
       );
 
       if (candleStickData && candleStickData.length) {
-        const [previousCandle, latestCandle, currentCandle] = candleStickData;
+        candleStickData.pop();
 
-        const { isHasExchangeBigPrice, type } = checkExchangeBigPrice(
-          latestCandle,
-          previousCandle
-        );
-        const isMarubozuCandle = isMarubozu(latestCandle, type);
-        const isEngulfing = isHasExchangeBigPrice && isMarubozuCandle;
+        const [previousCandle, latestCandle] = candleStickData.slice(-2);
 
-        if (isEngulfing) {
+        const isPassCondition = [
+          isUpCandle(latestCandle)
+            ? isDownCandle(previousCandle) &&
+              checkFullCandle(isUpCandle, "up") &&
+              latestCandle[4] * 0.997 > previousCandle[1]
+            : isUpCandle(previousCandle) &&
+              checkFullCandle(latestCandle, "down") &&
+              latestCandle[4] * 1.003 < previousCandle[1],
+        ].every((cond) => !!cond);
+
+        const type = isUpCandle(latestCandle) ? "up" : "down";
+
+        if (isPassCondition) {
           const textType = type === "up" ? "TĂNG" : "GIẢM";
           bot.sendMessage(
             chatId,
-            `Symbol ${buildLinkToSymbol(
+            `${getAlertByType(type)} Symbol ${buildLinkToSymbol(
               symbol
             )} có engulfing ${textType} tại khung ${timeLine} !!`,
             { parse_mode: "HTML", disable_web_page_preview: true }

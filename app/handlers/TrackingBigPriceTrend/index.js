@@ -3,6 +3,7 @@ import {
   fetchApiGetCandleStickData,
   fetchApiGetListingSymbols,
 } from "../../../utils.js";
+import { getAlertByType } from "../../../utils/handleDataCandle.js";
 import { checkHasBigPriceTrend } from "./utils.js";
 
 export const TrackingBigPriceTrend = async (payload) => {
@@ -35,7 +36,7 @@ export const TrackingBigPriceTrend = async (payload) => {
           count += 1;
           bot.sendMessage(
             chatId,
-            `Symbol ${buildLinkToSymbol(
+            `${getAlertByType(type)} Symbol ${buildLinkToSymbol(
               symbol
             )} có lực ${trend} mạnh tại khung ${timeLine} !! [${level}]`,
             { parse_mode: "HTML", disable_web_page_preview: true }
