@@ -512,13 +512,13 @@ export const getMaxOnListCandle = (listCandle, type = 1) => {
 export const getMinMaxAndIndexOnListCandle = (
   listCandle,
   key = "", // min --- max
-  type = 1
+  type = 1 // 1 - open, 2 - max, 3 - lowest, 4- close
 ) => {
   const value = Math[key](...listCandle.map((candle) => +candle[type]));
 
   const indexOfValue = listCandle.findIndex(
     (candle) => +candle[type] === +value
-  );
+  );  
 
   return { index: indexOfValue, value };
 };

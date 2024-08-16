@@ -5,7 +5,10 @@ import {
   fetchApiGetCandleStickData,
   fetchApiGetListingSymbols,
 } from "../../../utils.js";
-import { getAlertByType } from "../../../utils/handleDataCandle.js";
+import {
+  findContinueSameTypeCandle,
+  getAlertByType,
+} from "../../../utils/handleDataCandle.js";
 import {
   checkFullCandle,
   isDownCandle,
@@ -25,7 +28,7 @@ export const TrackingEngulfing = async (payload) => {
         data: {
           symbol: symbol,
           interval: timeLine,
-          limit: 3,
+          limit: 6,
         },
       };
       const { data: candleStickData } = await fetchApiGetCandleStickData(
@@ -35,19 +38,32 @@ export const TrackingEngulfing = async (payload) => {
       if (candleStickData && candleStickData.length) {
         candleStickData.pop();
 
-        const [previousCandle, latestCandle] = candleStickData.slice(-2);
-
+        const [thirdCandle, previousCandle, latestCandle] =
+          candleStickData.slice(-3);
+        const { maxContinueDown, maxContinueUp } =
+          findContinueSameTypeCandle(candleStickData);
+        const limit = 3;
         const isPassCondition = [
           isUpCandle(latestCandle)
-            ? isDownCandle(previousCandle) &&
-              checkFullCandle(isUpCandle, "up") &&
-              latestCandle[4] * 0.997 > previousCandle[1]
-            : isUpCandle(previousCandle) &&
-              checkFullCandle(latestCandle, "down") &&
-              latestCandle[4] * 1.003 < previousCandle[1],
+            ? isDownCandle(thirdCandle) &&
+              checkFullCandle(previousCandle, "up") &&
+              isUpCandle(latestCandle) && previousCandle[4] > thirdCandle[1]
+            : isUpCandle(thirdCandle) &&
+              checkFullCandle(previousCandle, "down") &&
+              isDownCandle(latestCandle) && previousCandle[4] < thirdCandle[1],
+          // maxContinueDown >= limit || maxContinueUp >= limit,
+          // isUpCandle(latestCandle)
+          //   ? isDownCandle(previousCandle) &&
+          //     checkFullCandle(isUpCandle, "up") &&
+          //     latestCandle[4] * 0.997 > previousCandle[1]
+          //   : isUpCandle(previousCandle) &&
+          //     checkFullCandle(latestCandle, "down") &&
+          //     latestCandle[4] * 1.003 < previousCandle[1],
         ].every((cond) => !!cond);
 
-        const type = isUpCandle(latestCandle) ? "up" : "down";
+        let type = isUpCandle(latestCandle) ? "up" : "down";
+
+        // type = maxContinueDown >= limit ? "down" : "up";
 
         if (isPassCondition) {
           const textType = type === "up" ? "TĂNG" : "GIẢM";

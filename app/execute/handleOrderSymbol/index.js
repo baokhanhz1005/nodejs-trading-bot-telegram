@@ -3,10 +3,9 @@ import {
   fetchApiGetListingSymbols,
 } from "../../../utils.js";
 import { OrderMarket } from "../../orders/MarketOrder/index.js";
-import { RR } from "../ExecuteSMC/constant.js";
 
 export const handleOrderSymbol = async (payload) => {
-  const { bot, chatId, timeLine, command } = payload;
+  const { bot, chatId, timeLine, command, RR = 1.6 } = payload;
   // ex: order ABCUSDT 1 1.232 up
 
   const listSymbols = await fetchApiGetListingSymbols();
@@ -52,7 +51,7 @@ export const handleOrderSymbol = async (payload) => {
   } else {
     bot.sendMessage(
       chatId,
-      `Lệnh Order với cú pháp:\n- ex: Order ABCUSDT 4 1.2323 up`
+      `Lệnh Order với cú pháp:\n- ex: Order ABCUSDT 4 1.2323 up \n ** Order {Mã Token} {Cost} {price-SL} {up/down}`
     );
   }
 };
