@@ -86,7 +86,7 @@ export const TestingFunction = async (payload) => {
       const promiseCandleData = dataCandle
         ? dataCandle
         : listSymbols
-            .filter((each) => each.symbol !== "RSRUSDT")
+            .filter((each) => !["RSRUSDT", "BTCSTUSDT"].includes(each.symbol))
             .map(async (token) => {
               const { symbol, stickPrice } = token;
               const params = {
@@ -96,9 +96,9 @@ export const TestingFunction = async (payload) => {
                   limit: 1000, // 388 -- 676 -- 964
                 },
               };
-              // if (stickPrice <= 3) {
-              //   return null;
-              // }
+              if (stickPrice <= 3) {
+                return null;
+              }
               const res = await fetchApiGetCandleStickData(params);
               return res;
             });
@@ -125,7 +125,7 @@ export const TestingFunction = async (payload) => {
                     : checkIsAbleOrder,
                   // checkAbleOrderSMC,
                   config: {
-                    rangeCandleInfo: 100,
+                    rangeCandleInfo: 150,
                     symbol: symbolCandle,
                   },
                 },

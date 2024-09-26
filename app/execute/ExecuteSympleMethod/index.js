@@ -32,13 +32,33 @@ export const ExecuteSympleMethod = async (payload) => {
   const currentSecond = new Date().getSeconds();
   const timeRemaining = 60 - currentSecond;
 
+  const mapOrderSimilarInfo = {
+    // example
+    // BNBUSDT: {
+    //   orderSimilar: {
+    //     //data order
+    //   },
+    //   countSimilar: 0,
+    //   isHitSL: false
+    // },
+    //......
+  };
+
   process.on("uncaughtException", (e) => {
     console.error(`Something went wrong ... ${e}`);
   });
 
+  const resetOrderSimilar = (symbol) => {
+    if (mapOrderSimilarInfo[symbol]) {
+      mapOrderSimilarInfo[symbol].orderSimilar = null;
+      mapOrderSimilarInfo[symbol].countSimilar = 0;
+      mapOrderSimilarInfo[symbol].isHitSL = false;
+    }
+  };
+
   const executeBOT = async () => {
     const timeMinute = new Date().getMinutes();
-    const isHasTrackingData = timeMinute % 15 === 0; // use candle 15m
+    const isHasTrackingData = timeMinute % 5 === 0; // use candle 5m
     const mapListOrders = {};
     let listSymbolOpenOrder = [];
 
@@ -52,6 +72,7 @@ export const ExecuteSympleMethod = async (payload) => {
           console.error("Error when get list order: ", err);
         });
 
+        // noti and delete order
         if (listOpenOrderData && listOpenOrderData.length) {
           // build thành Object
           listOpenOrderData.forEach((order) => {
@@ -184,6 +205,69 @@ export const ExecuteSympleMethod = async (payload) => {
             }
           }
         }
+
+        // check order is hit SL ??
+        const promiseListOrderSimilar = Object.keys(mapOrderSimilarInfo).map(
+          async (key) => {
+            if (mapOrderSimilarInfo[key]?.orderSimilar) {
+              return fetchApiGetCandleStickData({
+                symbol: key,
+                interval: timeLine,
+                limit: 2,
+              });
+            }
+
+            return null;
+          }
+        );
+
+        await Promise.allSettled(promiseListOrderSimilar).then((results) => {
+          for (const result of results) {
+            if (result.status === "fulfilled") {
+              const candleInfo = result.value;
+
+              if (candleInfo) {
+                const { symbol: symbolCandle, data: candleStickData } =
+                  candleInfo;
+
+                if (candleStickData && candleStickData.length) {
+                  const newestCandle = candleStickData.slice(-1)[0];
+
+                  const symbolSimilarInfo = mapOrderSimilarInfo[symbolCandle];
+
+                  const { orderSimilar, countSimilar, isHitSL } =
+                    symbolSimilarInfo;
+
+                  const { sl, type } = orderSimilar;
+
+                  const maxPrice = newestCandle[2];
+                  const minPrice = newestCandle[3];
+                  const currentPrice = newestCandle[4];
+
+                  if (
+                    (type === "up" && minPrice <= sl) ||
+                    (type === "down" && maxPrice >= sl)
+                  ) {
+                    if (countSimilar <= 25) {
+                      // việc hit SL quá nhanh trong thời gian ngăn là dấu hiệu của sự đảo chiều nên ngăn chặn việc order lệnh này
+                      resetOrderSimilar(symbolCandle);
+                    } else {
+                      mapOrderSimilarInfo[symbolCandle].isHitSL = true;
+                    }
+                  } else if (countSimilar < 125) {
+                    mapOrderSimilarInfo[symbolCandle].countSimilar += 1;
+                  } else {
+                    resetOrderSimilar(symbolCandle);
+                  }
+                }
+              }
+            } else {
+              console.error(
+                `Failed to fetch candle data for symbol: ${result.reason}`
+              );
+            }
+          }
+        });
       } catch (error) {
         console.error(error);
       }
@@ -200,13 +284,16 @@ export const ExecuteSympleMethod = async (payload) => {
               data: {
                 symbol: symbol,
                 interval: timeLine,
-                limit: 100,
+                limit: 150,
               },
             };
+            if (stickPrice <= 3) {
+              return null;
+            }
             return fetchApiGetCandleStickData(params).catch((err) =>
               console.error("Error when get candle", err)
             );
-          });
+          }).filter(Boolean);
 
           let listOrderInfo = [];
 
@@ -230,58 +317,24 @@ export const ExecuteSympleMethod = async (payload) => {
                       ) {
                         candleStickData.pop();
                       }
-                      const {
-                        isAbleOrder,
-                        type,
-                        tpPercent,
-                        slPercent,
-                        timeStamp = "",
-                      } = checkAbleOrderBySympleMethod(
-                        candleStickData,
-                        symbolCandle
-                      ) || {};
 
                       const lastestCandlePrice =
                         candleStickData.slice(-1)[0][4];
-                      if (
-                        lastestCandlePrice <= 5 &&
-                        !listSymbolWithCondition.length
-                      ) {
-                        const symbolInfo = listSymbols.find(
-                          (each) => each.symbol === symbolCandle
-                        );
-                        temListSymbol.push(symbolInfo);
-                      }
 
-                      const isHasOrderRunning =
-                        !!tempMapListOrders[symbolCandle];
+                      if (mapOrderSimilarInfo[symbolCandle]?.isHitSL) {
+                        let { symbol, type, tpPercent, slPercent } =
+                          mapOrderSimilarInfo[symbolCandle]?.orderSimilar || {};
 
-                      const isHasSingleOrder =
-                        !!Object.keys(currentSingleOrder).length;
-
-                      const isAllowGetOrder = isRunSingle
-                        ? !isHasSingleOrder
-                        : !isHasOrderRunning;
-
-                      if (
-                        isAbleOrder &&
-                        symbolCandle !== "RSRUSDT" &&
-                        isAllowGetOrder &&
-                        (listSymbolWithCondition.length
-                          ? true
-                          : lastestCandlePrice <= 5)
-                      ) {
                         const { stickPrice } =
                           listSymbols.find(
                             (each) => each.symbol === symbolCandle
                           ) || {};
 
-                        if (!mapLevelPow[symbolCandle]) {
-                          mapLevelPow[symbolCandle] = 0;
-                        }
+                        tpPercent = tpPercent * 3;
+                        slPercent = slPercent * 3;
 
                         listOrderInfo.push({
-                          symbol: symbolCandle,
+                          symbol,
                           type,
                           tpPercent,
                           slPercent,
@@ -291,6 +344,74 @@ export const ExecuteSympleMethod = async (payload) => {
                             : 0,
                           lastestCandlePrice,
                         });
+
+                        resetOrderSimilar(symbolCandle);
+                      } else {
+                        const {
+                          isAbleOrder,
+                          type,
+                          tpPercent,
+                          slPercent,
+                          timeStamp = "",
+                        } = checkAbleOrderBySympleMethod(
+                          candleStickData,
+                          symbolCandle
+                        ) || {};
+
+                        if (
+                          lastestCandlePrice <= 5 &&
+                          !listSymbolWithCondition.length
+                        ) {
+                          const symbolInfo = listSymbols.find(
+                            (each) => each.symbol === symbolCandle
+                          );
+                          temListSymbol.push(symbolInfo);
+                        }
+
+                        const isHasOrderRunning =
+                          !!tempMapListOrders[symbolCandle];
+
+                        const isHasSingleOrder =
+                          !!Object.keys(currentSingleOrder).length;
+
+                        const isAllowGetOrder = isRunSingle
+                          ? !isHasSingleOrder
+                          : !isHasOrderRunning;
+
+                        if (
+                          isAbleOrder &&
+                          symbolCandle !== "RSRUSDT" &&
+                          isAllowGetOrder &&
+                          (listSymbolWithCondition.length
+                            ? true
+                            : lastestCandlePrice <= 5)
+                        ) {
+                          if (!mapLevelPow[symbolCandle]) {
+                            mapLevelPow[symbolCandle] = 0;
+                          }
+
+                          const ratePriceTP =
+                            type === "up"
+                              ? 1 + tpPercent / 100
+                              : 1 - tpPercent / 100;
+                          const ratePriceSL =
+                            type === "up"
+                              ? 1 - slPercent / 100
+                              : 1 + slPercent / 100;
+
+                          mapOrderSimilarInfo[symbolCandle] = {
+                            orderSimilar: {
+                              symbol: symbolCandle,
+                              type,
+                              sl: ratePriceSL * +lastestCandlePrice,
+                              tp: ratePriceTP * +lastestCandlePrice,
+                              slPercent,
+                              tpPercent,
+                            },
+                            countSimilar: 0,
+                            isHitSL: false,
+                          };
+                        }
                       }
                     }
                   }

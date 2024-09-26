@@ -45,12 +45,20 @@ export const TrackingEngulfing = async (payload) => {
         const limit = 3;
         const isPassCondition = [
           isUpCandle(latestCandle)
-            ? isDownCandle(thirdCandle) &&
-              checkFullCandle(previousCandle, "up") &&
-              isUpCandle(latestCandle) && previousCandle[4] > thirdCandle[1]
-            : isUpCandle(thirdCandle) &&
-              checkFullCandle(previousCandle, "down") &&
-              isDownCandle(latestCandle) && previousCandle[4] < thirdCandle[1],
+            ? isDownCandle(previousCandle) &&
+              isUpCandle(latestCandle, "up") &&
+              latestCandle[4] > previousCandle[1] &&
+              checkFullCandle(latestCandle, "up") &&
+              Math.abs(latestCandle[4] - latestCandle[1]) /
+                Math.abs(previousCandle[4] - previousCandle[1]) >
+                1.1
+            : isUpCandle(previousCandle) &&
+              isDownCandle(latestCandle, "down") &&
+              latestCandle[4] < previousCandle[1] &&
+              checkFullCandle(latestCandle, "down") &&
+              Math.abs(latestCandle[4] - latestCandle[1]) /
+                Math.abs(previousCandle[4] - previousCandle[1]) >
+                1.1,
           // maxContinueDown >= limit || maxContinueUp >= limit,
           // isUpCandle(latestCandle)
           //   ? isDownCandle(previousCandle) &&

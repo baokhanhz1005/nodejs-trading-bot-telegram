@@ -13,6 +13,7 @@ import { ExecuteBigPriceTrendV2 } from "../execute/ExecuteBigPriceTrendV2/index.
 import { ExecuteSympleMethod } from "../execute/ExecuteSympleMethod/index.js";
 import { handleOrderSymbol } from "../execute/handleOrderSymbol/index.js";
 import { AnalysisByTimeLine } from "./AnalysistByTimeLine/index.js";
+import { TestFunctionUtility } from "../test-function/index.js";
 
 export const handleRunBot = async (payload) => {
   const { bot = () => {}, chatId, command } = payload;
@@ -66,6 +67,11 @@ export const handleRunBot = async (payload) => {
     case COMMAND.CHECK:
       AnalysisByTimeLine(newPayload);
       break;
+
+    case "test-util": {
+      TestFunctionUtility(newPayload);
+      break;
+    }
     default:
       await bot.sendMessage(chatId, MESSAGE.NO_COMMAND);
   }
