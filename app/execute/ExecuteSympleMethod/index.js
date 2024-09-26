@@ -207,19 +207,22 @@ export const ExecuteSympleMethod = async (payload) => {
         }
 
         // check order is hit SL ??
-        const promiseListOrderSimilar = Object.keys(mapOrderSimilarInfo).map(
-          async (key) => {
+        const promiseListOrderSimilar = Object.keys(mapOrderSimilarInfo)
+          .map(async (key) => {
             if (mapOrderSimilarInfo[key]?.orderSimilar) {
-              return fetchApiGetCandleStickData({
-                symbol: key,
-                interval: timeLine,
-                limit: 2,
-              });
+              const params = {
+                data: {
+                  symbol: key,
+                  interval: timeLine,
+                  limit: 2,
+                },
+              };
+              return fetchApiGetCandleStickData(params);
             }
 
             return null;
-          }
-        );
+          })
+          .filter(Boolean);
 
         await Promise.allSettled(promiseListOrderSimilar).then((results) => {
           for (const result of results) {
@@ -278,22 +281,24 @@ export const ExecuteSympleMethod = async (payload) => {
           if (!listSymbolWithCondition.length) {
             listSymbolGetCandle = listSymbols;
           }
-          const promiseCandleData = listSymbolGetCandle.map(async (token) => {
-            const { symbol, stickPrice } = token;
-            const params = {
-              data: {
-                symbol: symbol,
-                interval: timeLine,
-                limit: 150,
-              },
-            };
-            if (stickPrice <= 3) {
-              return null;
-            }
-            return fetchApiGetCandleStickData(params).catch((err) =>
-              console.error("Error when get candle", err)
-            );
-          }).filter(Boolean);
+          const promiseCandleData = listSymbolGetCandle
+            .map(async (token) => {
+              const { symbol, stickPrice } = token;
+              const params = {
+                data: {
+                  symbol: symbol,
+                  interval: timeLine,
+                  limit: 150,
+                },
+              };
+              if (stickPrice <= 3) {
+                return null;
+              }
+              return fetchApiGetCandleStickData(params).catch((err) =>
+                console.error("Error when get candle", err)
+              );
+            })
+            .filter(Boolean);
 
           let listOrderInfo = [];
 
