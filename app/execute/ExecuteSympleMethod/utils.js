@@ -153,7 +153,7 @@ const checkPattern = (candleStickData, symbol) => {
   //   candleStickData.slice(-25)
   // );
   else if (
-    true &&
+    false &&
     isDownTrend &&
     isDownCandle(lastestCandle)
     // (checkFullCandle(lastestCandle, "down") ||
