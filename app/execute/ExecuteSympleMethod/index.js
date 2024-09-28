@@ -395,14 +395,16 @@ export const ExecuteSympleMethod = async (payload) => {
                             mapLevelPow[symbolCandle] = 0;
                           }
 
+                          const rateGap = 1.5; // standard - 1
+
                           const ratePriceTP =
                             type === "up"
-                              ? 1 + tpPercent / 100
-                              : 1 - tpPercent / 100;
+                              ? 1 + (tpPercent * rateGap) / 100
+                              : 1 - (tpPercent * rateGap) / 100;
                           const ratePriceSL =
                             type === "up"
-                              ? 1 - slPercent / 100
-                              : 1 + slPercent / 100;
+                              ? 1 - (slPercent * rateGap) / 100
+                              : 1 + (slPercent * rateGap) / 100;
 
                           mapOrderSimilarInfo[symbolCandle] = {
                             orderSimilar: {
@@ -471,7 +473,7 @@ export const ExecuteSympleMethod = async (payload) => {
         const { totalWalletBalance: accountBalance } = resAccount?.data || {};
         bot.sendMessage(
           chatId,
-          `📊📊📊📊\n- Tài khoản hiện tại của bạn là: ${+accountBalance}\n- Có ${countTP} lệnh đạt TP ✅\n- Có ${countSL} lệnh chạm SL ❌\n- Hiện tại có ${
+          `📊📊📊📊\n- Tài khoản hiện tại của bạn là: ${+accountBalance}\n- Có ${countTP} lệnh đạt Take Profit ✅\n- Có ${countSL} lệnh chạm Stop Loss ❌\n- Hiện tại có ${
             Object.keys(tempMapListOrders).length
           } lệnh đang chạy...\n♻${
             listSymbolWithCondition.length

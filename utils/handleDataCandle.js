@@ -418,14 +418,15 @@ const handleData = (
       slPercent = 1,
       timeStamp = "",
     } = methodFn(listCandleInfo, symbol) || {};
+    const rate = 1.5;
     // console.log(isAbleOrder);
     let typeOrder = type;
     if (isAbleOrder && (type === "up" || type === "down")) {
       const price = currentCandle[1];
       const ratePriceTP =
-        typeOrder === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
+        typeOrder === "up" ? 1 + (tpPercent * rate) / 100 : 1 - (tpPercent * rate) / 100;
       const ratePriceSL =
-        typeOrder === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
+        typeOrder === "up" ? 1 - (slPercent * rate) / 100 : 1 + (slPercent * rate) / 100;
       const newOrder = {
         symbol,
         entry: +price,
