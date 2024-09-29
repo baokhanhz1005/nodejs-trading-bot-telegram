@@ -355,7 +355,7 @@ const handleData = (
       (type === "up" && minPrice <= sl) ||
       (type === "down" && maxPrice >= sl)
     ) {
-      if (dataForeCast.countSimilar <= 25) {
+      if (dataForeCast.countSimilar < 25) {
         // việc hit SL quá nhanh trong thời gian ngăn là dấu hiệu của sự đảo chiều nên ngăn chặn việc order lệnh này
         resetOrderSimilar(dataForeCast);
       } else {
