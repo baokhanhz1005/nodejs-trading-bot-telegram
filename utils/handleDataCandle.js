@@ -1,7 +1,12 @@
 import { REWARD, RR } from "../app/execute/ExecuteSMC/constant.js";
 import { TYPE_OF_PRICE } from "../constant.js";
 import { buildLinkToSymbol, buildTimeStampToDate } from "../utils.js";
-import { checkInRange, isDownCandle, isUpCandle } from "./TypeCandle.js";
+import {
+  checkFullCandle,
+  checkInRange,
+  isDownCandle,
+  isUpCandle,
+} from "./TypeCandle.js";
 
 export const detectTrendPrice = (listCandle) => {};
 
@@ -356,7 +361,7 @@ const handleData = (
       } else {
         updateOrder(dataForeCast, currentCandle);
       }
-    } else if (dataForeCast.countSimilar < 125) {
+    } else if (dataForeCast.countSimilar < 100) {
       dataForeCast.countSimilar += 1;
     } else {
       resetOrderSimilar(dataForeCast);
@@ -418,15 +423,19 @@ const handleData = (
       slPercent = 1,
       timeStamp = "",
     } = methodFn(listCandleInfo, symbol) || {};
-    const rate = 1.5;
+    const rate = 2;
     // console.log(isAbleOrder);
     let typeOrder = type;
     if (isAbleOrder && (type === "up" || type === "down")) {
       const price = currentCandle[1];
       const ratePriceTP =
-        typeOrder === "up" ? 1 + (tpPercent * rate) / 100 : 1 - (tpPercent * rate) / 100;
+        typeOrder === "up"
+          ? 1 + (tpPercent * rate) / 100
+          : 1 - (tpPercent * rate) / 100;
       const ratePriceSL =
-        typeOrder === "up" ? 1 - (slPercent * rate) / 100 : 1 + (slPercent * rate) / 100;
+        typeOrder === "up"
+          ? 1 - (slPercent * rate) / 100
+          : 1 + (slPercent * rate) / 100;
       const newOrder = {
         symbol,
         entry: +price,
