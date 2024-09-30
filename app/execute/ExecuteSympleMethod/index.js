@@ -241,7 +241,7 @@ export const ExecuteSympleMethod = async (payload) => {
                   const { orderSimilar, countSimilar, isHitSL } =
                     symbolSimilarInfo;
 
-                  const { sl, type } = orderSimilar;
+                  const { sl, type, tp } = orderSimilar;
 
                   const maxPrice = newestCandle[2];
                   const minPrice = newestCandle[3];
