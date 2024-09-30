@@ -109,19 +109,19 @@ const checkPattern = (candleStickData, symbol) => {
     // isUpCandle(lastestCandle)
     checkFullCandle(prevCandle, "up")
   ) {
-    const EstRR = (lastestCandle[4] / prevCandle[3] - 1) * 100 * 1.5;
+    // const EstRR = (lastestCandle[4] / prevCandle[3] - 1) * 100 * 1.5;
 
     // ////////
-    // const EstRR1 = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.5;
-    // const EstRR2 = (lastestCandle[4] / prevCandle[3] - 1) * 100 * 1.5;
-    // const EstRR3 = (lastestCandle[4] / thirdLastCandle[3] - 1) * 100 * 1.5;
+    const EstRR1 = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.5;
+    const EstRR2 = (lastestCandle[4] / prevCandle[3] - 1) * 100 * 1.5;
+    const EstRR3 = (lastestCandle[4] / thirdLastCandle[3] - 1) * 100 * 1.5;
 
-    // const EstRR = [EstRR1, EstRR2, EstRR3].reduce((max, currentRR) => {
-    //   if (currentRR > 0.6 && currentRR < 1.667) {
-    //     return max < currentRR ? currentRR : max;
-    //   }
-    //   return max;
-    // }, EstRR1);
+    const EstRR = [EstRR2, EstRR3].reduce((max, currentRR) => {
+      if (currentRR > 0.6 && currentRR < 1.667) {
+        return max < currentRR ? currentRR : max;
+      }
+      return max;
+    }, EstRR2);
     // ////////
 
     const { countUp } = rateUpAndDown(candleStickData.slice(-50), 1, false);
@@ -172,7 +172,7 @@ const checkPattern = (candleStickData, symbol) => {
   //   candleStickData.slice(-25)
   // );
   else if (
-    false &&
+    true &&
     isDownTrend &&
     // isDownCandle(lastestCandle)
     (checkFullCandle(lastestCandle, "down") ||

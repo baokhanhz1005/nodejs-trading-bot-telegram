@@ -355,13 +355,17 @@ const handleData = (
       (type === "up" && minPrice <= sl) ||
       (type === "down" && maxPrice >= sl)
     ) {
-      if (dataForeCast.countSimilar < 25) {
+      if (dataForeCast.countSimilar < 30) {
         // việc hit SL quá nhanh trong thời gian ngăn là dấu hiệu của sự đảo chiều nên ngăn chặn việc order lệnh này
         resetOrderSimilar(dataForeCast);
       } else {
         updateOrder(dataForeCast, currentCandle);
       }
-    } else if (dataForeCast.countSimilar < 100) {
+    }
+    else if ((type === "up" && maxPrice >= tp) || (type === "down" && minPrice <= tp)) {
+      resetOrderSimilar(dataForeCast);
+    }
+    else if (dataForeCast.countSimilar < 75) {
       dataForeCast.countSimilar += 1;
     } else {
       resetOrderSimilar(dataForeCast);
@@ -423,7 +427,7 @@ const handleData = (
       slPercent = 1,
       timeStamp = "",
     } = methodFn(listCandleInfo, symbol) || {};
-    const rate = 2;
+    const rate = 1.5;
     // console.log(isAbleOrder);
     let typeOrder = type;
     if (isAbleOrder && (type === "up" || type === "down")) {

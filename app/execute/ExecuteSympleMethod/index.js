@@ -251,13 +251,13 @@ export const ExecuteSympleMethod = async (payload) => {
                     (type === "up" && minPrice <= sl) ||
                     (type === "down" && maxPrice >= sl)
                   ) {
-                    if (countSimilar <= 125) {
+                    if (countSimilar <= 150) {
                       // việc hit SL quá nhanh trong thời gian ngăn là dấu hiệu của sự đảo chiều nên ngăn chặn việc order lệnh này
                       resetOrderSimilar(symbolCandle);
                     } else {
                       mapOrderSimilarInfo[symbolCandle].isHitSL = true;
                     }
-                  } else if (countSimilar <= 500) {
+                  } else if (countSimilar <= 375) {
                     mapOrderSimilarInfo[symbolCandle].countSimilar += 1;
                   } else {
                     resetOrderSimilar(symbolCandle);
@@ -400,7 +400,7 @@ export const ExecuteSympleMethod = async (payload) => {
                             mapLevelPow[symbolCandle] = 0;
                           }
 
-                          const rateGap = 2; // standard - 1
+                          const rateGap = 1.5; // standard - 1
 
                           const ratePriceTP =
                             type === "up"
