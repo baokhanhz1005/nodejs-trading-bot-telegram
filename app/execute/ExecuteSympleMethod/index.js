@@ -261,7 +261,7 @@ export const ExecuteSympleMethod = async (payload) => {
                   else if ((type === "up" && maxPrice >= tp) || (type === "down" && minPrice <= tp)) {
                     resetOrderSimilar(symbolCandle);
                   }
-                  else if (countSimilar < 370) {
+                  else if (countSimilar < 495) {
                     mapOrderSimilarInfo[symbolCandle].countSimilar += 1;
                   } else {
                     resetOrderSimilar(symbolCandle);

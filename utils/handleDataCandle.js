@@ -365,7 +365,7 @@ const handleData = (
     else if ((type === "up" && maxPrice >= tp) || (type === "down" && minPrice <= tp)) {
       resetOrderSimilar(dataForeCast);
     }
-    else if (dataForeCast.countSimilar < 75) {
+    else if (dataForeCast.countSimilar < 100) {
       dataForeCast.countSimilar += 1;
     } else {
       resetOrderSimilar(dataForeCast);
