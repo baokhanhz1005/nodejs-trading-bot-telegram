@@ -1,4 +1,4 @@
-export const RR = 0.65;
+export const RR = 0.35;
 export const REWARD = 1.5;
 export const MINIMUM_PERCENT_ORDER = 0.3;
 export const LIMIT_ORDER = Math.ceil((REWARD * 100) / MINIMUM_PERCENT_ORDER);
