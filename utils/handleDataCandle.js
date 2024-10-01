@@ -427,7 +427,7 @@ const handleData = (
       slPercent = 1,
       timeStamp = "",
     } = methodFn(listCandleInfo, symbol) || {};
-    const rate = 1.5;
+    const rate = 2.5;
     // console.log(isAbleOrder);
     let typeOrder = type;
     if (isAbleOrder && (type === "up" || type === "down")) {

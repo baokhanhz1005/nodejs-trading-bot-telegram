@@ -257,11 +257,12 @@ export const ExecuteSympleMethod = async (payload) => {
                     } else {
                       mapOrderSimilarInfo[symbolCandle].isHitSL = true;
                     }
-                  } 
-                  else if ((type === "up" && maxPrice >= tp) || (type === "down" && minPrice <= tp)) {
+                  } else if (
+                    (type === "up" && maxPrice >= tp) ||
+                    (type === "down" && minPrice <= tp)
+                  ) {
                     resetOrderSimilar(symbolCandle);
-                  }
-                  else if (countSimilar < 495) {
+                  } else if (countSimilar < 495) {
                     mapOrderSimilarInfo[symbolCandle].countSimilar += 1;
                   } else {
                     resetOrderSimilar(symbolCandle);
@@ -279,11 +280,11 @@ export const ExecuteSympleMethod = async (payload) => {
         console.error(error);
       }
     } else {
-      Object.keys(mapOrderSimilarInfo).forEach(key => {
+      Object.keys(mapOrderSimilarInfo).forEach((key) => {
         if (mapOrderSimilarInfo[key]) {
           mapOrderSimilarInfo[key].countSimilar += 1;
         }
-      })
+      });
       if (listSymbols) {
         try {
           let listSymbolGetCandle = shuffleArr(listSymbolWithCondition);
@@ -404,7 +405,7 @@ export const ExecuteSympleMethod = async (payload) => {
                             mapLevelPow[symbolCandle] = 0;
                           }
 
-                          const rateGap = 1.5; // standard - 1
+                          const rateGap = 2.5; // standard - 1
 
                           const ratePriceTP =
                             type === "up"
