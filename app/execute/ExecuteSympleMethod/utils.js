@@ -79,13 +79,16 @@ const checkPattern = (candleStickData, symbol) => {
   const listHighest = getListHighest(candleStickData, 10);
   const listHighestValue = listHighest.map((peak) => +peak.price);
   const lastestPeakPrice = listHighestValue.slice(-1)[0];
-  const isUpTrend = isUpTrending(listHighestValue);
 
   // list lowest
   const listLowest = getListLowest(candleStickData, 10);
   const listLowestValue = listLowest.map((candle) => +candle.price);
   const lastestLowestPrice = listLowestValue.slice(-1)[0];
+
+  const isUpTrend = isUpTrending(listHighestValue);
+  // && lastestCandle[4] * 1.015 > lastestLowestPrice;
   const isDownTrend = isDownTrending(listLowestValue);
+  // && lastestCandle[4] * 0.985 < lastestPeakPrice;
   const limit = 11;
 
   let trend;
@@ -116,12 +119,12 @@ const checkPattern = (candleStickData, symbol) => {
     const EstRR2 = (lastestCandle[4] / prevCandle[3] - 1) * 100 * 1.5;
     const EstRR3 = (lastestCandle[4] / thirdLastCandle[3] - 1) * 100 * 1.5;
 
-    const EstRR = [EstRR2, EstRR3].reduce((max, currentRR) => {
+    const EstRR = [EstRR1, EstRR2, EstRR3].reduce((max, currentRR) => {
       if (currentRR > 0.6 && currentRR < 1.667) {
         return max < currentRR ? currentRR : max;
       }
       return max;
-    }, EstRR2);
+    }, EstRR1);
     // ////////
 
     const { countUp } = rateUpAndDown(candleStickData.slice(-50), 1, false);
@@ -179,16 +182,16 @@ const checkPattern = (candleStickData, symbol) => {
       checkPinbar(lastestCandle, "down"))
   ) {
     const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 4);
-    // const EstRR1 = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.5;
+    const EstRR1 = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.5;
     const EstRR2 = (prevCandle[2] / lastestCandle[4] - 1) * 100 * 1.5;
     const EstRR3 = (thirdLastCandle[2] / lastestCandle[4] - 1) * 100 * 1.5;
 
-    const EstRR = [EstRR2, EstRR3].reduce((max, currentRR) => {
+    const EstRR = [EstRR1, EstRR2, EstRR3].reduce((max, currentRR) => {
       if (currentRR > 0.65 && currentRR < 1.667) {
         return max < currentRR ? currentRR : max;
       }
       return max;
-    }, EstRR2);
+    }, EstRR1);
 
     const [firstPeak, secondPeak, ...restPeak] = listLowestValue;
     const [prevBottom, lastestBottom] = listLowestValue.slice(-2);
