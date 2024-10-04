@@ -10,7 +10,7 @@ import {
   fetchApiGetListingSymbols,
 } from "../../../utils.js";
 import { buildMessageTPSL } from "../../../utils/buildMessage.js";
-import { shuffleArr } from "../../../utils/handleDataCandle.js";
+import { getListHighest, getListLowest, shuffleArr } from "../../../utils/handleDataCandle.js";
 import { checkHasBigPriceTrend } from "../../handlers/TrackingBigPriceTrend/utils.js";
 import { OrderMarket } from "../../orders/MarketOrder/index.js";
 import { TYPE_MARKET } from "../../orders/contants.js";
@@ -54,6 +54,23 @@ export const ExecuteSympleMethod = async (payload) => {
       mapOrderSimilarInfo[symbol].countSimilar = 0;
       mapOrderSimilarInfo[symbol].isHitSL = false;
     }
+  };
+
+  const checkIsHitSL = (symbolCandle, lastestCandle) => {
+    let result = false;
+
+    const max = lastestCandle[2];
+    const min = lastestCandle[3];
+
+    const { orderSimilar } = mapOrderSimilarInfo[symbolCandle] || {};
+
+    if (orderSimilar) {
+      const { sl, type } = orderSimilar;
+
+      result = (type === "up" && min <= sl) || (type === "down" && max >= sl);
+    }
+
+    return result;
   };
 
   const executeBOT = async () => {
@@ -251,7 +268,7 @@ export const ExecuteSympleMethod = async (payload) => {
                     (type === "up" && minPrice <= sl) ||
                     (type === "down" && maxPrice >= sl)
                   ) {
-                    if (true && countSimilar < 120) {
+                    if (false && countSimilar < 120) {
                       // việc hit SL quá nhanh trong thời gian ngăn là dấu hiệu của sự đảo chiều nên ngăn chặn việc order lệnh này
                       resetOrderSimilar(symbolCandle);
                     } else {
@@ -333,13 +350,39 @@ export const ExecuteSympleMethod = async (payload) => {
                         candleStickData.pop();
                       }
 
-                      const lastestCandlePrice =
-                        candleStickData.slice(-1)[0][4];
+                      const lastestCandle = candleStickData.slice(-1)[0];
 
-                      if (mapOrderSimilarInfo[symbolCandle]?.isHitSL) {
+                      const lastestCandlePrice = lastestCandle[4];
+
+                      const isCurrentHitSLSimilar = checkIsHitSL(
+                        symbolCandle,
+                        lastestCandle
+                      );
+
+                      if (
+                        mapOrderSimilarInfo[symbolCandle]?.isHitSL ||
+                        isCurrentHitSLSimilar
+                      ) {
                         let { symbol, type, tpPercent, slPercent } =
                           mapOrderSimilarInfo[symbolCandle]?.orderSimilar || {};
 
+                        let typeOrder = type;
+
+                        // list peak
+                        const listHighest = getListHighest(candleStickData, 10);
+                        const listHighestValue = listHighest.map((peak) => +peak.price);
+                        const lastestPeakPrice = listHighestValue.slice(-1)[0];
+
+                        // list lowest
+                        const listLowest = getListLowest(candleStickData, 10);
+                        const listLowestValue = listLowest.map((candle) => +candle.price);
+                        const lastestLowestPrice = listLowestValue.slice(-1)[0];
+
+                        if (type === "up" && lastestCandle[4] * 1.01 <= lastestLowestPrice) {
+                          typeOrder = "down";
+                        } else if (type === "down" && lastestCandle[4] * 0.99 >= lastestPeakPrice) {
+                          typeOrder = "up";
+                        }
                         const { stickPrice } =
                           listSymbols.find(
                             (each) => each.symbol === symbolCandle
@@ -350,7 +393,7 @@ export const ExecuteSympleMethod = async (payload) => {
 
                         listOrderInfo.push({
                           symbol,
-                          type,
+                          type: typeOrder,
                           tpPercent,
                           slPercent,
                           stickPrice,
@@ -405,7 +448,7 @@ export const ExecuteSympleMethod = async (payload) => {
                             mapLevelPow[symbolCandle] = 0;
                           }
 
-                          const rateGap = 3.15; // standard - 1
+                          const rateGap = 3; // standard - 1
 
                           const ratePriceTP =
                             type === "up"

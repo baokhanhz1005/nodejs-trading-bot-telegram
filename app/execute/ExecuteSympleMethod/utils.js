@@ -115,9 +115,9 @@ const checkPattern = (candleStickData, symbol) => {
     // const EstRR = (lastestCandle[4] / prevCandle[3] - 1) * 100 * 1.5;
 
     // ////////
-    const EstRR1 = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.5;
-    const EstRR2 = (lastestCandle[4] / prevCandle[3] - 1) * 100 * 1.5;
-    const EstRR3 = (lastestCandle[4] / thirdLastCandle[3] - 1) * 100 * 1.5;
+    const EstRR1 = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 2;
+    const EstRR2 = (lastestCandle[4] / prevCandle[3] - 1) * 100 * 2;
+    const EstRR3 = (lastestCandle[4] / thirdLastCandle[3] - 1) * 100 * 2;
 
     const EstRR = [EstRR1, EstRR2, EstRR3].reduce((max, currentRR) => {
       if (currentRR > 0.6 && currentRR < 1.667) {
@@ -182,9 +182,9 @@ const checkPattern = (candleStickData, symbol) => {
       checkPinbar(lastestCandle, "down"))
   ) {
     const maxRange50 = getMaxOnListCandle(candleStickData.slice(-50), 4);
-    const EstRR1 = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.5;
-    const EstRR2 = (prevCandle[2] / lastestCandle[4] - 1) * 100 * 1.5;
-    const EstRR3 = (thirdLastCandle[2] / lastestCandle[4] - 1) * 100 * 1.5;
+    const EstRR1 = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 2;
+    const EstRR2 = (prevCandle[2] / lastestCandle[4] - 1) * 100 * 2;
+    const EstRR3 = (thirdLastCandle[2] / lastestCandle[4] - 1) * 100 * 2;
 
     const EstRR = [EstRR1, EstRR2, EstRR3].reduce((max, currentRR) => {
       if (currentRR > 0.65 && currentRR < 1.667) {

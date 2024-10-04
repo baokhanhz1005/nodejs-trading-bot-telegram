@@ -264,7 +264,7 @@ export const ForeCastMethod = (data) => {
     for (let i = 0 + rangeCandleInfo; i < candleStickData.length; i++) {
       // mảng này dùng cho phân tích nếu methodFn yêu cầu lấy dữ liệu nến trc đó để phân tích, ex: xu hướng ??, đảo chiểu ??
       listCandleInfo = candleStickData.slice(index, i);
-      currentCandle = candleStickData[i - 1];
+      currentCandle = listCandleInfo.slice(-1)[0];
       index += 1;
       if (isOtherMethod) {
         if (dataForeCast.maxLevelPow < dataForeCast.levelPow) {
@@ -303,11 +303,28 @@ const handleData = (
   methodFn,
   symbol
 ) => {
-  const updateOrder = (dataForeCast, currentCandle) => {
+  const updateOrder = (dataForeCast, currentCandle, candleStickData) => {
     let { sl, tp, type, timeStamp, percent, cost } = dataForeCast.orderSimilar;
     const price = currentCandle[4];
 
     let typeOrder = type;
+
+    // list peak
+    const listHighest = getListHighest(candleStickData, 10);
+    const listHighestValue = listHighest.map((peak) => +peak.price);
+    const lastestPeakPrice = listHighestValue.slice(-1)[0];
+
+    // list lowest
+    const listLowest = getListLowest(candleStickData, 10);
+    const listLowestValue = listLowest.map((candle) => +candle.price);
+    const lastestLowestPrice = listLowestValue.slice(-1)[0];
+
+    if (type === "up" && currentCandle[1] * 1.01 <= lastestLowestPrice) {
+      typeOrder = "down";
+    } else if (type === "down" && currentCandle[1] * 0.99 >= lastestPeakPrice) {
+      typeOrder = "up";
+    }
+
     // let typeOrder = type === "up" ? "down" : "up";
     percent = percent * 3;
     const tpPercent = percent * RR;
@@ -355,17 +372,18 @@ const handleData = (
       (type === "up" && minPrice <= sl) ||
       (type === "down" && maxPrice >= sl)
     ) {
-      if (true && dataForeCast.countSimilar < 25) {
+      if (false && dataForeCast.countSimilar < 25) {
         // việc hit SL quá nhanh trong thời gian ngăn là dấu hiệu của sự đảo chiều nên ngăn chặn việc order lệnh này
         resetOrderSimilar(dataForeCast);
       } else {
-        updateOrder(dataForeCast, currentCandle);
+        updateOrder(dataForeCast, currentCandle, listCandleInfo);
       }
-    }
-    else if ((type === "up" && maxPrice >= tp) || (type === "down" && minPrice <= tp)) {
+    } else if (
+      (type === "up" && maxPrice >= tp) ||
+      (type === "down" && minPrice <= tp)
+    ) {
       resetOrderSimilar(dataForeCast);
-    }
-    else if (dataForeCast.countSimilar < 75) {
+    } else if (dataForeCast.countSimilar < 75) {
       dataForeCast.countSimilar += 1;
     } else {
       resetOrderSimilar(dataForeCast);
@@ -378,22 +396,22 @@ const handleData = (
     if (type === "up" && minPrice <= sl) {
       dataForeCast.loseOrder += 1;
       dataForeCast.orderInfo = null;
-      dataForeCast.info.push(
+        dataForeCast.info.push(
         `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
           symbol
         )} - LONG\n`
-      );
+        );
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
     } else if (type === "down" && maxPrice >= sl) {
       dataForeCast.loseOrder += 1;
       dataForeCast.orderInfo = null;
-      dataForeCast.info.push(
+        dataForeCast.info.push(
         `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
           symbol
         )} - SHORT\n`
-      );
+        );
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
@@ -427,7 +445,7 @@ const handleData = (
       slPercent = 1,
       timeStamp = "",
     } = methodFn(listCandleInfo, symbol) || {};
-    const rate = 3.15;
+    const rate = 3;
     // console.log(isAbleOrder);
     let typeOrder = type;
     if (isAbleOrder && (type === "up" || type === "down")) {
