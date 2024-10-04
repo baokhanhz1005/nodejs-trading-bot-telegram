@@ -354,11 +354,6 @@ export const ExecuteSympleMethod = async (payload) => {
         console.error(error);
       }
     } else {
-      Object.keys(mapOrderSimilarInfo).forEach((key) => {
-        if (mapOrderSimilarInfo[key]) {
-          mapOrderSimilarInfo[key].countSimilar += 1;
-        }
-      });
       if (listSymbols) {
         try {
           let listSymbolGetCandle = shuffleArr(listSymbolWithCondition);
@@ -552,7 +547,9 @@ export const ExecuteSympleMethod = async (payload) => {
                             },
                             countSimilar: 0,
                           };
+
                         }
+
                       }
                     }
                   }
