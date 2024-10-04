@@ -309,6 +309,36 @@ const handleData = (
 
     let typeOrder = type;
 
+    const handleReOrderSimilar = (typeOrderPayload) => {
+      const tpPercent = percent * RR;
+      const slPercent = percent;
+
+      const rate = 1.15;
+
+      const ratePriceTP =
+        typeOrderPayload === "up"
+          ? 1 + (tpPercent * rate) / 100
+          : 1 - (tpPercent * rate) / 100;
+      const ratePriceSL =
+        typeOrderPayload === "up"
+          ? 1 - (slPercent * rate) / 100
+          : 1 + (slPercent * rate) / 100;
+
+      const newOrder = {
+        symbol,
+        entry: +price,
+        tp: ratePriceTP * price,
+        sl: ratePriceSL * price,
+        type: typeOrderPayload,
+        isCheckMinMax: true,
+        timeStamp,
+        percent: slPercent,
+        isReOrder: true,
+        cost: (REWARD * 0.1) / slPercent,
+      };
+      dataForeCast.orderSimilar = newOrder;
+    };
+
     // list peak
     const listHighest = getListHighest(candleStickData, 10);
     const listHighestValue = listHighest.map((peak) => +peak.price);
@@ -319,41 +349,43 @@ const handleData = (
     const listLowestValue = listLowest.map((candle) => +candle.price);
     const lastestLowestPrice = listLowestValue.slice(-1)[0];
 
-    if (type === "up" && currentCandle[1] * 1.01 <= lastestLowestPrice) {
+    if (type === "up" && currentCandle[4] * 1.01 <= lastestLowestPrice) {
       typeOrder = "down";
-    } else if (type === "down" && currentCandle[1] * 0.99 >= lastestPeakPrice) {
+      handleReOrderSimilar("down");
+    } else if (type === "down" && currentCandle[4] * 0.99 >= lastestPeakPrice) {
       typeOrder = "up";
-    }
-
-    // let typeOrder = type === "up" ? "down" : "up";
-    percent = percent * 3;
-    const tpPercent = percent * RR;
-    const slPercent = percent;
-
-    const ratePriceTP =
-      typeOrder === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
-    const ratePriceSL =
-      typeOrder === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
-
-    const newOrder = {
-      symbol,
-      entry: +price,
-      tp: ratePriceTP * +price,
-      sl: ratePriceSL * +price,
-      type: typeOrder,
-      isCheckMinMax: true,
-      timeStamp,
-      percent,
-      cost: (REWARD * 0.1) / percent,
-    };
-    dataForeCast.orderInfo = newOrder;
-    dataForeCast.orderSimilar = null;
-    dataForeCast.countSimilar = 0;
-    dataForeCast.countOrders += 1;
-    if (typeOrder === "up") {
-      dataForeCast.countLong += 1;
+      handleReOrderSimilar("up");
     } else {
-      dataForeCast.countShort += 1;
+      // let typeOrder = type === "up" ? "down" : "up";
+      percent = percent * 3;
+      const tpPercent = percent * RR;
+      const slPercent = percent;
+
+      const ratePriceTP =
+        typeOrder === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
+      const ratePriceSL =
+        typeOrder === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
+
+      const newOrder = {
+        symbol,
+        entry: +price,
+        tp: ratePriceTP * +price,
+        sl: ratePriceSL * +price,
+        type: typeOrder,
+        isCheckMinMax: true,
+        timeStamp,
+        percent,
+        cost: (REWARD * 0.1) / percent,
+      };
+      dataForeCast.orderInfo = newOrder;
+      dataForeCast.orderSimilar = null;
+      dataForeCast.countSimilar = 0;
+      dataForeCast.countOrders += 1;
+      if (typeOrder === "up") {
+        dataForeCast.countLong += 1;
+      } else {
+        dataForeCast.countShort += 1;
+      }
     }
   };
 
@@ -364,7 +396,15 @@ const handleData = (
 
   ///////////
   if (dataForeCast.orderSimilar) {
-    let { sl, tp, type, timeStamp, percent, cost } = dataForeCast.orderSimilar;
+    let {
+      sl,
+      tp,
+      type,
+      timeStamp,
+      percent,
+      cost,
+      isReOrder = false,
+    } = dataForeCast.orderSimilar;
     const maxPrice = currentCandle[2];
     const minPrice = currentCandle[3];
 
@@ -379,8 +419,8 @@ const handleData = (
         updateOrder(dataForeCast, currentCandle, listCandleInfo);
       }
     } else if (
-      (type === "up" && maxPrice >= tp) ||
-      (type === "down" && minPrice <= tp)
+      !isReOrder &&
+      ((type === "up" && maxPrice >= tp) || (type === "down" && minPrice <= tp))
     ) {
       resetOrderSimilar(dataForeCast);
     } else if (dataForeCast.countSimilar < 75) {
@@ -396,22 +436,22 @@ const handleData = (
     if (type === "up" && minPrice <= sl) {
       dataForeCast.loseOrder += 1;
       dataForeCast.orderInfo = null;
-        dataForeCast.info.push(
+      dataForeCast.info.push(
         `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
           symbol
         )} - LONG\n`
-        );
+      );
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
     } else if (type === "down" && maxPrice >= sl) {
       dataForeCast.loseOrder += 1;
       dataForeCast.orderInfo = null;
-        dataForeCast.info.push(
+      dataForeCast.info.push(
         `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
           symbol
         )} - SHORT\n`
-        );
+      );
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
