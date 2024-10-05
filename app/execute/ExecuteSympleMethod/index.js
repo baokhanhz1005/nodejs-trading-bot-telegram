@@ -658,7 +658,7 @@ export const ExecuteSympleMethod = async (payload) => {
         }
         bot.sendMessage(
           chatId,
-          `${type === "up" ? "☘☘☘☘" : "🍁🍁🍁🍁"}\n Thực hiện lệnh ${
+          `${type === "up" ? "☘☘☘☘☘☘☘☘☘☘☘☘" : "🍁🍁🍁🍁🍁🍁🍁🍁🍁🍁🍁🍁"}\n Thực hiện lệnh ${
             type === "up" ? "LONG" : "SHORT"
           } ${symbol}  tại giá ${price} \n - Open chart: ${buildLinkToSymbol(
             symbol
