@@ -313,7 +313,7 @@ const handleData = (
       const tpPercent = percent * RR;
       const slPercent = percent;
 
-      const rate = 1.15;
+      const rate = 1;
 
       const ratePriceTP =
         typeOrderPayload === "up"
@@ -349,10 +349,10 @@ const handleData = (
     const listLowestValue = listLowest.map((candle) => +candle.price);
     const lastestLowestPrice = listLowestValue.slice(-1)[0];
 
-    if (type === "up" && currentCandle[4] * 1.01 <= lastestLowestPrice) {
+    if (type === "up" && currentCandle[4] * 1.015 <= lastestLowestPrice) {
       typeOrder = "down";
       handleReOrderSimilar("down");
-    } else if (type === "down" && currentCandle[4] * 0.99 >= lastestPeakPrice) {
+    } else if (type === "down" && currentCandle[4] * 0.985 >= lastestPeakPrice) {
       typeOrder = "up";
       handleReOrderSimilar("up");
     } else {

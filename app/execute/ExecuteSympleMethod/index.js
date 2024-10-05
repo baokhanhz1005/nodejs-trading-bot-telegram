@@ -104,7 +104,7 @@ export const ExecuteSympleMethod = async (payload) => {
     if (orderSimilar) {
       const { slPercent, tpPercent } = orderSimilar;
 
-      const rateGap = 1.15; // standard - 1
+      const rateGap = 1; // standard - 1
 
       const ratePriceTP =
         type === "up"
@@ -440,7 +440,7 @@ export const ExecuteSympleMethod = async (payload) => {
 
                           if (
                             type === "up" &&
-                            lastestCandle[4] * 1.01 <= lastestLowestPrice
+                            lastestCandle[4] * 1.015 <= lastestLowestPrice
                           ) {
                             typeOrder = "down";
                             handleReOrderSimilar(
@@ -450,7 +450,7 @@ export const ExecuteSympleMethod = async (payload) => {
                             );
                           } else if (
                             type === "down" &&
-                            lastestCandle[4] * 0.99 >= lastestPeakPrice
+                            lastestCandle[4] * 0.985 >= lastestPeakPrice
                           ) {
                             typeOrder = "up";
                             handleReOrderSimilar(

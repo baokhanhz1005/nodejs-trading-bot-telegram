@@ -73,6 +73,7 @@ export const TestingFunction = async (payload) => {
     let totalCost = 0;
     let totalLong = 0;
     let totalShort = 0;
+    const listOrderRunning = [];
     // other method
     let profitMethod = 0;
     let levelPowMethod = 0;
@@ -184,6 +185,9 @@ export const TestingFunction = async (payload) => {
               if (info && info.length) {
                 listInfo.push(...info);
               }
+              if (orderInfo?.symbol) {
+                listOrderRunning.push(orderInfo?.symbol);
+              }
             }
           });
           if (true) {
@@ -243,6 +247,8 @@ export const TestingFunction = async (payload) => {
                 totalLong + totalShort
               }`
             );
+
+            bot.sendMessage(chatId, `\n${listOrderRunning.join(" -- ")}`);
           }
         }
       });

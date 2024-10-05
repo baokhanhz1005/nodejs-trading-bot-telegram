@@ -143,7 +143,7 @@ const checkPattern = (candleStickData, symbol) => {
         Math.abs(lastestCandle[1] - lastestCandle[4]) /
           Math.abs(prevCandle[1] - prevCandle[4]) <=
           0.6,
-      lastestCandle[4] * (1 + EstRR / 100) < lastestPeakPrice * 1.005,
+      lastestCandle[4] * (1 + EstRR * RR / 100) < lastestPeakPrice * 1.005,
       candleStickData
         .slice(-35)
         .every(
@@ -233,7 +233,7 @@ const checkPattern = (candleStickData, symbol) => {
       //   Math.abs(lastestCandle[1] - lastestCandle[4]) /
       //     Math.abs(prevCandle[1] - prevCandle[4]) <=
       //     0.6,
-      lastestCandle[4] * (1 - EstRR / 100) > lastestBottom * 0.995,
+      lastestCandle[4] * (1 - EstRR * RR / 100) > lastestBottom * 0.995,
       candleStickData
         .slice(-35)
         .every(
