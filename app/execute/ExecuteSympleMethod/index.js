@@ -547,9 +547,7 @@ export const ExecuteSympleMethod = async (payload) => {
                             },
                             countSimilar: 0,
                           };
-
                         }
-
                       }
                     }
                   }
@@ -604,11 +602,11 @@ export const ExecuteSympleMethod = async (payload) => {
         const { totalWalletBalance: accountBalance } = resAccount?.data || {};
         bot.sendMessage(
           chatId,
-          `📊📊📊📊\n- Tài khoản hiện tại của bạn là: ${+accountBalance}\n- Có ${countTP} lệnh đạt Take Profit ✅\n- Có ${countSL} lệnh chạm Stop Loss ❌\n- Hiện tại có ${
+          `📊📊📊📊\n- Balance: ${+accountBalance} 💰💰\n- ${countTP} orders - Take Profit ✅\n- ${countSL} orders - Stop Loss ❌\n- Orders running: ${
             Object.keys(tempMapListOrders).length
-          } lệnh đang chạy...\n♻${
-            listSymbolWithCondition.length
-          }\n - Single level: ${singleLevelPow}`
+          } orders...\n- Win rate: ${countTP / (countSL + countTP || 1)}%\n♻${
+            countSL + countTP + Object.keys(tempMapListOrders).length
+          }`
         );
       }
     }
