@@ -22,14 +22,26 @@ import {
 } from "../../../utils/handleDataCandle.js";
 import { checkAvailableOrderV2 } from "../../execute/ExecuBuySellRestricted/utils.js";
 import { checkAbleOrderSMC } from "../../execute/ExecuteSMC/utils.js";
-import { COST, REWARD, RR } from "../../execute/ExecuteSMC/constant.js";
 import { checkAbleOrderBySympleMethod } from "../../execute/ExecuteSympleMethod/utils.js";
 import { isCheckCandleHistory, isOtherMethod } from "./constants.js";
 import { checkIsAbleOrder } from "../../handlers/AnalysistByTimeLine/utils.js";
+import { INPUT_CONTROL } from "../../execute/ExecuteSympleMethod/constant.js";
+
+const {
+  listCandleParamTesting: { limit, isUseRange, range },
+  REWARD,
+  RR,
+} = INPUT_CONTROL;
 
 export const TestingFunction = async (payload) => {
   try {
-    const { bot, chatId, timeLine } = payload;
+    const {
+      bot,
+      chatId,
+      timeLine,
+      dataCandleAPI,
+      updateDataCandleAPI = () => {},
+    } = payload;
 
     const fileName = "DATA_CANDLE.json";
     const filePath = path.join("./", fileName);
@@ -83,9 +95,10 @@ export const TestingFunction = async (payload) => {
     let countLevelHigh = 0;
     const mapMaxLevelPow1 = {};
     const mapMaxLevelPow2 = {};
+    const dataSave = [];
     if (listSymbols && listSymbols.length) {
-      const promiseCandleData = dataCandle
-        ? dataCandle
+      const promiseCandleData = dataCandleAPI
+        ? dataCandleAPI
         : listSymbols
             .filter((each) => !["RSRUSDT", "BTCSTUSDT"].includes(each.symbol))
             .map(async (token) => {
@@ -94,12 +107,12 @@ export const TestingFunction = async (payload) => {
                 data: {
                   symbol: symbol,
                   interval: timeLine,
-                  limit: 1000, // 388 -- 676 -- 964
+                  limit: limit, // 388 -- 676 -- 964
                 },
               };
-              if (stickPrice <= 3) {
-                return null;
-              }
+              // if (stickPrice <= 3) {
+              //   return null;
+              // }
               const res = await fetchApiGetCandleStickData(params);
               return res;
             });
@@ -109,6 +122,11 @@ export const TestingFunction = async (payload) => {
           if (!dataCandle && isCheckCandleHistory) {
             await writeToDisk(res);
           }
+
+          if (!dataCandleAPI) {
+            updateDataCandleAPI(res);
+          }
+
           res.filter(Boolean).forEach((candleInfo, index) => {
             const { symbol: symbolCandle, data: candleStickData } = candleInfo;
 
@@ -118,8 +136,9 @@ export const TestingFunction = async (payload) => {
               (false || candleStickData.slice(-1)[0][4] < 5)
             ) {
               const payload = {
-                candleStickData:
-                  candleStickData || candleStickData.slice(0, 555),
+                candleStickData: isUseRange
+                  ? candleStickData.slice(range[0], range[1])
+                  : candleStickData,
                 method: {
                   methodFn: true
                     ? checkAbleOrderBySympleMethod
@@ -149,6 +168,7 @@ export const TestingFunction = async (payload) => {
                 profit,
                 maxLevelPow,
               } = ForeCastMethod(payload);
+
               R = R + (winOrder * RR - loseOrder);
               totalWin += winOrder;
               totalLose += loseOrder;

@@ -17,8 +17,16 @@ import {
   isUpTrending,
   rateUpAndDown,
 } from "../../../utils/handleDataCandle.js";
-import { REWARD, RR, LIMIT_ORDER } from "../ExecuteSMC/constant.js";
 import { MACD } from "technicalindicators";
+import { INPUT_CONTROL } from "./constant.js";
+
+// configure
+const {
+  methodFn: { rate },
+  REWARD,
+  RR,
+  limitPeakOrBottom,
+} = INPUT_CONTROL;
 
 export const checkAbleOrderBySympleMethod = (candleStickData, symbol) => {
   const result = {
@@ -72,16 +80,18 @@ const checkPattern = (candleStickData, symbol) => {
     return { type, slPercent, isAllowOrder };
   }
 
+  const threeLatestCandle = candleStickData.slice(-3);
+
   // trending
   const closePrices = candleStickData.map((candle) => parseFloat(candle[4]));
 
   // list peak
-  const listHighest = getListHighest(candleStickData, 10);
+  const listHighest = getListHighest(candleStickData, limitPeakOrBottom);
   const listHighestValue = listHighest.map((peak) => +peak.price);
   const lastestPeakPrice = listHighestValue.slice(-1)[0];
 
   // list lowest
-  const listLowest = getListLowest(candleStickData, 10);
+  const listLowest = getListLowest(candleStickData, limitPeakOrBottom);
   const listLowestValue = listLowest.map((candle) => +candle.price);
   const lastestLowestPrice = listLowestValue.slice(-1)[0];
 
@@ -115,9 +125,9 @@ const checkPattern = (candleStickData, symbol) => {
     // const EstRR = (lastestCandle[4] / prevCandle[3] - 1) * 100 * 1.5;
 
     // ////////
-    const EstRR1 = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 2;
-    const EstRR2 = (lastestCandle[4] / prevCandle[3] - 1) * 100 * 2;
-    const EstRR3 = (lastestCandle[4] / thirdLastCandle[3] - 1) * 100 * 2;
+    const EstRR1 = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * rate;
+    const EstRR2 = (lastestCandle[4] / prevCandle[3] - 1) * 100 * rate;
+    const EstRR3 = (lastestCandle[4] / thirdLastCandle[3] - 1) * 100 * rate;
 
     const EstRR = [EstRR1, EstRR2, EstRR3].reduce((max, currentRR) => {
       if (currentRR > 0.6 && currentRR < 1.667) {
@@ -143,7 +153,7 @@ const checkPattern = (candleStickData, symbol) => {
         Math.abs(lastestCandle[1] - lastestCandle[4]) /
           Math.abs(prevCandle[1] - prevCandle[4]) <=
           0.6,
-      lastestCandle[4] * (1 + EstRR * RR / 100) < lastestPeakPrice * 1.005,
+      lastestCandle[4] * (1 + (EstRR * RR) / 100) < lastestPeakPrice * 1.005,
       candleStickData
         .slice(-35)
         .every(
@@ -233,7 +243,7 @@ const checkPattern = (candleStickData, symbol) => {
       //   Math.abs(lastestCandle[1] - lastestCandle[4]) /
       //     Math.abs(prevCandle[1] - prevCandle[4]) <=
       //     0.6,
-      lastestCandle[4] * (1 - EstRR * RR / 100) > lastestBottom * 0.995,
+      lastestCandle[4] * (1 - (EstRR * RR) / 100) > lastestBottom * 0.995,
       candleStickData
         .slice(-35)
         .every(

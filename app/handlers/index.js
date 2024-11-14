@@ -13,7 +13,7 @@ import { ExecuteBigPriceTrendV2 } from "../execute/ExecuteBigPriceTrendV2/index.
 import { ExecuteSympleMethod } from "../execute/ExecuteSympleMethod/index.js";
 import { handleOrderSymbol } from "../execute/handleOrderSymbol/index.js";
 import { AnalysisByTimeLine } from "./AnalysistByTimeLine/index.js";
-import { TestFunctionUtility } from "../test-function/index.js";
+import { TestFunctionUtility } from "../laboratory/index.js";
 
 export const handleRunBot = async (payload) => {
   const { bot = () => {}, chatId, command } = payload;

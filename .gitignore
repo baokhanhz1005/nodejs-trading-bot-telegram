@@ -1,3 +1,4 @@
 /node_modules
 package-lock.json
 DATA_CANDLE.json
+/.node-persist

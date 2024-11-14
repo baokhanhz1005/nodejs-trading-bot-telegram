@@ -18,12 +18,21 @@ import {
 import { checkHasBigPriceTrend } from "../../handlers/TrackingBigPriceTrend/utils.js";
 import { OrderMarket } from "../../orders/MarketOrder/index.js";
 import { TYPE_MARKET } from "../../orders/contants.js";
+import { INPUT_CONTROL } from "./constant.js";
 import { checkAbleOrderBySympleMethod } from "./utils.js";
+
+const {
+  similarConfig: { rateSimilar, maxRangeCheck },
+  orderConfig: { rateOrder },
+  reOrderSimilar: { rateReOrder },
+  isLevelPow,
+  isRunSingle
+} = INPUT_CONTROL;
 
 export const ExecuteSympleMethod = async (payload) => {
   const { bot, chatId, timeLine } = payload;
   const listSymbols = await fetchApiGetListingSymbols();
-  const isRunSingle = false;
+  // const isRunSingle = isRunSingle;
   const isUseLevelPow = false;
   let countTP = 0;
   let countSL = 0;
@@ -87,7 +96,7 @@ export const ExecuteSympleMethod = async (payload) => {
           (type === "down" && minPrice <= tp))
       ) {
         resetOrderSimilar(symbolCandle);
-      } else if (countSimilar < 75) {
+      } else if (countSimilar < maxRangeCheck) {
         mapOrderSimilarInfo[symbolCandle].countSimilar += 1;
       } else {
         resetOrderSimilar(symbolCandle);
@@ -104,7 +113,7 @@ export const ExecuteSympleMethod = async (payload) => {
     if (orderSimilar) {
       const { slPercent, tpPercent } = orderSimilar;
 
-      const rateGap = 1; // standard - 1
+      const rateGap = rateReOrder; // standard - 1
 
       const ratePriceTP =
         type === "up"
@@ -279,77 +288,6 @@ export const ExecuteSympleMethod = async (payload) => {
             }
           }
         }
-
-        // // check order is hit SL ??
-        // const promiseListOrderSimilar = Object.keys(mapOrderSimilarInfo)
-        //   .map(async (key) => {
-        //     if (mapOrderSimilarInfo[key]?.orderSimilar) {
-        //       const params = {
-        //         data: {
-        //           symbol: key,
-        //           interval: timeLine,
-        //           limit: 2,
-        //         },
-        //       };
-        //       return fetchApiGetCandleStickData(params);
-        //     }
-
-        //     return null;
-        //   })
-        //   .filter(Boolean);
-
-        // await Promise.allSettled(promiseListOrderSimilar).then((results) => {
-        //   for (const result of results) {
-        //     if (result.status === "fulfilled") {
-        //       const candleInfo = result.value;
-
-        //       if (candleInfo) {
-        //         const { symbol: symbolCandle, data: candleStickData } =
-        //           candleInfo;
-
-        //         if (candleStickData && candleStickData.length) {
-        //           const newestCandle = candleStickData.slice(-1)[0];
-
-        //           const symbolSimilarInfo = mapOrderSimilarInfo[symbolCandle];
-
-        //           const { orderSimilar, countSimilar, isHitSL } =
-        //             symbolSimilarInfo;
-
-        //           const { sl, type, tp } = orderSimilar;
-
-        //           const maxPrice = newestCandle[2];
-        //           const minPrice = newestCandle[3];
-        //           const currentPrice = newestCandle[4];
-
-        //           if (
-        //             (type === "up" && minPrice <= sl) ||
-        //             (type === "down" && maxPrice >= sl)
-        //           ) {
-        //             if (false && countSimilar < 120) {
-        //               // việc hit SL quá nhanh trong thời gian ngăn là dấu hiệu của sự đảo chiều nên ngăn chặn việc order lệnh này
-        //               resetOrderSimilar(symbolCandle);
-        //             } else {
-        //               mapOrderSimilarInfo[symbolCandle].isHitSL = true;
-        //             }
-        //           } else if (
-        //             (type === "up" && maxPrice >= tp) ||
-        //             (type === "down" && minPrice <= tp)
-        //           ) {
-        //             resetOrderSimilar(symbolCandle);
-        //           } else if (countSimilar < 375) {
-        //             mapOrderSimilarInfo[symbolCandle].countSimilar += 1;
-        //           } else {
-        //             resetOrderSimilar(symbolCandle);
-        //           }
-        //         }
-        //       }
-        //     } else {
-        //       console.error(
-        //         `Failed to fetch candle data for symbol: ${result.reason}`
-        //       );
-        //     }
-        //   }
-        // });
       } catch (error) {
         console.error(error);
       }
@@ -464,8 +402,8 @@ export const ExecuteSympleMethod = async (payload) => {
                                 (each) => each.symbol === symbolCandle
                               ) || {};
 
-                            tpPercent = tpPercent * 3;
-                            slPercent = slPercent * 3;
+                            tpPercent = tpPercent * rateOrder;
+                            slPercent = slPercent * rateOrder;
 
                             listOrderInfo.push({
                               symbol,
@@ -507,7 +445,7 @@ export const ExecuteSympleMethod = async (payload) => {
                           !!tempMapListOrders[symbolCandle];
 
                         const isHasSingleOrder =
-                          !!Object.keys(currentSingleOrder).length;
+                          !!Object.keys(currentSingleOrder).length || true;
 
                         const isAllowGetOrder = isRunSingle
                           ? !isHasSingleOrder
@@ -525,7 +463,7 @@ export const ExecuteSympleMethod = async (payload) => {
                             mapLevelPow[symbolCandle] = 0;
                           }
 
-                          const rateGap = 3; // standard - 1
+                          const rateGap = rateSimilar; // standard - 1
 
                           const ratePriceTP =
                             type === "up"

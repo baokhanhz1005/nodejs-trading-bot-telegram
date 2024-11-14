@@ -1,12 +1,22 @@
-import { REWARD, RR } from "../app/execute/ExecuteSMC/constant.js";
+import { INPUT_CONTROL } from "../app/execute/ExecuteSympleMethod/constant.js";
 import { TYPE_OF_PRICE } from "../constant.js";
 import { buildLinkToSymbol, buildTimeStampToDate } from "../utils.js";
 import {
   checkFullCandle,
   checkInRange,
+  checkPinbar,
   isDownCandle,
   isUpCandle,
 } from "./TypeCandle.js";
+
+const {
+  REWARD,
+  RR,
+  limitPeakOrBottom,
+  similarConfig: { rateSimilar, maxRangeCheck },
+  orderConfig: { rateOrder },
+  reOrderSimilar: { rateReOrder },
+} = INPUT_CONTROL;
 
 export const detectTrendPrice = (listCandle) => {};
 
@@ -264,7 +274,7 @@ export const ForeCastMethod = (data) => {
     for (let i = 0 + rangeCandleInfo; i < candleStickData.length; i++) {
       // mảng này dùng cho phân tích nếu methodFn yêu cầu lấy dữ liệu nến trc đó để phân tích, ex: xu hướng ??, đảo chiểu ??
       listCandleInfo = candleStickData.slice(index, i);
-      currentCandle = listCandleInfo.slice(-1)[0];
+      currentCandle = listCandleInfo.slice(-2)[0];
       index += 1;
       if (isOtherMethod) {
         if (dataForeCast.maxLevelPow < dataForeCast.levelPow) {
@@ -301,8 +311,12 @@ const handleData = (
   currentCandle,
   dataForeCast,
   methodFn,
-  symbol
+  symbol,
+  isHasPopArr = false
 ) => {
+  if (!isHasPopArr) {
+    listCandleInfo.pop();
+  }
   const updateOrder = (dataForeCast, currentCandle, candleStickData) => {
     let { sl, tp, type, timeStamp, percent, cost } = dataForeCast.orderSimilar;
     const price = currentCandle[4];
@@ -313,7 +327,7 @@ const handleData = (
       const tpPercent = percent * RR;
       const slPercent = percent;
 
-      const rate = 1;
+      const rate = rateReOrder;
 
       const ratePriceTP =
         typeOrderPayload === "up"
@@ -340,12 +354,12 @@ const handleData = (
     };
 
     // list peak
-    const listHighest = getListHighest(candleStickData, 10);
+    const listHighest = getListHighest(candleStickData, limitPeakOrBottom);
     const listHighestValue = listHighest.map((peak) => +peak.price);
     const lastestPeakPrice = listHighestValue.slice(-1)[0];
 
     // list lowest
-    const listLowest = getListLowest(candleStickData, 10);
+    const listLowest = getListLowest(candleStickData, limitPeakOrBottom);
     const listLowestValue = listLowest.map((candle) => +candle.price);
     const lastestLowestPrice = listLowestValue.slice(-1)[0];
 
@@ -357,7 +371,7 @@ const handleData = (
       handleReOrderSimilar("up");
     } else {
       // let typeOrder = type === "up" ? "down" : "up";
-      percent = percent * 3;
+      percent = percent * rateOrder;
       const tpPercent = percent * RR;
       const slPercent = percent;
 
@@ -423,7 +437,7 @@ const handleData = (
       ((type === "up" && maxPrice >= tp) || (type === "down" && minPrice <= tp))
     ) {
       resetOrderSimilar(dataForeCast);
-    } else if (dataForeCast.countSimilar < 75) {
+    } else if (dataForeCast.countSimilar < maxRangeCheck) {
       dataForeCast.countSimilar += 1;
     } else {
       resetOrderSimilar(dataForeCast);
@@ -444,6 +458,15 @@ const handleData = (
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
+
+      handleData(
+        listCandleInfo,
+        currentCandle,
+        dataForeCast,
+        methodFn,
+        symbol,
+        true
+      );
     } else if (type === "down" && maxPrice >= sl) {
       dataForeCast.loseOrder += 1;
       dataForeCast.orderInfo = null;
@@ -455,6 +478,15 @@ const handleData = (
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
+
+      handleData(
+        listCandleInfo,
+        currentCandle,
+        dataForeCast,
+        methodFn,
+        symbol,
+        true
+      );
     } else if (type === "up" && maxPrice >= tp) {
       dataForeCast.winOrder += 1;
       dataForeCast.orderInfo = null;
@@ -464,6 +496,14 @@ const handleData = (
       // dataForeCast.info.push(
       //   `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)}\n`
       // );
+      handleData(
+        listCandleInfo,
+        currentCandle,
+        dataForeCast,
+        methodFn,
+        symbol,
+        true
+      );
     } else if (type === "down" && minPrice <= tp) {
       dataForeCast.winOrder += 1;
       dataForeCast.orderInfo = null;
@@ -473,9 +513,16 @@ const handleData = (
       // dataForeCast.info.push(
       //   `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(symbol)}\n`
       // );
+      handleData(
+        listCandleInfo,
+        currentCandle,
+        dataForeCast,
+        methodFn,
+        symbol,
+        true
+      );
     }
   } else {
-    listCandleInfo.pop();
     // listCandleInfo.reverse();
 
     const {
@@ -485,11 +532,11 @@ const handleData = (
       slPercent = 1,
       timeStamp = "",
     } = methodFn(listCandleInfo, symbol) || {};
-    const rate = 3;
+    const rate = rateSimilar;
     // console.log(isAbleOrder);
     let typeOrder = type;
     if (isAbleOrder && (type === "up" || type === "down")) {
-      const price = currentCandle[1];
+      const price = currentCandle[4];
       const ratePriceTP =
         typeOrder === "up"
           ? 1 + (tpPercent * rate) / 100
@@ -842,11 +889,12 @@ export const isUpTrending = (arrPeak = [], allowViolation = 2) => {
       }
     }
   }
+
   if (arrPeak.slice(-3).length === 3) {
     // lấy 3 đỉnh gần đây nhất, nếu nó giảm dần thì khả năng đã chuyển sang xu hướng giảm
     const [peak1, peak2, peak3] = arrPeak.slice(-3);
 
-    if (peak1 * 1.005 >= peak2 && peak2 >= peak3) {
+    if (peak1 * 1.005 >= peak2 && peak2 >= peak3 * 1.005) {
       return false;
     }
   }
@@ -863,11 +911,12 @@ export const isDownTrending = (arrPeak = [], allowViolation = 2) => {
       }
     }
   }
+
   if (arrPeak.slice(-3).length === 3) {
     // lấy 3 đỉnh gần đây nhất, nếu nó giảm dần thì khả năng đã chuyển sang xu hướng giảm
     const [peak1, peak2, peak3] = arrPeak.slice(-3);
 
-    if (peak1 < peak2 && peak2 < peak3 * 1.005) {
+    if (peak1 * 0.995 < peak2 && peak2 < peak3 * 0.995) {
       return false;
     }
   }

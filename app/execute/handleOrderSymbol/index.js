@@ -5,13 +5,13 @@ import {
 import { OrderMarket } from "../../orders/MarketOrder/index.js";
 
 export const handleOrderSymbol = async (payload) => {
-  const { bot, chatId, timeLine, command, RR = 1.6 } = payload;
-  // ex: order ABCUSDT 1 1.232 up
+  const { bot, chatId, timeLine, command, RR = 1 } = payload;
+  // ex: order ABCUSDT 1.232 up 1
 
   const listSymbols = await fetchApiGetListingSymbols();
   const arrayCommand = command.split(" ");
 
-  const [nameCommand, symbolCmd, cost, priceSL, typeOrder] = arrayCommand;
+  const [nameCommand, symbolCmd, priceSL, typeOrder, cost = 1] = arrayCommand;
 
   const tokenInfo = listSymbols.find(
     (token) => token.symbol.toLowerCase() === symbolCmd.toLowerCase()
@@ -40,8 +40,6 @@ export const handleOrderSymbol = async (payload) => {
       type: typeOrder,
     };
 
-    console.log(orderInfo);
-
     await OrderMarket(orderInfo);
 
     bot.sendMessage(
@@ -51,7 +49,7 @@ export const handleOrderSymbol = async (payload) => {
   } else {
     bot.sendMessage(
       chatId,
-      `Lệnh Order với cú pháp:\n- ex: Order ABCUSDT 4 1.2323 up \n ** Order {Mã Token} {Cost} {price-SL} {up/down}`
+      `Lệnh Order với cú pháp:\n- ex: Order ABCUSDT 1.2323 up 4 \n ** Order {Mã Token} {price-SL} {up/down} {Cost}`
     );
   }
 };
