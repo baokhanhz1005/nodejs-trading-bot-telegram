@@ -22,7 +22,7 @@ import {
 } from "../../../utils/handleDataCandle.js";
 import { checkAvailableOrderV2 } from "../../execute/ExecuBuySellRestricted/utils.js";
 import { checkAbleOrderSMC } from "../../execute/ExecuteSMC/utils.js";
-import { checkAbleOrderBySympleMethod } from "../../execute/ExecuteSympleMethod/utils.js";
+import { checkAbleOrderBySympleMethodM1 } from "../../execute/ExecuteSympleMethod/utilsV2.js";
 import { isCheckCandleHistory, isOtherMethod } from "./constants.js";
 import { checkIsAbleOrder } from "../../handlers/AnalysistByTimeLine/utils.js";
 import { INPUT_CONTROL } from "../../execute/ExecuteSympleMethod/constant.js";
@@ -110,14 +110,14 @@ export const TestingFunction = async (payload) => {
                   limit: limit, // 388 -- 676 -- 964
                 },
               };
-              // if (stickPrice <= 3) {
-              //   return null;
-              // }
+              if (stickPrice <= 3) {
+                return null;
+              }
               const res = await fetchApiGetCandleStickData(params);
               return res;
             });
 
-      Promise.all(promiseCandleData).then(async (res) => {
+      Promise.all(promiseCandleData.filter(Boolean)).then(async (res) => {
         if (res.length) {
           if (!dataCandle && isCheckCandleHistory) {
             await writeToDisk(res);
@@ -141,7 +141,7 @@ export const TestingFunction = async (payload) => {
                   : candleStickData,
                 method: {
                   methodFn: true
-                    ? checkAbleOrderBySympleMethod
+                    ? checkAbleOrderBySympleMethodM1
                     : checkIsAbleOrder,
                   // checkAbleOrderSMC,
                   config: {

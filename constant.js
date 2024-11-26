@@ -29,6 +29,7 @@ export const COMMAND = {
   EXECUTE_BIG_PRICE: "execute-big-price",
   EXECUTE_BIG_PRICE_V2: "execute-big-price-v2",
   EXECUTE_SIMPLE_METHOD: "execute-simple-method",
+  EXECUTE_SIMPLE_METHOD_V2: "execute-simple-method-v2",
   TEST_FUNCTION: "ccc",
   CHECK: 'check'
 };

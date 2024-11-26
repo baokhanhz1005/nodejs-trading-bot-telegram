@@ -47,11 +47,15 @@ export const ExecuteFOMO = async (payload) => {
             isUpCandle(lastestCandle) &&
             lastestCandle[4] / lastestCandle[1] >= 1.0045
           ) {
+            const extremeChange =
+              (lastestCandle[4] / lastestCandle[1] - 1).toFixed(4) * 100 > 1
+                ? "🌟🌟"
+                : "";
             const message = `🟢🟢 ${buildLinkToSymbol(
               symbolCandle
             )} BULL SIGNAL ${
               (lastestCandle[4] / lastestCandle[1] - 1).toFixed(4) * 100
-            }%\norder ${symbolCandle} ${
+            }% ${extremeChange}\norder ${symbolCandle} ${
               lastestCandle[3] * 0.999
             } up 1.5\n-------------------------------------`;
             bot.sendMessage(chatId, message, {
@@ -63,11 +67,15 @@ export const ExecuteFOMO = async (payload) => {
             isDownCandle(lastestCandle) &&
             lastestCandle[1] / lastestCandle[4] >= 1.0045
           ) {
+            const extremeChange =
+              (lastestCandle[1] / lastestCandle[4] - 1).toFixed(4) * 100 > 1
+                ? "🌟🌟"
+                : "";
             const message = `🔴🔴 ${buildLinkToSymbol(
               symbolCandle
             )} BEAR SIGNAL ${
               (lastestCandle[1] / lastestCandle[4] - 1).toFixed(4) * 100
-            }%\norder ${symbolCandle} ${
+            }% ${extremeChange}\norder ${symbolCandle} ${
               lastestCandle[2] * 1.001
             } down 1.5\n-------------------------------------`;
             bot.sendMessage(chatId, message, {

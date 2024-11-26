@@ -366,7 +366,10 @@ const handleData = (
     if (type === "up" && currentCandle[4] * 1.015 <= lastestLowestPrice) {
       typeOrder = "down";
       handleReOrderSimilar("down");
-    } else if (type === "down" && currentCandle[4] * 0.985 >= lastestPeakPrice) {
+    } else if (
+      type === "down" &&
+      currentCandle[4] * 0.985 >= lastestPeakPrice
+    ) {
       typeOrder = "up";
       handleReOrderSimilar("up");
     } else {
@@ -426,7 +429,7 @@ const handleData = (
       (type === "up" && minPrice <= sl) ||
       (type === "down" && maxPrice >= sl)
     ) {
-      if (false && dataForeCast.countSimilar < 25) {
+      if (true && dataForeCast.countSimilar < 25) {
         // việc hit SL quá nhanh trong thời gian ngăn là dấu hiệu của sự đảo chiều nên ngăn chặn việc order lệnh này
         resetOrderSimilar(dataForeCast);
       } else {
@@ -478,7 +481,7 @@ const handleData = (
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
       dataForeCast.cost += cost;
-
+      dataForeCast.trending = "up";
       handleData(
         listCandleInfo,
         currentCandle,

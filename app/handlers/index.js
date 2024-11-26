@@ -14,6 +14,7 @@ import { ExecuteSympleMethod } from "../execute/ExecuteSympleMethod/index.js";
 import { handleOrderSymbol } from "../execute/handleOrderSymbol/index.js";
 import { AnalysisByTimeLine } from "./AnalysistByTimeLine/index.js";
 import { TestFunctionUtility } from "../laboratory/index.js";
+import { ExecuteSympleMethod1M } from "../execute/ExecuteSympleMethod/index.1m.js";
 
 export const handleRunBot = async (payload) => {
   const { bot = () => {}, chatId, command } = payload;
@@ -62,6 +63,10 @@ export const handleRunBot = async (payload) => {
 
     case COMMAND.EXECUTE_SIMPLE_METHOD:
       ExecuteSympleMethod(newPayload);
+      break;
+
+    case COMMAND.EXECUTE_SIMPLE_METHOD_V2:
+      ExecuteSympleMethod1M(newPayload);
       break;
 
     case COMMAND.CHECK:
