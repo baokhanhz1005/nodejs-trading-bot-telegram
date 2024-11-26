@@ -11,14 +11,14 @@ export const INPUT_CONTROL = {
     rateOrder: 2,    // hệ số mở rộng để giảm margin lệnh đó
   },
   similarConfig: {
-    rateSimilar: 6,     // hệ số mở rộng SL của lệnh mô phỏng
+    rateSimilar: 3,     // hệ số mở rộng SL của lệnh mô phỏng
     maxRangeCheck: 75,   // giới hạn chờ hit SL của lệnh mô phỏng cho mỗi cây nến
   },
   reOrderSimilar: {
     rateReOrder: 0.5,    // hệ số mở rộng SL cho lệnh SL với xu hướng tăng.giảm mạnh
   },
   methodFn: {
-    rate: 1.5,    // hệ số nhân của mô hình nến detect để vào lệnh
+    rate: 2    // hệ số nhân của mô hình nến detect để vào lệnh
   },
   listCandleParamTesting: {
     limit: 1000,      // limit cho get list candle

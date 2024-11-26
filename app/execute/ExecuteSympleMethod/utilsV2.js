@@ -122,7 +122,7 @@ const checkPattern = (candleStickData, symbol, trending) => {
     );
 
     // condition
-    const isPassCondition = [EstRR > 0.5 && EstRR < 1].every(
+    const isPassCondition = [EstRR > 0.4 * rate && EstRR < 0.85 * rate].every(
       (cond) => !!cond
     );
 
@@ -136,7 +136,7 @@ const checkPattern = (candleStickData, symbol, trending) => {
     const EstRR = (lastestCandle[2] / prevCandle[4] - 1) * 100 * rate;
 
     // condition
-    const isPassCondition = [EstRR > 0.5 && EstRR < 1].every(
+    const isPassCondition = [EstRR > 0.4 * rate && EstRR < 0.85 * rate].every(
       (cond) => !!cond
     );
     if (true && isPassCondition) {
