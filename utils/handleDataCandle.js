@@ -789,17 +789,11 @@ export const findContinueSameTypeCandle = (candleStickData) => {
   let countDown = 0;
 
   candleStickData.forEach((candle) => {
-    if (
-      isDownCandle(candle) ||
-      (isUpCandle(candle) && candle[4] / candle[1] < 1.003)
-    ) {
+    if (isDownCandle(candle)) {
       countDown += 1;
       listCountUp.push(countUp);
       countUp = 0;
-    } else if (
-      isUpCandle(candle) ||
-      (isDownCandle(candle) && candle[1] / candle[4] < 1.003)
-    ) {
+    } else if (isUpCandle(candle)) {
       countUp += 1;
       listCountDown.push(countDown);
       countDown = 0;
@@ -929,3 +923,7 @@ export const isDownTrending = (arrPeak = [], allowViolation = 2) => {
 // example
 // 2 2 1 2 3 4 5 4 3 2  1  0  0
 // 0 1 2 3 4 5 6 7 8 9 10 11 12
+
+export const handleResultOrder = () => {
+  
+}

@@ -4,6 +4,8 @@ import util from "util";
 import ExchangeInfoService from "./services/ExchangeInfo.js";
 import GetCandleService from "./services/GetCandle.js";
 import OrderServices from "./services/Order.js";
+import { buildMessageTPSL } from "./utils/buildMessage.js";
+import { TYPE_MARKET } from "./app/orders/contants.js";
 export const timeToSpecificTime = (gapTime = 60, delay = 0) => {
   const now = new Date();
   let time = gapTime;
@@ -216,4 +218,124 @@ export const buildTimeStampToDate = (timestamp) => {
   result = `${date}/${month}/${timeDate.getFullYear()} - ${hour}:${minute}`;
 
   return result;
+};
+
+export const fetchApiHandleResultOrder = async (
+  botInfo,
+  mapListOrders = {},
+  listSymbolDeleteRemain = [],
+  timestamp
+) => {
+  try {
+    const { bot, chatId } = botInfo;
+
+    const res = await OrderServices.getList({
+      data: {
+        timestamp,
+      },
+    }).catch((err) => {
+      console.error("Error when get list order: ", err);
+    });
+
+    const { data: listOpenOrderData } = res || {};
+
+    // noti and delete order
+    if (listOpenOrderData && listOpenOrderData.length) {
+      // build thành Object
+      listOpenOrderData.forEach((order) => {
+        if (order) {
+          mapListOrders[order.symbol] = [
+            ...(mapListOrders[order.symbol] || []),
+            order,
+          ];
+        }
+      });
+
+      if (listSymbolDeleteRemain.length) {
+        listSymbolDeleteRemain.forEach((symb) => {
+          if (
+            !mapListOrders[symb] ||
+            (mapListOrders[symb] && !mapListOrders[symb].length)
+          ) {
+            listSymbolDeleteRemain = [...listSymbolDeleteRemain].filter(
+              (each) => each !== symb
+            );
+          }
+        });
+        bot.sendMessage(
+          chatId,
+          `⚠⚠⚠⚠ ${listSymbolDeleteRemain.join(
+            "--"
+          )} chưa thể xóa các lệnh này được.`
+        );
+      }
+
+      const listSymbolOpenOrder = Object.keys(mapListOrders);
+
+      for (const symbol of listSymbolOpenOrder) {
+        if (
+          mapListOrders[symbol].length &&
+          (mapListOrders[symbol].every(
+            (order) => order.type === TYPE_MARKET.STOP_MARKET
+          ) ||
+            mapListOrders[symbol].every(
+              (order) => order.type === TYPE_MARKET.TAKE_PROFIT_MARKET
+            ))
+        ) {
+          // thực thi xóa lệnh tồn đọng do đã TP || SL
+          const listPromiseDelete = mapListOrders[symbol].map((orderDelete) => {
+            const { symbol: symbolDelete, orderId: orderIdDelete } =
+              orderDelete;
+
+            // nếu còn lệnh stop market ==> lệnh tp đã thực thi và ngược lại
+            return OrderServices.delete({
+              data: {
+                orderId: orderIdDelete,
+                symbol: symbolDelete,
+                timestamp: Date.now(),
+              },
+            });
+          });
+
+          const { type: typeOrder, side } = mapListOrders[symbol][0];
+          const isTakeProfit = typeOrder === TYPE_MARKET.STOP_MARKET;
+
+          Promise.all(listPromiseDelete)
+            .then((res) => {
+              if (res && res.length) {
+                for (const response of res) {
+                  if (response.status === 200) {
+                    // send mess thông báo đã TP/SL lệnh
+
+                    bot.sendMessage(
+                      chatId,
+                      buildMessageTPSL(isTakeProfit, symbol, side),
+                      {
+                        parse_mode: "HTML",
+                        disable_web_page_preview: true,
+                      }
+                    );
+                  } else {
+                    bot.sendMessage(
+                      chatId,
+                      `⚠⚠⚠⚠\nKhông thể xóa symbol ${symbol}. Vui lòng kiểm tra lại`
+                    );
+                  }
+                }
+              }
+            })
+            .catch((err) => {
+              console.error(err);
+              bot.sendMessage(
+                chatId,
+                `⚠⚠⚠⚠ ${symbol} -- tôi không thể xóa lệnh tồn đọng này, vui lòng gỡ lệnh này giúp tôi.`
+              );
+              listSymbolDeleteRemain.push(symbol);
+            });
+        }
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };

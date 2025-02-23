@@ -92,7 +92,10 @@ export const isUpCandle = (candle) => {
 };
 
 export const isDownCandle = (candle) => {
-  return parseFloat(candle[1]) - parseFloat(candle[4]) > 0;
+  return (
+    parseFloat(candle[1]) - parseFloat(candle[4]) > 0 ||
+    checkPinbar(candle, "down")
+  );
 };
 
 export const checkInRange = (candle1, candle2, range = 0) => {

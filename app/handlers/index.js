@@ -15,6 +15,8 @@ import { handleOrderSymbol } from "../execute/handleOrderSymbol/index.js";
 import { AnalysisByTimeLine } from "./AnalysistByTimeLine/index.js";
 import { TestFunctionUtility } from "../laboratory/index.js";
 import { ExecuteSympleMethod1M } from "../execute/ExecuteSympleMethod/index.1m.js";
+import { BackTestTrailing } from "../execute/ExecuteTrailing/backtest.js";
+import { BackTestFOMO } from "../execute/ExecuteFOMO/backtest.js";
 
 export const handleRunBot = async (payload) => {
   const { bot = () => {}, chatId, command } = payload;
@@ -77,6 +79,18 @@ export const handleRunBot = async (payload) => {
       TestFunctionUtility(newPayload);
       break;
     }
+
+    case "back": {
+      BackTestTrailing(newPayload);
+      break;
+    }
+
+    case "fomo": {
+      BackTestFOMO(newPayload);
+
+      break;
+    }
+
     default:
       await bot.sendMessage(chatId, MESSAGE.NO_COMMAND);
   }

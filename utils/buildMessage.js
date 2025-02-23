@@ -2,7 +2,7 @@ export const buildMessageTPSL = (
   isTakeProfit,
   symbol,
   type,
-  tempMapListOrders
+  tempMapListOrders = {}
 ) => {
   const textStyle = {
     content: "😍😍 TP",

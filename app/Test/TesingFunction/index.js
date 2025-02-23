@@ -140,7 +140,7 @@ export const TestingFunction = async (payload) => {
                   ? candleStickData.slice(range[0], range[1])
                   : candleStickData,
                 method: {
-                  methodFn: true
+                  methodFn: false
                     ? checkAbleOrderBySympleMethodM1
                     : checkIsAbleOrder,
                   // checkAbleOrderSMC,

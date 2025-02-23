@@ -11,7 +11,7 @@ export const INPUT_CONTROL = {
     rateOrder: 2,    // hệ số mở rộng để giảm margin lệnh đó
   },
   similarConfig: {
-    rateSimilar: 3,     // hệ số mở rộng SL của lệnh mô phỏng
+    rateSimilar: 1,     // hệ số mở rộng SL của lệnh mô phỏng
     maxRangeCheck: 75,   // giới hạn chờ hit SL của lệnh mô phỏng cho mỗi cây nến
   },
   reOrderSimilar: {

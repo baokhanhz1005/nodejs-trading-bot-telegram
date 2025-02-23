@@ -33,7 +33,7 @@ if (isCacheDataCandle) {
 process.on("SIGINT", async () => {
   await storage.clear();
 
-  console.log('End process.....');
+  console.log("End process.....");
   process.exit();
 });
 
@@ -56,6 +56,29 @@ if (!isBotRunning) {
       handleRunBot(payload);
     }
   });
+
+  // Hàm xử lý callback query
+  const handleCallbackQuery = async (query) => {
+    const chatId = query.message.chat.id;
+    const messageId = query.message.message_id;
+    const command = query.data + " isCheckCurrentOrder";
+
+    const payload = {
+      command,
+      bot,
+      chatId,
+      dataCandleAPI,
+      updateDataCandleAPI: (data) => handleSaveData(data),
+    };
+
+    if (command) {
+      handleRunBot(payload);
+    }
+  };
+
+  // Xóa listener cũ trước khi thêm mới
+  bot.removeListener("callback_query", handleCallbackQuery);
+  bot.on("callback_query", handleCallbackQuery);
 } else {
   console.log("Bot is already running.");
 }
