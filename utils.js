@@ -307,14 +307,23 @@ export const fetchApiHandleResultOrder = async (
                   if (response.status === 200) {
                     // send mess thông báo đã TP/SL lệnh
 
-                    bot.sendMessage(
-                      chatId,
-                      buildMessageTPSL(isTakeProfit, symbol, side),
-                      {
-                        parse_mode: "HTML",
-                        disable_web_page_preview: true,
-                      }
-                    );
+                    bot
+                      .sendMessage(
+                        chatId,
+                        buildMessageTPSL(isTakeProfit, symbol, side),
+                        {
+                          parse_mode: "HTML",
+                          disable_web_page_preview: true,
+                        }
+                      )
+                      .then((sentMessage) => {
+                        console.log(sentMessage);
+                        bot
+                          .pinChatMessage(chatId, sentMessage.message_id)
+                          .catch((err) => {
+                            console.error("Error pin mess:", err);
+                          });
+                      });
                   } else {
                     bot.sendMessage(
                       chatId,
