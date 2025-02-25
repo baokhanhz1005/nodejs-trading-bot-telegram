@@ -1,7 +1,7 @@
 export const CONFIG_QUICK_TRADE = {
-  RR: 2,
+  RR: 1.5,
   COST: 0.5,
-  RATE_SL: 1.5, // %
+  RATE_SL: 1.75, // %
   listCandleParamTesting: {
     limit: 1000, // limit cho get list candle
     range: [0, 1000], // slice trong range chỉ định [x, y]
