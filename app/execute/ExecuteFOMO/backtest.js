@@ -2,7 +2,7 @@ import {
   fetchApiGetCandleStickData,
   fetchApiGetListingSymbols,
 } from "../../../utils.js";
-import { shuffleArr } from "../../../utils/handleDataCandle.js";
+import { shuffleArr, validatePriceForTrade } from "../../../utils/handleDataCandle.js";
 import { CONFIG_QUICK_TRADE } from "./config.js";
 import { ForeCastMethodFOMO } from "./forecast.js";
 import { checkAbleQuickOrder } from "./utils.js";
@@ -42,11 +42,10 @@ export const BackTestFOMO = async (payload) => {
               symbol: symbol,
               interval: timeLine,
               limit: limit, // 388 -- 676 -- 964
+              startTime: 1740700825000,
+              // startTime: 1739735100000,
             },
           };
-          if (stickPrice <= 3) {
-            return null;
-          }
           const res = await fetchApiGetCandleStickData(params);
           return res;
         });
@@ -62,7 +61,8 @@ export const BackTestFOMO = async (payload) => {
               if (
                 candleStickData &&
                 candleStickData.length &&
-                (false || candleStickData.slice(-1)[0][4] < 5)
+                (false || candleStickData.slice(-1)[0][4] < 5) &&
+                validatePriceForTrade(candleStickData.slice(-1)[0][4])
               ) {
                 const payload = {
                   candleStickData: isUseRange
@@ -100,7 +100,6 @@ export const BackTestFOMO = async (payload) => {
               }
             });
 
-          if (true) {
             const mapInfoSameTimeStamp = {};
             listInfo.forEach((info) => {
               const timeStamp = info.split("-")[0];
@@ -120,6 +119,7 @@ export const BackTestFOMO = async (payload) => {
 
               return acc;
             }, []);
+          if (true) {
             // Dùng cho việc log ra các lệnh SL\TP, cho việc đánh giá lý do tại sao lệnh chạm SL
             let tempMess = [];
             for (let i = 0; i < findListSameTimeStampHighest.length; i++) {
@@ -148,7 +148,7 @@ export const BackTestFOMO = async (payload) => {
             chatId,
             `+ Profit: ${(+totalProfit).toFixed(
               2
-            )}\n+ Win: ${totalWin} \n+ Lose: ${totalLose}\n+ Total: ${totalOrder} - ${totalLong} LONG - ${totalShort} SHORT`
+            )}\n+ Win: ${totalWin} \n+ Lose: ${totalLose}\n+ Total: ${totalOrder} - ${totalLong} LONG - ${totalShort} SHORT \n ${findListSameTimeStampHighest.length}`
           );
         }
       });

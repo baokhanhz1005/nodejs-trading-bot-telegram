@@ -53,6 +53,7 @@ const handleFOMOMethod = ({
   methodFn,
   symbol,
 }) => {
+  listCandleInfo.pop();
   if (dataForeCast.orderInfo) {
     // handle run trailing here
     const { entry, tp, sl, type, timeStamp, percent, funding } =
@@ -83,46 +84,55 @@ const handleFOMOMethod = ({
       dataForeCast.profit += lost;
       dataForeCast.orderInfo = null;
     } else if (type === "up" && maxCurrentPrice >= tp) {
+      // dataForeCast.info.push(
+      //   `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
+      //     symbol
+      //   )} - LONG\n`
+      // );
       dataForeCast.countTP += 1;
       dataForeCast.orderInfo = null;
       dataForeCast.profit += profit;
     } else if (type === "down" && minCurrentPrice <= tp) {
+      // dataForeCast.info.push(
+      //   `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
+      //     symbol
+      //   )} - SHORT\n`
+      // );
       dataForeCast.countTP += 1;
       dataForeCast.orderInfo = null;
       dataForeCast.profit += profit;
     }
   } else {
-    listCandleInfo.pop();
-
     const {
       type,
       symbol,
       isAbleOrder = false,
       tpPercent,
       slPercent,
+      entry,
       timeStamp,
     } = methodFn(listCandleInfo) || {};
 
-    const typeOrder = type;
-
     if (isAbleOrder && (type === "up" || type === "down")) {
-      const price = currentCandle[1];
       const ratePriceTP =
-        typeOrder === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
+        type === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
       const ratePriceSL =
-        typeOrder === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
+        type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
+
       const newOrder = {
         symbol,
-        entry: +price,
-        tp: ratePriceTP * price,
-        sl: ratePriceSL * price,
-        type: typeOrder,
+        entry,
+        tp: ratePriceTP * entry,
+        sl: ratePriceSL * entry,
+        type,
         timeStamp,
         percent: slPercent,
         funding: (COST * 0.1) / slPercent,
       };
+
       dataForeCast.orderInfo = newOrder;
       dataForeCast.countOrders += 1;
+
       if (type === "up") {
         dataForeCast.longOrders += 1;
       } else {

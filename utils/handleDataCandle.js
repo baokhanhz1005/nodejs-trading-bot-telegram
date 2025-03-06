@@ -686,16 +686,64 @@ const handleOtherMethod = (
   }
 };
 
-export const getMinOnListCandle = (listCandle, type = 1) => {
+export const getMinOnListCandle = (
+  listCandle,
+  type = 1,
+  isGetIndex = false
+) => {
   // type: 1 - OPEN    2 - HIGH    3 - LOW    4 - CLOSE
-  const min = Math.min(...listCandle.map((candle) => +candle[type]));
-  return +min;
+  if (!isGetIndex) {
+    const min = Math.min(...listCandle.map((candle) => +candle[type]));
+    return +min;
+  }
+
+  const infoMin = listCandle.reduce(
+    (acc, candle, idx) => {
+      const { value, index } = acc;
+      if (value > candle[type]) {
+        acc.value = candle[type];
+        acc.index = idx;
+      }
+
+      return acc;
+    },
+    {
+      value: listCandle[0][type],
+      index: 0,
+    }
+  );
+
+  return infoMin;
 };
 
-export const getMaxOnListCandle = (listCandle, type = 1) => {
+export const getMaxOnListCandle = (
+  listCandle,
+  type = 1,
+  isGetIndex = false
+) => {
   // type:1 - OPEN    2 - HIGH    3 - LOW    4 - CLOSE
-  const max = Math.max(...listCandle.map((candle) => +candle[type]));
-  return +max;
+  if (!isGetIndex) {
+    const max = Math.max(...listCandle.map((candle) => +candle[type]));
+    return +max;
+  }
+
+  const infoMax = listCandle.reduce(
+    (acc, candle, idx) => {
+      const { value, index } = acc;
+      if (value < candle[type]) {
+        acc.value = candle[type];
+        acc.index = idx;
+      }
+
+      return acc;
+    },
+    {
+      value: 0,
+      index: 0,
+    }
+  );
+
+  return infoMax;
 };
 
 export const getMinMaxAndIndexOnListCandle = (
@@ -781,7 +829,10 @@ export const forecastTrending = (candleStickData) => {
   return type;
 };
 
-export const findContinueSameTypeCandle = (candleStickData) => {
+export const findContinueSameTypeCandle = (
+  candleStickData,
+  minimumFractionalPart = 0
+) => {
   // đếm số nến cùng loại liên tiếp nhau nhiều nhất
   let listCountDown = [];
   let listCountUp = [];
@@ -790,13 +841,27 @@ export const findContinueSameTypeCandle = (candleStickData) => {
 
   candleStickData.forEach((candle) => {
     if (isDownCandle(candle)) {
-      countDown += 1;
-      listCountUp.push(countUp);
-      countUp = 0;
-    } else if (isUpCandle(candle)) {
-      countUp += 1;
-      listCountDown.push(countDown);
-      countDown = 0;
+      if (
+        countUp &&
+        Math.abs(candle[4] - candle[1]) <= minimumFractionalPart * 3
+      ) {
+        countUp += 1;
+      } else {
+        countDown += 1;
+        listCountUp.push(countUp);
+        countUp = 0;
+      }
+    } else if (isUpCandle(candle) || (countUp && candle[4] - candle[1] === 0)) {
+      if (
+        countDown &&
+        Math.abs(candle[4] - candle[1]) <= minimumFractionalPart * 3
+      ) {
+        countDown += 1;
+      } else {
+        countUp += 1;
+        listCountDown.push(countDown);
+        countDown = 0;
+      }
     }
   });
 
@@ -924,6 +989,30 @@ export const isDownTrending = (arrPeak = [], allowViolation = 2) => {
 // 2 2 1 2 3 4 5 4 3 2  1  0  0
 // 0 1 2 3 4 5 6 7 8 9 10 11 12
 
-export const handleResultOrder = () => {
-  
-}
+export const handleResultOrder = () => {};
+
+export const validatePriceForTrade = (price, lengthPrice = 4) => {
+  if (isNaN(price)) return false;
+  let count = 0;
+
+  const stringPrice = price.toString();
+  const [integerPart, fractionalPart] = stringPrice.split(".");
+
+  if (+integerPart > 0) {
+    count += integerPart.length;
+  }
+
+  const tempFractional = +fractionalPart;
+  count += tempFractional.toString().length;
+
+  return count >= lengthPrice;
+};
+
+export const getSmallestFractionPart = (num) => {
+  const strNum = num.toString();
+  const decimalPart = strNum.split(".")[1];
+
+  if (!decimalPart) return 1;
+
+  return 10 ** -decimalPart.length;
+};

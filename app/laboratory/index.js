@@ -1,4 +1,5 @@
 import {
+  buildLinkToSymbol,
   fetchApiGetCandleStickData,
   fetchApiGetCurrentPositionAccount,
   fetchApiGetListingSymbols,
@@ -8,6 +9,7 @@ import { FindExtremeTrending } from "../feature/FindExtremeTrending/index.js";
 import AccountService from "../../services/Account.js";
 import OrderServices from "../../services/Order.js";
 import { ExecuteFOMO } from "../execute/ExecuteFOMO/index.js";
+import { isUpCandle } from "../../utils/TypeCandle.js";
 
 export const TestFunctionUtility = async (payload) => {
   const { bot, chatId, timeLine } = payload;
@@ -43,7 +45,7 @@ export const TestFunctionUtility = async (payload) => {
 
   // if (listSymbols && listSymbols.length) {
   //   const promiseCandleData = listSymbols
-  //     .filter((each) => each.symbol === "BOMEUSDT")
+  //     // .filter((each) => each.symbol === "BOMEUSDT")
   //     .map(async (token) => {
   //       const { symbol, stickPrice } = token;
 
@@ -51,7 +53,7 @@ export const TestFunctionUtility = async (payload) => {
   //         data: {
   //           symbol: symbol,
   //           interval: timeLine,
-  //           limit: 200, // 388 -- 676 -- 964
+  //           limit: 2,
   //         },
   //       };
 
@@ -64,13 +66,26 @@ export const TestFunctionUtility = async (payload) => {
   //     if (res.length) {
   //       res.filter(Boolean).forEach((candleInfo) => {
   //         const { symbol: symbolCandle, data: candleStickData } = candleInfo;
-
   //         if (candleStickData && candleStickData.length) {
-  //           const listHighest = getListHighest(candleStickData);
-  //           const listHighestValue = listHighest.map((peak) => +peak.price);
-  //           const isUpTrending = isUpTrending(listHighestValue, 2)
-
-  //           // bot.sendMessage(chatId, `${listHighestValue.join(" -- ")}`);
+  //           const [lastestCandle, currentCandle] = candleStickData || [];
+  //           // const listHighest = getListHighest(candleStickData);
+  //           // const listHighestValue = listHighest.map((peak) => +peak.price);
+  //           // const isUpTrending = isUpTrending(listHighestValue, 2);
+  //           if (
+  //             isUpCandle(currentCandle) &&
+  //             currentCandle[4] > currentCandle[1]
+  //           ) {
+  //             bot.sendMessage(
+  //               chatId,
+  //               `${buildLinkToSymbol(symbolCandle)} --- ${
+  //                 (currentCandle[4] / currentCandle[1] - 1) * 100
+  //               }%`,
+  //               {
+  //                 parse_mode: "HTML",
+  //                 disable_web_page_preview: true,
+  //               }
+  //             );
+  //           }
   //         }
   //       });
   //     }
