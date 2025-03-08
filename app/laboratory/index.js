@@ -10,11 +10,12 @@ import AccountService from "../../services/Account.js";
 import OrderServices from "../../services/Order.js";
 import { ExecuteFOMO } from "../execute/ExecuteFOMO/index.js";
 import { isUpCandle } from "../../utils/TypeCandle.js";
+import { ExecuteFOMO_1m } from "../execute/ExecuteFOMO/index.1m.js";
 
 export const TestFunctionUtility = async (payload) => {
   const { bot, chatId, timeLine } = payload;
 
-  ExecuteFOMO(payload);
+  ExecuteFOMO_1m(payload);
 
   // const listPositionOrder = await fetchApiGetCurrentPositionAccount();
 

@@ -1016,3 +1016,5 @@ export const getSmallestFractionPart = (num) => {
 
   return 10 ** -decimalPart.length;
 };
+
+export const exchangePrice = (candle) => Math.abs(candle[1] - candle[4]);

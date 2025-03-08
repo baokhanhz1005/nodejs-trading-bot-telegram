@@ -1,4 +1,5 @@
 import {
+  exchangePrice,
   findContinueSameTypeCandle,
   getListHighest,
   getListLowest,
@@ -17,7 +18,7 @@ import { CONFIG_QUICK_TRADE } from "./config.js";
 
 const { COST, RR, RATE_SL, limitPeakOrBottom } = CONFIG_QUICK_TRADE;
 
-export const checkAbleQuickOrder = (candleStickData, symbol) => {
+export const checkAbleQuickOrder1M = (candleStickData, symbol) => {
   const result = {
     type: "",
     symbol,
@@ -95,7 +96,7 @@ const checkPattern = (candleStickData, symbol) => {
   const rangeCandle50 = candleStickData.slice(-50);
   const rangeCandle75 = candleStickData.slice(-75);
   const minRange15 = getMinOnListCandle(rangeCandle15, 4);
-
+  const maxRange15 = getMaxOnListCandle(rangeCandle15, 4);
   const maxRange30 = getMaxOnListCandle(rangeCandle30, 4);
   const minRange30 = getMinOnListCandle(rangeCandle30, 4);
 
@@ -114,7 +115,7 @@ const checkPattern = (candleStickData, symbol) => {
   const minimumFractionalPart = getSmallestFractionPart(lastestCandle[4]);
 
   const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
-    rangeCandle50,
+    rangeCandle75,
     minimumFractionalPart
   );
 
@@ -122,24 +123,37 @@ const checkPattern = (candleStickData, symbol) => {
     const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * RATE_SL;
     const rateExchangeCandle = lastestCandle[4] / lastestCandle[1];
     // condition
-    const COND_1 = EstRR > 1 && EstRR < 2;
+    const COND_1 = EstRR > 0.75 && EstRR < 1.25;
     const COND_2 = maxContinueDown <= 4;
     const COND_3 =
-      (lastestCandle[4] / minRange30 - 1) /
+      (lastestCandle[4] / minRange50 - 1) /
         (lastestCandle[4] / lastestCandle[1] - 1) <=
-      5;
+      3.5;
 
-    const COND_4 = !rangeCandle75.some(
+    const COND_4 =
+      (maxRange15 / lastestCandle[4] - 1) /
+        (lastestCandle[4] / lastestCandle[1] - 1) <=
+      2.5;
+
+    const COND_5 =
+      (lastestCandle[4] / minRange150 - 1) /
+        (lastestCandle[4] / lastestCandle[1] - 1) <=
+      10;
+
+    const COND_6 = !rangeCandle30.some(
       (candle) =>
-        isDownCandle(candle) &&
-        (candle[1] / candle[4] - 1) /
-          (lastestCandle[4] / lastestCandle[3] - 1) >=
-          2
+        checkFullCandle(candle, "down") &&
+        exchangePrice(candle) / exchangePrice(lastestCandle) >= 1.7
     );
 
-    const isPassCondition = [COND_1, COND_2, COND_3, COND_4].every(
-      (cond) => !!cond
-    );
+    const isPassCondition = [
+      COND_1,
+      COND_2,
+      COND_3,
+      COND_4,
+      COND_5,
+      COND_6,
+    ].every((cond) => !!cond);
 
     if (true && isPassCondition) {
       slPercent = EstRR;
@@ -152,30 +166,32 @@ const checkPattern = (candleStickData, symbol) => {
     const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * RATE_SL;
 
     // condition
-    const COND_1 = EstRR > 1 && EstRR < 2;
-    const COND_2 = !rangeCandle75.some(
-      (candle) =>
-        isUpCandle(candle) &&
-        (candle[4] / candle[1] - 1) /
-          (lastestCandle[2] / lastestCandle[4] - 1) >=
-          2
-    );
+    const COND_1 = EstRR > 0.75 && EstRR < 1.25;
+    const COND_2 = maxContinueUp <= 4;
+    const COND_3 =
+      (maxRange50 / lastestCandle[4] - 1) /
+        (lastestCandle[1] / lastestCandle[4] - 1) <=
+      3.5;
 
-    const COND_3 = maxContinueUp <= 4;
     const COND_4 =
-      candleStickData.slice(-5).reduce((acc, candle) => {
+      (lastestCandle[4] / minRange75 - 1) /
+        (lastestCandle[1] / lastestCandle[4] - 1) <=
+      6;
+
+    const COND_5 =
+      rangeCandle15.reduce((acc, candle) => {
         if (
-          isUpCandle(candle) &&
-          Math.abs(candle[1] - candle[4]) >
-            Math.abs(lastestCandle[1] - lastestCandle[4])
+          checkFullCandle(candle, "up") ||
+          (isUpCandle(candle) &&
+            exchangePrice(candle) > exchangePrice(lastestCandle))
         ) {
           return acc + 1;
         }
 
         return acc;
-      }, 0) < 2;
+      }, 0) <= 2;
 
-    const isPassCondition = [COND_1, COND_2, COND_3, COND_4].every(
+    const isPassCondition = [COND_1, COND_2, COND_3, COND_4, COND_5].every(
       (cond) => !!cond
     );
 

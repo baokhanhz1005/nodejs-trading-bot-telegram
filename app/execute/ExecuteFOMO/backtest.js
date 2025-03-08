@@ -5,6 +5,7 @@ import {
 import { shuffleArr, validatePriceForTrade } from "../../../utils/handleDataCandle.js";
 import { CONFIG_QUICK_TRADE } from "./config.js";
 import { ForeCastMethodFOMO } from "./forecast.js";
+import { checkAbleQuickOrder1M } from "./utils.1m.js";
 import { checkAbleQuickOrder } from "./utils.js";
 
 const {
@@ -18,6 +19,7 @@ export const BackTestFOMO = async (payload) => {
     const { bot, chatId, timeLine } = payload;
 
     let dataCandle;
+    const methodFn = timeLine === '1m' ? checkAbleQuickOrder1M : checkAbleQuickOrder;
 
     const listSymbols = await fetchApiGetListingSymbols();
 
@@ -42,7 +44,7 @@ export const BackTestFOMO = async (payload) => {
               symbol: symbol,
               interval: timeLine,
               limit: limit, // 388 -- 676 -- 964
-              startTime: 1740700825000,
+              startTime: 1741305601000,
               // startTime: 1739735100000,
             },
           };
@@ -69,7 +71,7 @@ export const BackTestFOMO = async (payload) => {
                     ? candleStickData.slice(range[0], range[1])
                     : candleStickData,
                   method: {
-                    methodFn: checkAbleQuickOrder,
+                    methodFn,
                     config: {
                       rangeCandleInfo: 150,
                       symbol: symbolCandle,
