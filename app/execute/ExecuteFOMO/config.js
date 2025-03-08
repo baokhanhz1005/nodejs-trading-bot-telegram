@@ -1,6 +1,6 @@
 export const CONFIG_QUICK_TRADE = {
-  RR: 1.5,
-  COST: 0.5,
+  RR: 0.7,
+  COST: 3,
   RATE_SL: 2.5, // default = 3
   listCandleParamTesting: {
     limit: 1000, // limit cho get list candle

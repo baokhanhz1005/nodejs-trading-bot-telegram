@@ -146,6 +146,20 @@ const checkPattern = (candleStickData, symbol) => {
         exchangePrice(candle) / exchangePrice(lastestCandle) >= 1.7
     );
 
+    const COND_7 = !rangeCandle15.some((candle, index) => {
+      if (index <= rangeCandle15.length - 7) {
+        const miniRangeCandle = rangeCandle15.slice(index, index + 7);
+
+        return (
+          miniRangeCandle.reduce((acc, candle) => {
+            return isDownCandle(candle) ? acc + 1 : acc;
+          }, 0) >= 5
+        );
+      }
+
+      return false;
+    });
+
     const isPassCondition = [
       COND_1,
       COND_2,
@@ -153,6 +167,7 @@ const checkPattern = (candleStickData, symbol) => {
       COND_4,
       COND_5,
       COND_6,
+      COND_7,
     ].every((cond) => !!cond);
 
     if (true && isPassCondition) {
@@ -191,9 +206,16 @@ const checkPattern = (candleStickData, symbol) => {
         return acc;
       }, 0) <= 2;
 
-    const isPassCondition = [COND_1, COND_2, COND_3, COND_4, COND_5].every(
-      (cond) => !!cond
-    );
+    const COND_6 = lastestCandle[4] > minRange75;
+
+    const isPassCondition = [
+      COND_1,
+      COND_2,
+      COND_3,
+      COND_4,
+      COND_5,
+      COND_6,
+    ].every((cond) => !!cond);
 
     if (true && isPassCondition) {
       slPercent = EstRR;
