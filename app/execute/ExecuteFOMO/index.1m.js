@@ -4,6 +4,7 @@ import {
   fetchApiGetListingSymbols,
   fetchApiHandleResultOrder,
 } from "../../../utils.js";
+import { validatePriceForTrade } from "../../../utils/handleDataCandle.js";
 import { isDownCandle, isUpCandle } from "../../../utils/TypeCandle.js";
 import { CONFIG_QUICK_TRADE } from "./config.js";
 import { checkAbleQuickOrder1M } from "./utils.1m.js";
