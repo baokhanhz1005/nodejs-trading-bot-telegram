@@ -133,7 +133,7 @@ const checkPattern = (candleStickData, symbol, typeCheck) => {
     const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * RATE_SL;
     const rateExchangeCandle = lastestCandle[4] / lastestCandle[1];
     // condition
-    const COND_1 = EstRR > 0.7 && EstRR < 1.5;
+    const COND_1 = EstRR > 1.5 && EstRR < 3;
 
     const COND_2 = maxContinueDown <= 4;
 
@@ -190,7 +190,7 @@ const checkPattern = (candleStickData, symbol, typeCheck) => {
     const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * RATE_SL;
 
     // condition
-    const COND_1 = EstRR > 0.7 && EstRR < 1.5;
+    const COND_1 = EstRR > 1.5 && EstRR < 3;
 
     const COND_2 = maxContinueUp <= 4;
 

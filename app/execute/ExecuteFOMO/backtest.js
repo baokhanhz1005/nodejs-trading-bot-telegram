@@ -19,7 +19,13 @@ const {
 
 export const BackTestFOMO = async (payload) => {
   try {
-    const { bot, chatId, timeLine, typeCheck = "", isCheckWinRate = false } = payload;
+    const {
+      bot,
+      chatId,
+      timeLine,
+      typeCheck = "",
+      isCheckWinRate = false,
+    } = payload;
 
     let dataCandle;
     const methodFn =
@@ -181,7 +187,15 @@ export const BackTestFOMO = async (payload) => {
 
           bot.sendMessage(
             chatId,
-            `+ Profit: ${(+totalProfit).toFixed(
+            `${
+              typeCheck
+                ? typeCheck === 1
+                  ? "🟢🟢🟢🟢"
+                  : "🔴🔴🔴🔴"
+                : isCheckWinRate
+                ? "🟢🟢🔴🔴"
+                : ""
+            }\n+ Profit: ${(+totalProfit).toFixed(
               2
             )}\n+ Win: ${totalWin} \n+ Lose: ${totalLose}\n+ Total: ${totalOrder} - ${totalLong} LONG - ${totalShort} SHORT\n+Win Rate: ${
               (totalWin * 100) / (totalWin + totalLose)
