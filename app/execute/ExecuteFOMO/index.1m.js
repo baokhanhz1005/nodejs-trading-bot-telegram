@@ -93,7 +93,7 @@ export const ExecuteFOMO_1m = async (payload) => {
           if (
             isAbleOrder &&
             lastestCandle[4] <= 5 &&
-            validatePriceForTrade(candleStickData.slice(-1)[0][4])
+            validatePriceForTrade(+candleStickData.slice(-1)[0][4])
           ) {
             const ratePriceSL =
               type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;

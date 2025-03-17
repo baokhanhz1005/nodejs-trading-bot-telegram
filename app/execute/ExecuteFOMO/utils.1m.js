@@ -11,10 +11,12 @@ import {
 } from "../../../utils/handleDataCandle.js";
 import {
   checkFullCandle,
+  checkPinbar,
   isDownCandle,
   isUpCandle,
 } from "../../../utils/TypeCandle.js";
 import { CONFIG_QUICK_TRADE } from "./config.js";
+import { MODEL_CANDLE_TYPE } from "./constant.js";
 
 const { COST, RR, RATE_SL, limitPeakOrBottom } = CONFIG_QUICK_TRADE;
 
@@ -112,118 +114,152 @@ const checkPattern = (candleStickData, symbol) => {
   const maxRange150 = getMaxOnListCandle(candleStickData, 4);
   const minRange150 = getMinOnListCandle(candleStickData, 4);
 
+  const max2Range15 = getMaxOnListCandle(rangeCandle15, 2);
+  const min3Range15 = getMinOnListCandle(rangeCandle15, 3);
+
   const minimumFractionalPart = getSmallestFractionPart(lastestCandle[4]);
 
   const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
-    rangeCandle75,
+    rangeCandle50,
     minimumFractionalPart
   );
 
-  if (true && checkFullCandle(lastestCandle, "up")) {
-    const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * RATE_SL;
-    const rateExchangeCandle = lastestCandle[4] / lastestCandle[1];
-    // condition
-    const COND_1 = EstRR > 0.75 && EstRR < 1.25;
-    const COND_2 = maxContinueDown <= 4;
-    const COND_3 =
-      (lastestCandle[4] / minRange50 - 1) /
-        (lastestCandle[4] / lastestCandle[1] - 1) <=
-      3.5;
+  let typeCandle = "";
 
-    const COND_4 =
-      (maxRange15 / lastestCandle[4] - 1) /
-        (lastestCandle[4] / lastestCandle[1] - 1) <=
-      2.5;
+  switch (true) {
+    case isDownCandle(prevCandle) && checkFullCandle(lastestCandle, "up"): {
+      typeCandle = MODEL_CANDLE_TYPE.ENGULFING;
+      type = "up";
+      break;
+    }
 
-    const COND_5 =
-      (lastestCandle[4] / minRange150 - 1) /
-        (lastestCandle[4] / lastestCandle[1] - 1) <=
-      10;
+    case isUpCandle(prevCandle) && checkFullCandle(lastestCandle, "down"): {
+      typeCandle = MODEL_CANDLE_TYPE.ENGULFING;
+      type = "down";
+      break;
+    }
 
-    const COND_6 = !rangeCandle30.some(
-      (candle) =>
-        checkFullCandle(candle, "down") &&
-        exchangePrice(candle) / exchangePrice(lastestCandle) >= 1.7
-    );
+    case checkFullCandle(
+      lastestCandle,
+      isUpCandle(lastestCandle) ? "up" : "down"
+    ): {
+      typeCandle = MODEL_CANDLE_TYPE.MARUBOZU;
+      type = isUpCandle(lastestCandle) ? "up" : "down";
+      break;
+    }
 
-    const COND_7 = !rangeCandle15.some((candle, index) => {
-      if (index <= rangeCandle15.length - 7) {
-        const miniRangeCandle = rangeCandle15.slice(index, index + 7);
+    case exchangePrice(prevCandle) <= minimumFractionalPart * 3 &&
+      prevCandle[2] / prevCandle[3] <= 1.001 &&
+      (isUpCandle(lastestCandle)
+        ? lastestCandle[4] > prevCandle[2]
+        : lastestCandle[4] < prevCandle[3]): {
+      typeCandle = MODEL_CANDLE_TYPE.DOJI;
+      type = isUpCandle(lastestCandle) ? "up" : "down";
+      break;
+    }
 
-        return (
-          miniRangeCandle.reduce((acc, candle) => {
-            return isDownCandle(candle) ? acc + 1 : acc;
-          }, 0) >= 5
+    case isUpCandle(lastestCandle)
+      ? checkPinbar(lastestCandle, "up")
+      : checkPinbar(lastestCandle, "down"): {
+      typeCandle = MODEL_CANDLE_TYPE.PIN_BAR;
+      type = isUpCandle(lastestCandle) ? "up" : "down";
+      break;
+    }
+
+    default:
+      break;
+  }
+
+  switch (typeCandle) {
+    case MODEL_CANDLE_TYPE.ENGULFING: {
+      if (true && checkFullCandle(lastestCandle, "up")) {
+        const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * RATE_SL;
+
+        // condition
+        const COND_1 = EstRR > 0.5 && EstRR < 1;
+        const COND_2 = maxContinueDown <= 4;
+        const COND_3 =
+          findContinueSameTypeCandle(rangeCandle15, minimumFractionalPart)
+            .maxContinueUp <= 4;
+
+        const COND_4 =
+          (maxRange150 / lastestCandle[4] - 1) /
+            (lastestCandle[4] / lastestCandle[1] - 1) <=
+          5;
+
+        const isPassCondition = [COND_1, COND_2, COND_3, COND_4].every(
+          (cond) => !!cond
         );
+
+        if (true && isPassCondition) {
+          slPercent = EstRR;
+          type = "up";
+          isAllowOrder = true;
+
+          timeStamp = lastestCandle[0];
+        }
+      } else if (true && checkFullCandle(lastestCandle, "down")) {
+        const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * RATE_SL;
+
+        // condition
+        const COND_1 = EstRR > 0.5 && EstRR < 1;
+        const COND_2 = maxContinueUp <= 4;
+        const COND_3 =
+          findContinueSameTypeCandle(rangeCandle15, minimumFractionalPart)
+            .maxContinueDown <= 4;
+
+        const isPassCondition = [COND_1, COND_2, COND_3].every(
+          (cond) => !!cond
+        );
+
+        if (true && isPassCondition) {
+          slPercent = EstRR;
+          type = "down";
+          isAllowOrder = true;
+          timeStamp = lastestCandle[0];
+        }
       }
 
-      return false;
-    });
-
-    const isPassCondition = [
-      COND_1,
-      COND_2,
-      COND_3,
-      COND_4,
-      COND_5,
-      COND_6,
-      COND_7,
-    ].every((cond) => !!cond);
-
-    if (true && isPassCondition) {
-      slPercent = EstRR;
-      type = "up";
-      isAllowOrder = true;
-
-      timeStamp = lastestCandle[0];
+      break;
     }
-  } else if (true && checkFullCandle(lastestCandle, "down")) {
-    const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * RATE_SL;
 
-    // condition
-    const COND_1 = EstRR > 0.75 && EstRR < 1.25;
-    const COND_2 = maxContinueUp <= 4;
-    const COND_3 =
-      (maxRange50 / lastestCandle[4] - 1) /
-        (lastestCandle[1] / lastestCandle[4] - 1) <=
-      3.5;
-
-    const COND_4 =
-      (lastestCandle[4] / minRange75 - 1) /
-        (lastestCandle[1] / lastestCandle[4] - 1) <=
-      6;
-
-    const COND_5 =
-      rangeCandle15.reduce((acc, candle) => {
-        if (
-          checkFullCandle(candle, "up") ||
-          (isUpCandle(candle) &&
-            exchangePrice(candle) > exchangePrice(lastestCandle))
-        ) {
-          return acc + 1;
-        }
-
-        return acc;
-      }, 0) <= 2;
-
-    const COND_6 = lastestCandle[4] > minRange75;
-
-    const isPassCondition = [
-      COND_1,
-      COND_2,
-      COND_3,
-      COND_4,
-      COND_5,
-      COND_6,
-    ].every((cond) => !!cond);
-
-    if (true && isPassCondition) {
-      slPercent = EstRR;
-      type = "down";
-      isAllowOrder = true;
-      timeStamp = lastestCandle[0];
-    }
+    default:
+      break;
   }
 
   return { type, slPercent, isAllowOrder, timeStamp, entry: lastestCandle[4] };
 };
+
+// if (true && checkFullCandle(lastestCandle, "up")) {
+//   const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * RATE_SL;
+
+//   // condition
+//   const COND_1 = EstRR > 0.2 && EstRR < 0.6;
+
+//   const isPassCondition = [COND_1].every((cond) => !!cond);
+
+//   if (true && isPassCondition) {
+//     slPercent = EstRR;
+//     type = "up";
+//     isAllowOrder = true;
+
+//     timeStamp = lastestCandle[0];
+//   }
+// } else if (true && checkFullCandle(lastestCandle, "down")) {
+//   const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * RATE_SL;
+
+//   // condition
+//   const COND_1 = EstRR > 0.2 && EstRR < 0.6;
+
+//   const isPassCondition = [COND_1].every((cond) => !!cond);
+
+//   if (true && isPassCondition) {
+//     slPercent = EstRR;
+//     type = "down";
+//     isAllowOrder = true;
+//     timeStamp = lastestCandle[0];
+//   }
+// }
+
+// break;
+// }

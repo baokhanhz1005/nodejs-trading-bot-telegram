@@ -1,0 +1,9 @@
+
+export const MODEL_CANDLE_TYPE = {
+    MULTI_INSIDE_BAR: 'MULTI_INSIDE_BAR',
+    PIN_BAR: 'PIN_BAR',
+    DOJI: 'DOJI',
+    ENGULFING: 'ENGULFING',
+    MARUBOZU: 'MARUBOZU',
+    
+}

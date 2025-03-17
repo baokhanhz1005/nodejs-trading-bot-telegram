@@ -4,18 +4,25 @@ import {
   fetchApiGetCurrentPositionAccount,
   fetchApiGetListingSymbols,
 } from "../../utils.js";
-import { getListHighest, isUpTrending } from "../../utils/handleDataCandle.js";
+import {
+  getListHighest,
+  getMaxOnListCandle,
+  getMinOnListCandle,
+  getSmallestFractionPart,
+  isUpTrending,
+  validatePriceForTrade,
+} from "../../utils/handleDataCandle.js";
 import { FindExtremeTrending } from "../feature/FindExtremeTrending/index.js";
 import AccountService from "../../services/Account.js";
 import OrderServices from "../../services/Order.js";
 import { ExecuteFOMO } from "../execute/ExecuteFOMO/index.js";
-import { isUpCandle } from "../../utils/TypeCandle.js";
+import { checkFullCandle, isUpCandle } from "../../utils/TypeCandle.js";
 import { ExecuteFOMO_1m } from "../execute/ExecuteFOMO/index.1m.js";
 
 export const TestFunctionUtility = async (payload) => {
   const { bot, chatId, timeLine } = payload;
 
-  ExecuteFOMO_1m(payload);
+  ExecuteFOMO(payload);
 
   // const listPositionOrder = await fetchApiGetCurrentPositionAccount();
 
@@ -92,4 +99,114 @@ export const TestFunctionUtility = async (payload) => {
   //     }
   //   });
   // }
+
+  // const listSymbols = await fetchApiGetListingSymbols();
+  // const listSymbolDeleteRemain = [];
+  // const currentSecond = new Date().getSeconds();
+  // const timeRemaining = 60 - currentSecond;
+
+  // bot.on("message", async (msg) => {
+  //   const botId = (await bot.getMe()).id;
+  //   if (msg.from && msg.from.id === botId) {
+  //     console.log(msg);
+  //     const contentToPin = ["😍😍 TP", "😭😭 SL"];
+  //     if (contentToPin.some((keyword) => msg.text?.includes(keyword))) {
+  //       try {
+  //         await bot.pinChatMessage(chatId, msg.message_id);
+  //       } catch (error) {
+  //         console.error(error);
+  //       }
+  //     }
+  //   }
+  // });
+
+  // const executeBOT = async () => {
+  //   bot.sendMessage(chatId, "🎯🎯🎯🎯🎯🎯🎯");
+  //   const mapListOrders = {};
+
+  //   const promiseDataCandles = listSymbols
+  //     .map((tokenInfo) => {
+  //       const { symbol, stickPrice } = tokenInfo;
+  //       const params = {
+  //         data: {
+  //           symbol: symbol,
+  //           interval: timeLine,
+  //           limit: 150,
+  //         },
+  //       };
+
+  //       if (symbol == "BTCSTUSDT") {
+  //         return null;
+  //       }
+
+  //       return fetchApiGetCandleStickData(params);
+  //     })
+  //     .filter(Boolean);
+
+  //   // await fetchApiHandleResultOrder(
+  //   //   payload,
+  //   //   mapListOrders,
+  //   //   listSymbolDeleteRemain,
+  //   //   Date.now()
+  //   // );
+
+  //   Promise.all(promiseDataCandles).then(async (responses) => {
+  //     if (responses && responses.length) {
+  //       for (const response of responses) {
+  //         const { symbol: symbolCandle, data: candleStickData = [] } = response;
+
+  //         const newestCandle = candleStickData.slice(-1)[0];
+  //         const dateTimeCandle = new Date(newestCandle[0]);
+  //         const currentTime = new Date();
+  //         if (
+  //           Number(dateTimeCandle.getMinutes()) ===
+  //           Number(currentTime.getMinutes())
+  //         ) {
+  //           candleStickData.pop();
+  //         }
+  //         const [prevCandle, lastestCandle] = candleStickData.slice(-2);
+  //         const minimumFractionalPart = getSmallestFractionPart(lastestCandle);
+
+  //         const rangeCandle30 = candleStickData.slice(-30);
+  //         const maxRange30 = getMaxOnListCandle(rangeCandle30, 4);
+  //         const minRange30 = getMinOnListCandle(rangeCandle30, 4);
+
+  //         const rateRange =
+  //           (lastestCandle[4] / minRange30 - 1) /
+  //           (lastestCandle[4] / lastestCandle[1] - 1);
+
+  //         const isAbleOrder =
+  //           checkFullCandle(lastestCandle, "up") &&
+  //           rateRange <= 2.5 &&
+  //           (lastestCandle[4] / lastestCandle[1] - 1) * 100 > 0.45;
+
+  //         const type = "up";
+
+  //         if (
+  //           isAbleOrder &&
+  //           lastestCandle[4] <= 5 &&
+  //           validatePriceForTrade(candleStickData.slice(-1)[0][4])
+  //         ) {
+  //           const message = `${
+  //             type === "up" ? "🟢🟢" : "🔴🔴"
+  //           } ${buildLinkToSymbol(symbolCandle)} ${
+  //             type === "up" ? "BULL" : "BEAR"
+  //           } SIGNAL`;
+
+  //           bot.sendMessage(chatId, message, {
+  //             parse_mode: "HTML",
+  //             disable_web_page_preview: true,
+  //           });
+  //         }
+  //       }
+  //     }
+  //   });
+  // };
+
+  // setTimeout(() => {
+  //   executeBOT();
+  //   setInterval(() => {
+  //     executeBOT();
+  //   }, 5 * 60 * 1000);
+  // }, timeRemaining * 1000 + 500);
 };

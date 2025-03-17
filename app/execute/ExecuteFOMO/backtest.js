@@ -2,7 +2,10 @@ import {
   fetchApiGetCandleStickData,
   fetchApiGetListingSymbols,
 } from "../../../utils.js";
-import { shuffleArr, validatePriceForTrade } from "../../../utils/handleDataCandle.js";
+import {
+  shuffleArr,
+  validatePriceForTrade,
+} from "../../../utils/handleDataCandle.js";
 import { CONFIG_QUICK_TRADE } from "./config.js";
 import { ForeCastMethodFOMO } from "./forecast.js";
 import { checkAbleQuickOrder1M } from "./utils.1m.js";
@@ -16,10 +19,11 @@ const {
 
 export const BackTestFOMO = async (payload) => {
   try {
-    const { bot, chatId, timeLine } = payload;
+    const { bot, chatId, timeLine, typeCheck = "", isCheckWinRate = false } = payload;
 
     let dataCandle;
-    const methodFn = timeLine === '1m' ? checkAbleQuickOrder1M : checkAbleQuickOrder;
+    const methodFn =
+      timeLine === "1m" ? checkAbleQuickOrder1M : checkAbleQuickOrder;
 
     const listSymbols = await fetchApiGetListingSymbols();
 
@@ -27,7 +31,8 @@ export const BackTestFOMO = async (payload) => {
     let totalOrder = 0;
     let totalWin = 0;
     let totalLose = 0;
-    let listInfo = [];
+    let listInfoSL = [];
+    let listInfoTP = [];
     let totalProfit = 0;
     let totalLong = 0;
     let totalShort = 0;
@@ -44,7 +49,7 @@ export const BackTestFOMO = async (payload) => {
               symbol: symbol,
               interval: timeLine,
               limit: limit, // 388 -- 676 -- 964
-              startTime: 1741305601000,
+              // startTime: 1740787201000,
               // startTime: 1739735100000,
             },
           };
@@ -64,7 +69,7 @@ export const BackTestFOMO = async (payload) => {
                 candleStickData &&
                 candleStickData.length &&
                 (false || candleStickData.slice(-1)[0][4] < 5) &&
-                validatePriceForTrade(candleStickData.slice(-1)[0][4])
+                validatePriceForTrade(+candleStickData.slice(-1)[0][4])
               ) {
                 const payload = {
                   candleStickData: isUseRange
@@ -77,6 +82,7 @@ export const BackTestFOMO = async (payload) => {
                       symbol: symbolCandle,
                     },
                   },
+                  typeCheck,
                 };
 
                 const {
@@ -84,7 +90,8 @@ export const BackTestFOMO = async (payload) => {
                   countTP,
                   countSL,
                   profit,
-                  info,
+                  infoSL,
+                  infoTP,
                   longOrders,
                   shortOrders,
                 } = ForeCastMethodFOMO(payload);
@@ -96,32 +103,58 @@ export const BackTestFOMO = async (payload) => {
                 totalLong += longOrders;
                 totalShort += shortOrders;
 
-                if (info && info.length) {
-                  listInfo.push(...info);
+                if (infoSL && infoSL.length) {
+                  listInfoSL.push(...infoSL);
+                }
+
+                if (infoTP && infoTP.length) {
+                  listInfoTP.push(...infoTP);
                 }
               }
             });
 
-            const mapInfoSameTimeStamp = {};
-            listInfo.forEach((info) => {
-              const timeStamp = info.split("-")[0];
-              if (typeof mapInfoSameTimeStamp[timeStamp] === "object") {
-                mapInfoSameTimeStamp[timeStamp].push(info);
-              } else if (!mapInfoSameTimeStamp[timeStamp]) {
-                mapInfoSameTimeStamp[timeStamp] = [info];
-              }
-            });
+          const isViewSL = true;
+          const EXCLUDE_TIMESTAMP = [];
 
-            const findListSameTimeStampHighest = Object.keys(
-              mapInfoSameTimeStamp
-            ).reduce((acc, key) => {
-              if (acc.length < mapInfoSameTimeStamp[key].length) {
-                return mapInfoSameTimeStamp[key];
+          const mapInfoSameTimeStampSL = {};
+          listInfoSL.forEach((info) => {
+            const timeStamp = info.split("-")[0];
+            if (typeof mapInfoSameTimeStampSL[timeStamp] === "object") {
+              mapInfoSameTimeStampSL[timeStamp].push(info);
+            } else if (!mapInfoSameTimeStampSL[timeStamp]) {
+              mapInfoSameTimeStampSL[timeStamp] = [info];
+            }
+          });
+
+          const mapInfoSameTimeStampTP = {};
+          listInfoTP.forEach((info) => {
+            const timeStamp = info.split("-")[0];
+            if (typeof mapInfoSameTimeStampTP[timeStamp] === "object") {
+              mapInfoSameTimeStampTP[timeStamp].push(info);
+            } else if (!mapInfoSameTimeStampTP[timeStamp]) {
+              mapInfoSameTimeStampTP[timeStamp] = [info];
+            }
+          });
+
+          const useMapInfo = isViewSL
+            ? mapInfoSameTimeStampSL
+            : mapInfoSameTimeStampTP;
+
+          const findListSameTimeStampHighest = Object.keys(useMapInfo).reduce(
+            (acc, key) => {
+              if (
+                !EXCLUDE_TIMESTAMP.includes(key) &&
+                acc.length < useMapInfo[key].length
+              ) {
+                return useMapInfo[key];
               }
 
               return acc;
-            }, []);
-          if (true) {
+            },
+            []
+          );
+
+          if (true && !isCheckWinRate) {
             // Dùng cho việc log ra các lệnh SL\TP, cho việc đánh giá lý do tại sao lệnh chạm SL
             let tempMess = [];
             for (let i = 0; i < findListSameTimeStampHighest.length; i++) {
@@ -150,7 +183,13 @@ export const BackTestFOMO = async (payload) => {
             chatId,
             `+ Profit: ${(+totalProfit).toFixed(
               2
-            )}\n+ Win: ${totalWin} \n+ Lose: ${totalLose}\n+ Total: ${totalOrder} - ${totalLong} LONG - ${totalShort} SHORT \n ${findListSameTimeStampHighest.length}`
+            )}\n+ Win: ${totalWin} \n+ Lose: ${totalLose}\n+ Total: ${totalOrder} - ${totalLong} LONG - ${totalShort} SHORT\n+Win Rate: ${
+              (totalWin * 100) / (totalWin + totalLose)
+            }% \n ${
+              findListSameTimeStampHighest.length
+            }\n-------------\n+ TP: ${
+              Object.keys(mapInfoSameTimeStampTP).length
+            } \n+ SL: ${Object.keys(mapInfoSameTimeStampSL).length}`
           );
         }
       });
