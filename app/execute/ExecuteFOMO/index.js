@@ -38,11 +38,11 @@ export const ExecuteFOMO = async (payload) => {
   });
 
   const executeBOT = async () => {
-    bot.sendMessage(chatId, "🎯🎯🎯🎯🎯🎯🎯");
     const timeMinute = new Date().getMinutes();
     const isHasTrackingData = timeMinute % 5 === 0; // use candle 5m
 
     if (isHasTrackingData) {
+      bot.sendMessage(chatId, "🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯");
       const promiseDataCandles = shuffleArr(listSymbols)
         .map((tokenInfo) => {
           const { symbol, stickPrice } = tokenInfo;
@@ -139,9 +139,10 @@ export const ExecuteFOMO = async (payload) => {
         BackTestFOMO({ ...payload, typeCheck: 1, isCheckWinRate: true });
       } else if ((timeMinute - 2) % 5 === 0) {
         BackTestFOMO({ ...payload, typeCheck: 2, isCheckWinRate: true });
-      } else if ((timeMinute - 3) % 5 === 0) {
-        BackTestFOMO({ ...payload, isCheckWinRate: true });
       }
+      //  else if ((timeMinute - 3) % 5 === 0) {
+      //   BackTestFOMO({ ...payload, isCheckWinRate: true });
+      // }
     }
   };
 

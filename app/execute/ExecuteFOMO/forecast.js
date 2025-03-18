@@ -92,23 +92,37 @@ const handleFOMOMethod = ({
       dataForeCast.profit += lost;
       dataForeCast.orderInfo = null;
     } else if (type === "up" && maxCurrentPrice >= tp) {
-      dataForeCast.infoTP.push(
-        `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
-          symbol
-        )} - LONG\n`
-      );
-      dataForeCast.countTP += 1;
+      // if (dataForeCast.orderInfo.minPrice < dataForeCast.orderInfo.avgPrice) {
+        dataForeCast.infoTP.push(
+          `${timeStamp}-${buildTimeStampToDate(
+            timeStamp
+          )} - ${buildLinkToSymbol(symbol)} - LONG\n`
+        );
+        dataForeCast.countTP += 1;
+        dataForeCast.profit += profit;
+      // }
       dataForeCast.orderInfo = null;
-      dataForeCast.profit += profit;
     } else if (type === "down" && minCurrentPrice <= tp) {
-      dataForeCast.infoTP.push(
-        `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
-          symbol
-        )} - SHORT\n`
-      );
-      dataForeCast.countTP += 1;
+      // if (dataForeCast.orderInfo.maxPrice > dataForeCast.orderInfo.avgPrice) {
+        dataForeCast.infoTP.push(
+          `${timeStamp}-${buildTimeStampToDate(
+            timeStamp
+          )} - ${buildLinkToSymbol(symbol)} - SHORT\n`
+        );
+        dataForeCast.countTP += 1;
+        dataForeCast.profit += profit;
+      // }
       dataForeCast.orderInfo = null;
-      dataForeCast.profit += profit;
+    } else {
+      dataForeCast.orderInfo.maxPrice =
+        dataForeCast.orderInfo.maxPrice < maxCurrentPrice
+          ? maxCurrentPrice
+          : dataForeCast.orderInfo.maxPrice;
+
+      dataForeCast.orderInfo.minPrice =
+        dataForeCast.orderInfo.minPrice > minCurrentPrice
+          ? minCurrentPrice
+          : dataForeCast.orderInfo.minPrice;
     }
   } else {
     const {
@@ -136,6 +150,9 @@ const handleFOMOMethod = ({
         timeStamp,
         percent: slPercent,
         funding: (COST * 0.1) / slPercent,
+        maxPrice: +entry,
+        minPrice: +entry,
+        avgPrice: (+entry + ratePriceSL * +entry) / 2,
       };
 
       dataForeCast.orderInfo = newOrder;
