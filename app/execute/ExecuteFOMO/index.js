@@ -1,5 +1,6 @@
 import {
   buildLinkToSymbol,
+  buildTimeStampToDate,
   fetchApiGetCandleStickData,
   fetchApiGetListingSymbols,
   fetchApiHandleResultOrder,
@@ -21,6 +22,7 @@ export const ExecuteFOMO = async (payload) => {
   const listSymbolDeleteRemain = [];
   const currentSecond = new Date().getSeconds();
   const timeRemaining = 60 - currentSecond;
+  const mapPreOrder = {};
 
   bot.on("message", async (msg) => {
     const botId = (await bot.getMe()).id;
@@ -80,47 +82,102 @@ export const ExecuteFOMO = async (payload) => {
 
             const [prevCandle, lastestCandle] = candleStickData.slice(-2);
 
-            const {
-              type,
-              symbol,
-              isAbleOrder,
-              tpPercent,
-              slPercent,
-              timeStamp,
-            } = checkAbleQuickOrder(candleStickData, symbolCandle);
+            const orderInfo = mapPreOrder[symbolCandle];
 
-            if (
-              isAbleOrder &&
-              lastestCandle[4] <= 5 &&
-              validatePriceForTrade(+candleStickData.slice(-1)[0][4])
-            ) {
-              const ratePriceSL =
-                type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
+            if (orderInfo) {
+              const { count, avgPrice, timeStamp, slPercent, type, entry, tp } =
+                orderInfo;
 
-              const message = `${
-                type === "up" ? "🟢🟢" : "🔴🔴"
-              } ${buildLinkToSymbol(symbolCandle)} ${
-                type === "up" ? "BULL" : "BEAR"
-              } SIGNAL ${slPercent}%`;
+              switch (type) {
+                case "up":
+                case "down": {
+                  if (
+                    (type === "up" && lastestCandle[3] <= avgPrice) ||
+                    (type === "down" && lastestCandle[2] >= avgPrice)
+                  ) {
+                    // handle send order
 
-              bot.sendMessage(chatId, message, {
-                reply_markup: {
-                  inline_keyboard: [
-                    [
-                      {
-                        text: `order ${symbolCandle} ${
-                          lastestCandle[4] * ratePriceSL
-                        } ${type} ${COST}`,
-                        callback_data: `order ${symbolCandle} ${
-                          lastestCandle[4] * ratePriceSL
-                        } ${type} ${COST}`,
+                    const ratePriceSL =
+                      type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
+
+                    const message = `${buildTimeStampToDate(timeStamp)}\n${
+                      type === "up" ? "🟢🟢" : "🔴🔴"
+                    } ${buildLinkToSymbol(symbolCandle)} ${
+                      type === "up" ? "BULL" : "BEAR"
+                    } SIGNAL ${slPercent}%`;
+
+                    bot.sendMessage(chatId, message, {
+                      reply_markup: {
+                        inline_keyboard: [
+                          [
+                            {
+                              text: `order ${symbolCandle} ${
+                                entry * ratePriceSL
+                              } ${type} ${COST}`,
+                              callback_data: `order ${symbolCandle} ${
+                                entry * ratePriceSL
+                              } ${type} ${COST}`,
+                            },
+                          ],
+                        ],
                       },
-                    ],
-                  ],
-                },
-                parse_mode: "HTML",
-                disable_web_page_preview: true,
-              });
+                      parse_mode: "HTML",
+                      disable_web_page_preview: true,
+                    });
+
+                    delete mapPreOrder[symbolCandle];
+                  } else if (
+                    (type === "up" && lastestCandle[2] >= tp) ||
+                    (type === "down" && lastestCandle[3] <= tp)
+                  ) {
+                    delete mapPreOrder[symbolCandle];
+                  } else if (count < 30) {
+                    mapPreOrder[symbolCandle].count += 1;
+                  } else {
+                    delete mapPreOrder[symbolCandle];
+                  }
+
+                  break;
+                }
+
+                default:
+                  break;
+              }
+            } else {
+              const {
+                type,
+                symbol,
+                isAbleOrder,
+                tpPercent,
+                slPercent,
+                timeStamp,
+              } = checkAbleQuickOrder(candleStickData, symbolCandle);
+
+              if (
+                isAbleOrder &&
+                lastestCandle[4] <= 5 &&
+                validatePriceForTrade(+candleStickData.slice(-1)[0][4])
+              ) {
+                const ratePriceTP =
+                  type === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
+                const ratePriceSL =
+                  type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
+
+                const entry = +lastestCandle[4];
+                const sl = ratePriceSL * entry;
+
+                const newPreOrder = {
+                  count: 0,
+                  avgPrice: (entry + sl) / 2,
+                  timeStamp,
+                  sl,
+                  tp: entry * ratePriceTP,
+                  type,
+                  entry,
+                };
+
+                mapPreOrder[symbolCandle] = newPreOrder;
+              }
             }
           }
         }
