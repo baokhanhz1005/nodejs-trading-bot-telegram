@@ -71,11 +71,12 @@ export const ExecuteFOMO = async (payload) => {
               response;
 
             const newestCandle = candleStickData.slice(-1)[0];
-            const dateTimeCandle = new Date(newestCandle[0]);
+            const dateTimeCandle = newestCandle && new Date(newestCandle[0]);
             const currentTime = new Date();
             if (
+              dateTimeCandle &&
               Number(dateTimeCandle.getMinutes()) ===
-              Number(currentTime.getMinutes())
+                Number(currentTime.getMinutes())
             ) {
               candleStickData.pop();
             }
@@ -169,11 +170,12 @@ export const ExecuteFOMO = async (payload) => {
                 const newPreOrder = {
                   count: 0,
                   avgPrice: (entry + sl) / 2,
-                  timeStamp,
+                  timeStamp: +timeStamp + 7 * 60 * 60 * 1000,
                   sl,
                   tp: entry * ratePriceTP,
                   type,
                   entry,
+                  slPercent,
                 };
 
                 mapPreOrder[symbolCandle] = newPreOrder;

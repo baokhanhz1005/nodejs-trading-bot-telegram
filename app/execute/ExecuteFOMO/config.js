@@ -1,5 +1,5 @@
 export const CONFIG_QUICK_TRADE = {
-  RR: 1.75,
+  RR: 1.8,
   COST: 1,
   RATE_SL: 5, // default = 3
   listCandleParamTesting: {
