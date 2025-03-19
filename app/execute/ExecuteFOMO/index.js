@@ -169,7 +169,9 @@ export const ExecuteFOMO = async (payload) => {
 
                 const newPreOrder = {
                   count: 0,
-                  avgPrice: (entry + sl) / 2,
+                  avgPrice:
+                    entry +
+                    (type === "up" ? (sl - entry) * 0.3 : (sl - entry) * 0.3),
                   timeStamp: +timeStamp + 7 * 60 * 60 * 1000,
                   sl,
                   tp: entry * ratePriceTP,
