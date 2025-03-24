@@ -152,6 +152,7 @@ export const ExecuteFOMO = async (payload) => {
                 tpPercent,
                 slPercent,
                 timeStamp,
+                entry
               } = checkAbleQuickOrder(candleStickData, symbolCandle);
 
               if (
