@@ -159,29 +159,63 @@ export const ExecuteFOMO = async (payload) => {
                 lastestCandle[4] <= 5 &&
                 validatePriceForTrade(+candleStickData.slice(-1)[0][4])
               ) {
-                const ratePriceTP =
-                  type === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
                 const ratePriceSL =
                   type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
-
-                const entry = +lastestCandle[4];
-                const sl = ratePriceSL * entry;
-
-                const newPreOrder = {
-                  count: 0,
-                  avgPrice:
-                    entry +
-                    (type === "up" ? (sl - entry) * 0.3 : (sl - entry) * 0.3),
-                  timeStamp: +timeStamp + 7 * 60 * 60 * 1000,
-                  sl,
-                  tp: entry * ratePriceTP,
-                  type,
-                  entry,
-                  slPercent,
-                };
-
-                mapPreOrder[symbolCandle] = newPreOrder;
+    
+                const message = `${
+                  type === "up" ? "🟢🟢" : "🔴🔴"
+                } ${buildLinkToSymbol(symbolCandle)} ${
+                  type === "up" ? "BULL" : "BEAR"
+                } SIGNAL ${slPercent}%`;
+    
+                bot.sendMessage(chatId, message, {
+                  reply_markup: {
+                    inline_keyboard: [
+                      [
+                        {
+                          text: `order ${symbolCandle} ${
+                            lastestCandle[4] * ratePriceSL
+                          } ${type} ${COST} --- entry: ${entry}`,
+                          callback_data: `order ${symbolCandle} ${
+                            lastestCandle[4] * ratePriceSL
+                          } ${type} ${COST}`,
+                        },
+                      ],
+                    ],
+                  },
+                  parse_mode: "HTML",
+                  disable_web_page_preview: true,
+                });
               }
+
+              // if (
+              //   isAbleOrder &&
+              //   lastestCandle[4] <= 5 &&
+              //   validatePriceForTrade(+candleStickData.slice(-1)[0][4])
+              // ) {
+              //   const ratePriceTP =
+              //     type === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
+              //   const ratePriceSL =
+              //     type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
+
+              //   const entry = +lastestCandle[4];
+              //   const sl = ratePriceSL * entry;
+
+              //   const newPreOrder = {
+              //     count: 0,
+              //     avgPrice:
+              //       entry +
+              //       (type === "up" ? (sl - entry) * 0.3 : (sl - entry) * 0.3),
+              //     timeStamp: +timeStamp + 7 * 60 * 60 * 1000,
+              //     sl,
+              //     tp: entry * ratePriceTP,
+              //     type,
+              //     entry,
+              //     slPercent,
+              //   };
+
+              //   mapPreOrder[symbolCandle] = newPreOrder;
+              // }
             }
           }
         }

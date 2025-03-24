@@ -15,6 +15,9 @@ const {
   listCandleParamTesting: { limit, isUseRange, range },
   REWARD,
   RR,
+  isSpecificTime,
+  isShowSL,
+  rangeTime
 } = CONFIG_QUICK_TRADE;
 
 export const BackTestFOMO = async (payload) => {
@@ -47,7 +50,24 @@ export const BackTestFOMO = async (payload) => {
 
     if (listSymbols && listSymbols.length) {
       const promiseCandleData = listSymbols
-        .filter((each) => !["RSRUSDT", "BTCSTUSDT"].includes(each.symbol))
+        .filter(
+          (each) =>
+            ![
+              "RSRUSDT",
+              "BTCSTUSDT",
+              // "BANANAS31USDT",
+              // "SIRENUSDT",
+              // "BROCCOLI714USDT",
+              // "BROCCOLIF3BUSDT",
+              // "TUTUSDT",
+              // "PLUMEUSDT",
+              // "BIDUSDT",
+              // "BRUSDT",
+              // "MUBARAKUSDT",
+              // "BMTUSDT",
+              // "FORMUSDT",
+            ].includes(each.symbol)
+        )
         .map(async (token) => {
           const { symbol, stickPrice } = token;
           const params = {
@@ -55,10 +75,12 @@ export const BackTestFOMO = async (payload) => {
               symbol: symbol,
               interval: timeLine,
               limit: limit, // 388 -- 676 -- 964
-              // startTime: 1740787201000,
-              // startTime: 1739735100000,
             },
           };
+
+          if (rangeTime) {
+            params.data.startTime = rangeTime
+          }
           const res = await fetchApiGetCandleStickData(params);
           return res;
         });
@@ -119,7 +141,6 @@ export const BackTestFOMO = async (payload) => {
               }
             });
 
-          const isViewSL = true;
           const EXCLUDE_TIMESTAMP = [];
 
           const mapInfoSameTimeStampSL = {};
@@ -142,7 +163,7 @@ export const BackTestFOMO = async (payload) => {
             }
           });
 
-          const useMapInfo = isViewSL
+          const useMapInfo = isShowSL
             ? mapInfoSameTimeStampSL
             : mapInfoSameTimeStampTP;
 
@@ -160,20 +181,39 @@ export const BackTestFOMO = async (payload) => {
             []
           );
 
+          const findListSpecificTimeOrder = Object.keys(useMapInfo).reduce(
+            (acc, key) => {
+              if (
+                !EXCLUDE_TIMESTAMP.includes(key) &&
+                useMapInfo[key] &&
+                useMapInfo[key].length
+              ) {
+                acc.push(useMapInfo[key][0]);
+              }
+
+              return acc;
+            },
+            []
+          );
+
+          const listTimeOrderWillShow = isSpecificTime
+            ? findListSpecificTimeOrder
+            : findListSameTimeStampHighest;
+
           if (true && !isCheckWinRate) {
             // Dùng cho việc log ra các lệnh SL\TP, cho việc đánh giá lý do tại sao lệnh chạm SL
             let tempMess = [];
-            for (let i = 0; i < findListSameTimeStampHighest.length; i++) {
+            for (let i = 0; i < listTimeOrderWillShow.length; i++) {
               if (i > 20) break;
               if (i % 5 === 0 && i !== 0) {
-                tempMess.push(findListSameTimeStampHighest[i]);
+                tempMess.push(listTimeOrderWillShow[i]);
                 bot.sendMessage(chatId, `${tempMess.join("")}`, {
                   parse_mode: "HTML",
                   disable_web_page_preview: true,
                 });
                 tempMess = [];
               } else {
-                tempMess.push(findListSameTimeStampHighest[i]);
+                tempMess.push(listTimeOrderWillShow[i]);
               }
             }
             if (tempMess.length) {
@@ -199,9 +239,7 @@ export const BackTestFOMO = async (payload) => {
               2
             )}\n+ Win: ${totalWin} \n+ Lose: ${totalLose}\n+ Total: ${totalOrder} - ${totalLong} LONG - ${totalShort} SHORT\n+Win Rate: ${
               (totalWin * 100) / (totalWin + totalLose)
-            }% \n ${
-              findListSameTimeStampHighest.length
-            }\n-------------\n+ TP: ${
+            }% \n ${listTimeOrderWillShow.length}\n-------------\n+ TP: ${
               Object.keys(mapInfoSameTimeStampTP).length
             } \n+ SL: ${Object.keys(mapInfoSameTimeStampSL).length}`
           );

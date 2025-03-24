@@ -746,6 +746,26 @@ export const getMaxOnListCandle = (
   return infoMax;
 };
 
+export const checkTrendingLine = (candleStickData, gap = 0, typeCandle = 4) => {
+  let result = "";
+  const maxInfo = getMaxOnListCandle(candleStickData, typeCandle, 1);
+  const minInfo = getMinOnListCandle(candleStickData, typeCandle, 1);
+
+  if (
+    maxInfo.index > minInfo.index &&
+    Math.abs(maxInfo.index - minInfo.index) > gap
+  ) {
+    result = "up";
+  } else if (
+    maxInfo.index < minInfo.index &&
+    Math.abs(maxInfo.index - minInfo.index) > gap
+  ) {
+    result = "down";
+  }
+
+  return result;
+};
+
 export const getMinMaxAndIndexOnListCandle = (
   listCandle,
   key = "", // min --- max
@@ -829,6 +849,48 @@ export const forecastTrending = (candleStickData) => {
   return type;
 };
 
+export const countContinueDow = (candleStickData) => {
+  let tempCountDown = 0;
+  let count = 0;
+
+  candleStickData.forEach((candle) => {
+    if (
+      isDownCandle(candle) ||
+      (tempCountDown && candle[4] / candle[1] < 1.001)
+    ) {
+      tempCountDown += 1;
+    } else if (count < tempCountDown) {
+      count = tempCountDown;
+      tempCountDown = 0;
+    } else {
+      tempCountDown = 0;
+    }
+  });
+
+  return count;
+};
+
+export const countContinueUp = (candleStickData) => {
+  let tempCountUp = 0;
+  let count = 0;
+
+  candleStickData.forEach((candle) => {
+    if (
+      isUpCandle(candle) ||
+      (tempCountUp && candle[1] / candle[4] < 1.001)
+    ) {
+      tempCountUp += 1;
+    } else if (count < tempCountUp) {
+      count = tempCountUp;
+      tempCountUp = 0;
+    } else {
+      tempCountUp = 0;
+    }
+  });
+
+  return count;
+};
+
 export const findContinueSameTypeCandle = (
   candleStickData,
   minimumFractionalPart = 0
@@ -843,7 +905,8 @@ export const findContinueSameTypeCandle = (
     if (isDownCandle(candle)) {
       if (
         countUp &&
-        Math.abs(candle[4] - candle[1]) <= minimumFractionalPart * 3
+        // Math.abs(candle[4] - candle[1]) <= minimumFractionalPart * 3 ||
+        candle[1] / candle[4] < 1.001
       ) {
         countUp += 1;
       } else {
@@ -854,7 +917,8 @@ export const findContinueSameTypeCandle = (
     } else if (isUpCandle(candle) || (countUp && candle[4] - candle[1] === 0)) {
       if (
         countDown &&
-        Math.abs(candle[4] - candle[1]) <= minimumFractionalPart * 3
+        // Math.abs(candle[4] - candle[1]) <= minimumFractionalPart * 3 ||
+        candle[4] / candle[1] < 1.001
       ) {
         countDown += 1;
       } else {

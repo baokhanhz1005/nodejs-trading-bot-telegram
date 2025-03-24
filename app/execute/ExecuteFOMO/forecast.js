@@ -152,7 +152,7 @@ const handleFOMOMethod = ({
         funding: (COST * 0.1) / slPercent,
         maxPrice: +entry,
         minPrice: +entry,
-        avgPrice: (+entry + ratePriceSL * +entry) / 2,
+        avgPrice: +entry + (ratePriceSL * +entry - +entry) * 0.5,
       };
 
       dataForeCast.orderInfo = newOrder;

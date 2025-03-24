@@ -1,4 +1,7 @@
 import {
+  checkTrendingLine,
+  countContinueDow,
+  countContinueUp,
   exchangePrice,
   findContinueSameTypeCandle,
   getListHighest,
@@ -125,55 +128,38 @@ const checkPattern = (candleStickData, symbol, typeCheck) => {
   const min3Range15 = getMinOnListCandle(rangeCandle15, 3);
   const max2Range15 = getMaxOnListCandle(rangeCandle15, 2);
 
+  const trendLine = checkTrendingLine(rangeCandle75);
+
   if (
     true &&
     (!typeCheck || typeCheck === 1) &&
     isUpCandle(lastestCandle, "up")
   ) {
-    const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * RATE_SL;
-    const rateExchangeCandle = lastestCandle[4] / lastestCandle[1];
+    const EstRR = (lastestCandle[4] / thirdLastCandle[3] - 1) * 100 * RATE_SL;
+
     // condition
-    const COND_1 = EstRR > 1.5 && EstRR < 3;
+    const CONDITION = {
+      COND_1: () => EstRR > 1 && EstRR < 1.5,
+      COND_2: () =>
+        // isUpCandle(thirdLastCandle) &&
+        lastestCandle[3] - thirdLastCandle[2] > 0 &&
+        (lastestCandle[3] - thirdLastCandle[2]) / exchangePrice(prevCandle) >
+          0.75,
+      COND_3: () => trendLine === "up",
+      COND_4: () => countContinueDow(rangeCandle30) <= 4,
+      COND_5: () =>
+        !rangeCandle15.some(
+          (candle) =>
+            isDownCandle(candle) &&
+            exchangePrice(candle) > lastestCandle[4] - thirdLastCandle[3]
+        ),
+      // COND_6: () =>
+      //   (maxRange30 / minRange30 - 1) /
+      //     (lastestCandle[4] / thirdLastCandle[3] - 1) >=
+      //   3,
+    };
 
-    const COND_2 = maxContinueDown <= 4;
-
-    const COND_3 = (() => {
-      const motherCandle = rangeCandle10.reduce((acc, candle, index) => {
-        const nextCandle = rangeCandle10[index + 1];
-        if (index === rangeCandle10.length - 1) {
-          return acc;
-        } else if (acc) {
-          if (candle[4] > acc[2] || candle[4] < acc[3]) {
-            return null;
-          }
-        } else if (
-          nextCandle &&
-          exchangePrice(candle) > minimumFractionalPart * 5 &&
-          nextCandle[2] < candle[2] &&
-          nextCandle[3] > candle[3]
-        ) {
-          return candle;
-        }
-
-        return acc;
-      }, null);
-
-      return motherCandle && lastestCandle[4] > motherCandle[2];
-    })();
-
-    const COND_4 =
-      (maxRange30 / lastestCandle[4] - 1) /
-        (lastestCandle[4] / lastestCandle[1] - 1) >=
-      2;
-
-    const COND_5 =
-      (maxRange50 / lastestCandle[4] - 1) /
-        (lastestCandle[4] / lastestCandle[1] - 1) <=
-      3;
-
-    const COND_6 = lastestCandle[4] / lastestCandle[1] <= 1.005;
-
-    const isPassCondition = [COND_1, COND_2, COND_3].every((cond) => !!cond);
+    const isPassCondition = Object.values(CONDITION).every((cond) => cond());
 
     if (true && isPassCondition) {
       slPercent = EstRR;
@@ -187,50 +173,27 @@ const checkPattern = (candleStickData, symbol, typeCheck) => {
     (!typeCheck || typeCheck === 2) &&
     isDownCandle(lastestCandle, "down")
   ) {
-    const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * RATE_SL;
+    const EstRR = (thirdLastCandle[2] / lastestCandle[4] - 1) * 100 * RATE_SL;
 
     // condition
-    const COND_1 = EstRR > 1.5 && EstRR < 3;
+    const CONDITION = {
+      COND_1: () => EstRR > 1 && EstRR < 1.5,
+      COND_2: () =>
+        isDownCandle(thirdLastCandle) &&
+        thirdLastCandle[3] - lastestCandle[2] > 0 &&
+        (thirdLastCandle[3] - lastestCandle[2]) / exchangePrice(prevCandle) >
+          0.75,
+      COND_3: () => trendLine === "down",
+      COND_4: () => countContinueUp(rangeCandle30) <= 4,
+      // COND_5: () =>
+      //   !rangeCandle15.some(
+      //     (candle) =>
+      //       isUpCandle(candle) &&
+      //       exchangePrice(candle) > thirdLastCandle[2] - lastestCandle[4]
+      //   ),
+    };
 
-    const COND_2 = maxContinueUp <= 4;
-
-    const COND_3 = (() => {
-      const motherCandle = rangeCandle10.reduce((acc, candle, index) => {
-        const nextCandle = rangeCandle10[index + 1];
-        if (index === rangeCandle10.length - 1) {
-          return acc;
-        } else if (acc) {
-          if (candle[4] > acc[2] || candle[4] < acc[3]) {
-            return null;
-          }
-        } else if (
-          nextCandle &&
-          exchangePrice(candle) > minimumFractionalPart * 5 &&
-          nextCandle[2] < candle[2] &&
-          nextCandle[3] > candle[3]
-        ) {
-          return candle;
-        }
-
-        return acc;
-      }, null);
-
-      return motherCandle && lastestCandle[4] < motherCandle[3];
-    })();
-
-    const COND_4 =
-      (lastestCandle[4] / minRange30 - 1) /
-        (lastestCandle[1] / lastestCandle[4] - 1) >=
-      2;
-
-    const COND_5 =
-      (lastestCandle[4] / minRange50 - 1) /
-        (lastestCandle[1] / lastestCandle[4] - 1) <=
-      3;
-
-    const COND_6 = lastestCandle[1] / lastestCandle[4] <= 1.005;
-
-    const isPassCondition = [COND_1, COND_2, COND_3].every((cond) => !!cond);
+    const isPassCondition = Object.values(CONDITION).every((cond) => cond());
 
     if (true && isPassCondition) {
       slPercent = EstRR;
