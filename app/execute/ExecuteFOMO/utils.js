@@ -179,7 +179,7 @@ const checkPattern = (candleStickData, symbol, typeCheck) => {
     const CONDITION = {
       COND_1: () => EstRR > 1 && EstRR < 1.5,
       COND_2: () =>
-        isDownCandle(thirdLastCandle) &&
+        // isDownCandle(thirdLastCandle) &&
         thirdLastCandle[3] - lastestCandle[2] > 0 &&
         (thirdLastCandle[3] - lastestCandle[2]) / exchangePrice(prevCandle) >
           0.75,
