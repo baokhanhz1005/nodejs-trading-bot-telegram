@@ -44,7 +44,6 @@ export const ExecuteFOMO = async (payload) => {
     const isHasTrackingData = timeMinute % 5 === 0; // use candle 5m
 
     if (isHasTrackingData) {
-      bot.sendMessage(chatId, "🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯");
       const promiseDataCandles = shuffleArr(listSymbols)
         .map((tokenInfo) => {
           const { symbol, stickPrice } = tokenInfo;
@@ -152,7 +151,7 @@ export const ExecuteFOMO = async (payload) => {
                 tpPercent,
                 slPercent,
                 timeStamp,
-                entry
+                entry,
               } = checkAbleQuickOrder(candleStickData, symbolCandle);
 
               if (
@@ -162,13 +161,13 @@ export const ExecuteFOMO = async (payload) => {
               ) {
                 const ratePriceSL =
                   type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
-    
+
                 const message = `${
                   type === "up" ? "🟢🟢" : "🔴🔴"
                 } ${buildLinkToSymbol(symbolCandle)} ${
                   type === "up" ? "BULL" : "BEAR"
                 } SIGNAL ${slPercent}%`;
-    
+
                 bot.sendMessage(chatId, message, {
                   reply_markup: {
                     inline_keyboard: [
@@ -231,9 +230,10 @@ export const ExecuteFOMO = async (payload) => {
         Date.now()
       );
 
-      if ((timeMinute - 1) % 5 === 0) {
+      if (timeMinute % 31 === 0) {
+        bot.sendMessage(chatId, "🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯");
         BackTestFOMO({ ...payload, typeCheck: 1, isCheckWinRate: true });
-      } else if ((timeMinute - 2) % 5 === 0) {
+      } else if (timeMinute % 32 === 0) {
         BackTestFOMO({ ...payload, typeCheck: 2, isCheckWinRate: true });
       }
       //  else if ((timeMinute - 3) % 5 === 0) {
