@@ -17,7 +17,9 @@ const {
   RR,
   isSpecificTime,
   isShowSL,
-  rangeTime
+  rangeTime,
+  excludeTimeStamp,
+  loopData,
 } = CONFIG_QUICK_TRADE;
 
 export const BackTestFOMO = async (payload) => {
@@ -28,6 +30,8 @@ export const BackTestFOMO = async (payload) => {
       timeLine,
       typeCheck = "",
       isCheckWinRate = false,
+      rangeTimePayload,
+      CURRENT_LOOP_PAYLOAD,
     } = payload;
 
     let dataCandle;
@@ -35,6 +39,8 @@ export const BackTestFOMO = async (payload) => {
       timeLine === "1m" ? checkAbleQuickOrder1M : checkAbleQuickOrder;
 
     const listSymbols = await fetchApiGetListingSymbols();
+
+    let CURRENT_LOOP = CURRENT_LOOP_PAYLOAD || 0;
 
     let R = 0;
     let totalOrder = 0;
@@ -45,7 +51,7 @@ export const BackTestFOMO = async (payload) => {
     let totalProfit = 0;
     let totalLong = 0;
     let totalShort = 0;
-
+    let newestRangeTime = null;
     const listOrderRunning = [];
 
     if (listSymbols && listSymbols.length) {
@@ -55,19 +61,34 @@ export const BackTestFOMO = async (payload) => {
             ![
               "RSRUSDT",
               "BTCSTUSDT",
-              // "BANANAS31USDT",
-              // "SIRENUSDT",
-              // "BROCCOLI714USDT",
-              // "BROCCOLIF3BUSDT",
-              // "TUTUSDT",
-              // "PLUMEUSDT",
-              // "BIDUSDT",
-              // "BRUSDT",
-              // "MUBARAKUSDT",
-              // "BMTUSDT",
-              // "FORMUSDT",
+              "BANANAS31USDT",
+              "SIRENUSDT",
+              "BROCCOLI714USDT",
+              "BROCCOLIF3BUSDT",
+              "TUTUSDT",
+              "PLUMEUSDT",
+              "BIDUSDT",
+              "BRUSDT",
+              "MUBARAKUSDT",
+              "BMTUSDT",
+              "FORMUSDT",
+              "JELLYJELLYUSDT",
             ].includes(each.symbol)
         )
+        // .filter((each) =>
+        //   [
+        //     "BTCUSDT",
+        //     "ETHUSDT",
+        //     "BNBUSDT",
+        //     "SOLUSDT",
+        //     "ADAUSDT",
+        //     "XRPUSDT",
+        //     "DOTUSDT",
+        //     "AVAXUSDT",
+        //     "LTCUSDT",
+        //     "DOGEUSDT",
+        //   ].includes(each.symbol)
+        // )
         .map(async (token) => {
           const { symbol, stickPrice } = token;
           const params = {
@@ -78,8 +99,8 @@ export const BackTestFOMO = async (payload) => {
             },
           };
 
-          if (rangeTime) {
-            params.data.startTime = rangeTime
+          if (rangeTime || rangeTimePayload) {
+            params.data.startTime = rangeTimePayload || rangeTime;
           }
           const res = await fetchApiGetCandleStickData(params);
           return res;
@@ -93,10 +114,19 @@ export const BackTestFOMO = async (payload) => {
               const { symbol: symbolCandle, data: candleStickData } =
                 candleInfo;
 
+              if (symbolCandle === "BTCUSDT") {
+                newestRangeTime = candleStickData.slice(-1)[0][0];
+              }
+
+              let lim = 5;
+              if (timeLine === "1m") {
+                lim = 999999999;
+              }
+
               if (
                 candleStickData &&
                 candleStickData.length &&
-                (false || candleStickData.slice(-1)[0][4] < 5) &&
+                (false || candleStickData.slice(-1)[0][4] < lim) &&
                 validatePriceForTrade(+candleStickData.slice(-1)[0][4])
               ) {
                 const payload = {
@@ -106,7 +136,7 @@ export const BackTestFOMO = async (payload) => {
                   method: {
                     methodFn,
                     config: {
-                      rangeCandleInfo: 150,
+                      rangeCandleInfo: 201,
                       symbol: symbolCandle,
                     },
                   },
@@ -141,8 +171,6 @@ export const BackTestFOMO = async (payload) => {
               }
             });
 
-          const EXCLUDE_TIMESTAMP = [];
-
           const mapInfoSameTimeStampSL = {};
           listInfoSL.forEach((info) => {
             const timeStamp = info.split("-")[0];
@@ -170,7 +198,7 @@ export const BackTestFOMO = async (payload) => {
           const findListSameTimeStampHighest = Object.keys(useMapInfo).reduce(
             (acc, key) => {
               if (
-                !EXCLUDE_TIMESTAMP.includes(key) &&
+                !excludeTimeStamp.includes(key) &&
                 acc.length < useMapInfo[key].length
               ) {
                 return useMapInfo[key];
@@ -184,7 +212,7 @@ export const BackTestFOMO = async (payload) => {
           const findListSpecificTimeOrder = Object.keys(useMapInfo).reduce(
             (acc, key) => {
               if (
-                !EXCLUDE_TIMESTAMP.includes(key) &&
+                !excludeTimeStamp.includes(key) &&
                 useMapInfo[key] &&
                 useMapInfo[key].length
               ) {
@@ -200,7 +228,7 @@ export const BackTestFOMO = async (payload) => {
             ? findListSpecificTimeOrder
             : findListSameTimeStampHighest;
 
-          if (true && !isCheckWinRate) {
+          if (true && !isCheckWinRate && !loopData) {
             // Dùng cho việc log ra các lệnh SL\TP, cho việc đánh giá lý do tại sao lệnh chạm SL
             let tempMess = [];
             for (let i = 0; i < listTimeOrderWillShow.length; i++) {
@@ -225,24 +253,39 @@ export const BackTestFOMO = async (payload) => {
             }
           }
 
-          bot.sendMessage(
-            chatId,
-            `${
-              typeCheck
-                ? typeCheck === 1
-                  ? "🟢🟢🟢🟢"
-                  : "🔴🔴🔴🔴"
-                : isCheckWinRate
-                ? "🟢🟢🔴🔴"
-                : ""
-            }\n+ Profit: ${(+totalProfit).toFixed(
-              2
-            )}\n+ Win: ${totalWin} \n+ Lose: ${totalLose}\n+ Total: ${totalOrder} - ${totalLong} LONG - ${totalShort} SHORT\n+Win Rate: ${
-              (totalWin * 100) / (totalWin + totalLose)
-            }% \n ${listTimeOrderWillShow.length}\n-------------\n+ TP: ${
-              Object.keys(mapInfoSameTimeStampTP).length
-            } \n+ SL: ${Object.keys(mapInfoSameTimeStampSL).length}`
-          );
+          bot
+            .sendMessage(
+              chatId,
+              `${
+                typeCheck
+                  ? typeCheck === 1
+                    ? "🟢🟢🟢🟢"
+                    : "🔴🔴🔴🔴"
+                  : isCheckWinRate
+                  ? "🟢🟢🔴🔴"
+                  : ""
+              }\n+ Profit: ${(+totalProfit).toFixed(
+                2
+              )}\n+ Win: ${totalWin} \n+ Lose: ${totalLose}\n+ Total: ${totalOrder} -- (${
+                totalOrder - totalWin - totalLose
+              }) - ${totalLong} LONG - ${totalShort} SHORT\n+Win Rate: ${
+                (totalWin * 100) / (totalWin + totalLose)
+              }% \n ${listTimeOrderWillShow.length}\n-------------\n+ TP: ${
+                Object.keys(mapInfoSameTimeStampTP).length
+              } \n+ SL: ${Object.keys(mapInfoSameTimeStampSL).length}\n${
+                +totalProfit > 0 ? "🟢🟢🟢🟢" : "🔴🔴🔴🔴"
+              }`
+            )
+            .then((sentMess) => {
+              if (loopData && CURRENT_LOOP <= loopData && newestRangeTime) {
+                bot.sendMessage(chatId, "-----🎯🎯🎯🎯🎯🎯🎯------");
+                BackTestFOMO({
+                  ...payload,
+                  rangeTimePayload: newestRangeTime,
+                  CURRENT_LOOP_PAYLOAD: CURRENT_LOOP + 1,
+                });
+              }
+            });
         }
       });
     }

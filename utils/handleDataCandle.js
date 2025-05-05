@@ -1,3 +1,4 @@
+import { EMA } from "technicalindicators";
 import { INPUT_CONTROL } from "../app/execute/ExecuteSympleMethod/constant.js";
 import { TYPE_OF_PRICE } from "../constant.js";
 import { buildLinkToSymbol, buildTimeStampToDate } from "../utils.js";
@@ -746,19 +747,23 @@ export const getMaxOnListCandle = (
   return infoMax;
 };
 
-export const checkTrendingLine = (candleStickData, gap = 0, typeCandle = 4) => {
+export const checkTrendingLine = (
+  candleStickData,
+  gap = candleStickData.length - 1,
+  typeCandle = 4
+) => {
   let result = "";
   const maxInfo = getMaxOnListCandle(candleStickData, typeCandle, 1);
   const minInfo = getMinOnListCandle(candleStickData, typeCandle, 1);
 
   if (
     maxInfo.index > minInfo.index &&
-    Math.abs(maxInfo.index - minInfo.index) > gap
+    Math.abs(maxInfo.index - minInfo.index) <= gap
   ) {
     result = "up";
   } else if (
     maxInfo.index < minInfo.index &&
-    Math.abs(maxInfo.index - minInfo.index) > gap
+    Math.abs(maxInfo.index - minInfo.index) <= gap
   ) {
     result = "down";
   }
@@ -875,10 +880,7 @@ export const countContinueUp = (candleStickData) => {
   let count = 0;
 
   candleStickData.forEach((candle) => {
-    if (
-      isUpCandle(candle) ||
-      (tempCountUp && candle[1] / candle[4] < 1.001)
-    ) {
+    if (isUpCandle(candle) || (tempCountUp && candle[1] / candle[4] < 1.001)) {
       tempCountUp += 1;
     } else if (count < tempCountUp) {
       count = tempCountUp;
@@ -1081,4 +1083,27 @@ export const getSmallestFractionPart = (num) => {
   return 10 ** -decimalPart.length;
 };
 
-export const exchangePrice = (candle) => Math.abs(candle[1] - candle[4]);
+export const exchangePrice = (candle, rangeType = [1, 4]) =>
+  Math.abs(candle[rangeType[0]] - candle[rangeType[1]]);
+
+export const getEMA = (period = 0, listCandle = []) => {
+  const infoEMA = new EMA({
+    period,
+    values: listCandle.map((candle) => +candle[4]),
+  });
+
+  const value = infoEMA.getResult()[0];
+
+  return value;
+};
+
+export const getPreListCandle = (
+  candleStickData = [],
+  numPreCandle = 0,
+  length = 0
+) => {
+  return candleStickData.slice(
+    candleStickData.length - numPreCandle - length,
+    candleStickData.length - numPreCandle
+  );
+};

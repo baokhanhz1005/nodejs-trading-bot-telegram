@@ -1,4 +1,5 @@
 import {
+  checkTrendingLine,
   exchangePrice,
   findContinueSameTypeCandle,
   getListHighest,
@@ -20,7 +21,7 @@ import { MODEL_CANDLE_TYPE } from "./constant.js";
 
 const { COST, RR, RATE_SL, limitPeakOrBottom } = CONFIG_QUICK_TRADE;
 
-export const checkAbleQuickOrder1M = (candleStickData, symbol) => {
+export const checkAbleQuickOrder1M = (candleStickData, symbol, typeCheck) => {
   const result = {
     type: "",
     symbol,
@@ -32,24 +33,30 @@ export const checkAbleQuickOrder1M = (candleStickData, symbol) => {
 
   const newData = { ...result };
 
-  const { type, isAllowOrder, slPercent, timeStamp, entry } = checkPattern(
-    candleStickData,
-    symbol
-  );
+  const {
+    type,
+    isAllowOrder,
+    slPercent,
+    timeStamp,
+    entry,
+    tpPercent,
+    methodRR,
+  } = checkPattern(candleStickData, symbol, typeCheck);
 
   if (isAllowOrder) {
     newData.type = type;
     newData.symbol = symbol;
     newData.isAbleOrder = true;
     newData.slPercent = slPercent;
-    newData.tpPercent = slPercent * RR;
+    newData.tpPercent = tpPercent || slPercent * RR;
     newData.timeStamp = timeStamp;
     newData.entry = entry;
+    newData.methodRR = methodRR;
   }
   return newData;
 };
 
-const checkPattern = (candleStickData, symbol) => {
+const checkPattern = (candleStickData, symbol, typeCheck) => {
   //   const count = candleStickData.length;
   const [forthLastCandle, thirdLastCandle, prevCandle, lastestCandle] =
     candleStickData.slice(-4);
@@ -63,7 +70,9 @@ const checkPattern = (candleStickData, symbol) => {
   let type = "";
   let isAllowOrder = false;
   let slPercent = 1;
+  let methodRR = "";
   let timeStamp = "";
+  let tpPercent = null;
 
   if (
     candleStickData &&
@@ -97,6 +106,8 @@ const checkPattern = (candleStickData, symbol) => {
   const rangeCandle30 = candleStickData.slice(-30);
   const rangeCandle50 = candleStickData.slice(-50);
   const rangeCandle75 = candleStickData.slice(-75);
+  const rangeCandle100 = candleStickData.slice(-100);
+
   const minRange15 = getMinOnListCandle(rangeCandle15, 4);
   const maxRange15 = getMaxOnListCandle(rangeCandle15, 4);
   const maxRange30 = getMaxOnListCandle(rangeCandle30, 4);
@@ -117,6 +128,9 @@ const checkPattern = (candleStickData, symbol) => {
   const max2Range15 = getMaxOnListCandle(rangeCandle15, 2);
   const min3Range15 = getMinOnListCandle(rangeCandle15, 3);
 
+  const max2Range30 = getMaxOnListCandle(rangeCandle30, 2);
+  const min3Range30 = getMinOnListCandle(rangeCandle30, 3);
+
   const minimumFractionalPart = getSmallestFractionPart(lastestCandle[4]);
 
   const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
@@ -124,110 +138,110 @@ const checkPattern = (candleStickData, symbol) => {
     minimumFractionalPart
   );
 
-  let typeCandle = "";
+  // init data
+  let CONDITION = {};
+  let currentRR = 1;
+  let EstRR = 1;
 
-  switch (true) {
-    case isDownCandle(prevCandle) && checkFullCandle(lastestCandle, "up"): {
-      typeCandle = MODEL_CANDLE_TYPE.ENGULFING;
-      type = "up";
-      break;
-    }
+  if (
+    true &&
+    (!typeCheck || typeCheck === 1) &&
+    checkTrendingLine(rangeCandle75) === "up"
+  ) {
+    switch (true) {
+      // main trending
 
-    case isUpCandle(prevCandle) && checkFullCandle(lastestCandle, "down"): {
-      typeCandle = MODEL_CANDLE_TYPE.ENGULFING;
-      type = "down";
-      break;
-    }
+      case true: {
+        // mini condition
+        switch (true) {
+          case true && isUpCandle(lastestCandle, "up"): {
+            EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1.5;
+            currentRR = 1;
 
-    case checkFullCandle(
-      lastestCandle,
-      isUpCandle(lastestCandle) ? "up" : "down"
-    ): {
-      typeCandle = MODEL_CANDLE_TYPE.MARUBOZU;
-      type = isUpCandle(lastestCandle) ? "up" : "down";
-      break;
-    }
+            // condition
+            CONDITION = {
+              COND_1: () => EstRR > 0.3 && EstRR < 0.9,
+              // COND_2: () => (maxRange30 / minRange30 - 1) / (EstRR / 100) >= 2,
+              // COND_3: () => +lastestCandle[3] === +min3Range15,
+            };
 
-    case exchangePrice(prevCandle) <= minimumFractionalPart * 3 &&
-      prevCandle[2] / prevCandle[3] <= 1.001 &&
-      (isUpCandle(lastestCandle)
-        ? lastestCandle[4] > prevCandle[2]
-        : lastestCandle[4] < prevCandle[3]): {
-      typeCandle = MODEL_CANDLE_TYPE.DOJI;
-      type = isUpCandle(lastestCandle) ? "up" : "down";
-      break;
-    }
+            const isPassCondition =
+              Object.values(CONDITION).length &&
+              Object.values(CONDITION).every((cond) => cond());
 
-    case isUpCandle(lastestCandle)
-      ? checkPinbar(lastestCandle, "up")
-      : checkPinbar(lastestCandle, "down"): {
-      typeCandle = MODEL_CANDLE_TYPE.PIN_BAR;
-      type = isUpCandle(lastestCandle) ? "up" : "down";
-      break;
-    }
+            if (true && isPassCondition) {
+              slPercent = EstRR;
+              tpPercent = EstRR * currentRR;
+              type = "up";
+              isAllowOrder = true;
+              methodRR = currentRR;
+              timeStamp = lastestCandle[0];
+            }
+            break;
+          }
 
-    default:
-      break;
-  }
-
-  switch (typeCandle) {
-    case MODEL_CANDLE_TYPE.ENGULFING: {
-      if (true && checkFullCandle(lastestCandle, "up")) {
-        const EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * RATE_SL;
-
-        // condition
-        const COND_1 = EstRR > 0.5 && EstRR < 1;
-        const COND_2 = maxContinueDown <= 4;
-        const COND_3 =
-          findContinueSameTypeCandle(rangeCandle15, minimumFractionalPart)
-            .maxContinueUp <= 4;
-
-        const COND_4 =
-          (maxRange150 / lastestCandle[4] - 1) /
-            (lastestCandle[4] / lastestCandle[1] - 1) <=
-          5;
-
-        const isPassCondition = [COND_1, COND_2, COND_3, COND_4].every(
-          (cond) => !!cond
-        );
-
-        if (true && isPassCondition) {
-          slPercent = EstRR;
-          type = "up";
-          isAllowOrder = true;
-
-          timeStamp = lastestCandle[0];
+          default:
+            break;
         }
-      } else if (true && checkFullCandle(lastestCandle, "down")) {
-        const EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * RATE_SL;
 
-        // condition
-        const COND_1 = EstRR > 0.5 && EstRR < 1;
-        const COND_2 = maxContinueUp <= 4;
-        const COND_3 =
-          findContinueSameTypeCandle(rangeCandle15, minimumFractionalPart)
-            .maxContinueDown <= 4;
-
-        const isPassCondition = [COND_1, COND_2, COND_3].every(
-          (cond) => !!cond
-        );
-
-        if (true && isPassCondition) {
-          slPercent = EstRR;
-          type = "down";
-          isAllowOrder = true;
-          timeStamp = lastestCandle[0];
-        }
+        break;
       }
 
-      break;
+      default:
+        break;
     }
+  } else if (false && (!typeCheck || typeCheck === 2) && trendLine === "down") {
+    switch (true) {
+      case checkTrendingLine(rangeCandle100, 60) === "down": {
+        // mini condition
+        switch (true) {
+          case true && checkFullCandle(lastestCandle, "down"): {
+            EstRR = (max2Range30 / lastestCandle[4] - 1) * 100 * 1.3;
+            currentRR = 0.5;
 
-    default:
-      break;
+            // condition
+            CONDITION = {
+              COND_1: () => EstRR > 1 && EstRR < 1.5,
+              COND_2: () => max2Range15 < max2Range30,
+              COND_3: () => isUpCandle(prevCandle),
+            };
+
+            const isPassCondition =
+              Object.values(CONDITION).length &&
+              Object.values(CONDITION).every((cond) => cond());
+
+            if (true && isPassCondition) {
+              slPercent = EstRR;
+              tpPercent = EstRR * currentRR;
+              type = "up";
+              isAllowOrder = true;
+              methodRR = currentRR;
+              timeStamp = lastestCandle[0];
+            }
+            break;
+          }
+
+          default:
+            break;
+        }
+
+        break;
+      }
+
+      default:
+        break;
+    }
   }
 
-  return { type, slPercent, isAllowOrder, timeStamp, entry: lastestCandle[4] };
+  return {
+    type,
+    slPercent,
+    isAllowOrder,
+    timeStamp,
+    entry: lastestCandle[4],
+    tpPercent,
+    methodRR,
+  };
 };
 
 // if (true && checkFullCandle(lastestCandle, "up")) {

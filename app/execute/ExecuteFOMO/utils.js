@@ -1,19 +1,23 @@
+import { EMA } from "technicalindicators";
 import {
   checkTrendingLine,
   countContinueDow,
   countContinueUp,
   exchangePrice,
   findContinueSameTypeCandle,
+  getEMA,
   getListHighest,
   getListLowest,
   getMaxOnListCandle,
   getMinOnListCandle,
+  getPreListCandle,
   getSmallestFractionPart,
   isDownTrending,
   isUpTrending,
 } from "../../../utils/handleDataCandle.js";
 import {
   checkFullCandle,
+  checkPinbar,
   isDownCandle,
   isUpCandle,
 } from "../../../utils/TypeCandle.js";
@@ -33,20 +37,25 @@ export const checkAbleQuickOrder = (candleStickData, symbol, typeCheck) => {
 
   const newData = { ...result };
 
-  const { type, isAllowOrder, slPercent, timeStamp, entry } = checkPattern(
-    candleStickData,
-    symbol,
-    typeCheck
-  );
+  const {
+    type,
+    isAllowOrder,
+    slPercent,
+    timeStamp,
+    entry,
+    tpPercent,
+    methodRR,
+  } = checkPattern(candleStickData, symbol, typeCheck);
 
   if (isAllowOrder) {
     newData.type = type;
     newData.symbol = symbol;
     newData.isAbleOrder = true;
     newData.slPercent = slPercent;
-    newData.tpPercent = slPercent * RR;
+    newData.tpPercent = tpPercent || slPercent * RR;
     newData.timeStamp = timeStamp;
     newData.entry = entry;
+    newData.methodRR = methodRR;
   }
   return newData;
 };
@@ -65,6 +74,8 @@ const checkPattern = (candleStickData, symbol, typeCheck) => {
   let type = "";
   let isAllowOrder = false;
   let slPercent = 1;
+  let methodRR = "";
+  let tpPercent = null;
   let timeStamp = "";
 
   if (
@@ -76,6 +87,12 @@ const checkPattern = (candleStickData, symbol, typeCheck) => {
   }
 
   const threeLatestCandle = candleStickData.slice(-3);
+
+  // EMA
+  const EMA20 = getEMA(20, candleStickData.slice(-20));
+  const EMA50 = getEMA(50, candleStickData.slice(-50));
+  const EMA100 = getEMA(100, candleStickData.slice(-100));
+  const EMA200 = getEMA(200, candleStickData.slice(-200));
 
   // trending
   const closePrices = candleStickData.map((candle) => parseFloat(candle[4]));
@@ -95,19 +112,26 @@ const checkPattern = (candleStickData, symbol, typeCheck) => {
   const isDownTrend = isDownTrending(listLowestValue);
   // && lastestCandle[4] * 0.985 < lastestPeakPrice;
   const limit = 11;
-  const rangeCandle10 = candleStickData.slice(-5);
+  const rangeCandle10 = candleStickData.slice(-10);
   const rangeCandle15 = candleStickData.slice(-15);
   const rangeCandle30 = candleStickData.slice(-30);
+  const rangeCandle20 = candleStickData.slice(-20);
   const rangeCandle50 = candleStickData.slice(-50);
   const rangeCandle75 = candleStickData.slice(-75);
+  const rangeCandle100 = candleStickData.slice(-100);
+
+  const maxRange10 = getMaxOnListCandle(rangeCandle10, 4);
+  const minRange10 = getMinOnListCandle(rangeCandle10, 4);
+
   const maxRange15 = getMaxOnListCandle(rangeCandle15, 4);
   const minRange15 = getMinOnListCandle(rangeCandle15, 4);
 
   const maxRange30 = getMaxOnListCandle(rangeCandle30, 4);
   const minRange30 = getMinOnListCandle(rangeCandle30, 4);
+  const min3Range30 = getMinOnListCandle(rangeCandle30, 3);
 
-  const maxRange50 = getMaxOnListCandle(rangeCandle50, 2);
-  const minRange50 = getMinOnListCandle(rangeCandle50, 3);
+  const maxRange50 = getMaxOnListCandle(rangeCandle50, 4);
+  const minRange50 = getMinOnListCandle(rangeCandle50, 4);
 
   const minRange75 = getMinOnListCandle(rangeCandle75, 4);
   const maxRange75 = getMaxOnListCandle(rangeCandle75, 4);
@@ -115,93 +139,135 @@ const checkPattern = (candleStickData, symbol, typeCheck) => {
   const minRange75Info = getMinOnListCandle(rangeCandle75, 4, 1);
   const maxRange75Info = getMaxOnListCandle(rangeCandle75, 4, 1);
 
+  const maxRange100 = getMaxOnListCandle(rangeCandle100, 4);
+  const minRange100 = getMinOnListCandle(rangeCandle100, 4);
+
   const maxRange150 = getMaxOnListCandle(candleStickData, 4);
   const minRange150 = getMinOnListCandle(candleStickData, 4);
 
   const minimumFractionalPart = getSmallestFractionPart(lastestCandle[4]);
 
   const { maxContinueUp, maxContinueDown } = findContinueSameTypeCandle(
-    rangeCandle50,
+    rangeCandle15,
     minimumFractionalPart
   );
+
+  const min3Range10 = getMinOnListCandle(rangeCandle10, 3);
+  const max2Range10 = getMaxOnListCandle(rangeCandle10, 2);
 
   const min3Range15 = getMinOnListCandle(rangeCandle15, 3);
   const max2Range15 = getMaxOnListCandle(rangeCandle15, 2);
 
-  const trendLine = checkTrendingLine(rangeCandle75);
+  const max2Range30 = getMaxOnListCandle(rangeCandle30, 2);
+  const min3Range50 = getMinOnListCandle(rangeCandle50, 3);
 
-  if (
-    true &&
-    (!typeCheck || typeCheck === 1) &&
-    isUpCandle(lastestCandle, "up")
-  ) {
-    const EstRR = (lastestCandle[4] / thirdLastCandle[3] - 1) * 100 * RATE_SL;
+  const trendLine = checkTrendingLine(candleStickData);
 
-    // condition
-    const CONDITION = {
-      COND_1: () => EstRR > 1 && EstRR < 1.5,
-      COND_2: () =>
-        // isUpCandle(thirdLastCandle) &&
-        lastestCandle[3] - thirdLastCandle[2] > 0 &&
-        (lastestCandle[3] - thirdLastCandle[2]) / exchangePrice(prevCandle) >
-          0.75,
-      COND_3: () => trendLine === "up",
-      COND_4: () => countContinueDow(rangeCandle30) <= 4,
-      COND_5: () =>
-        !rangeCandle15.some(
-          (candle) =>
-            isDownCandle(candle) &&
-            exchangePrice(candle) > lastestCandle[4] - thirdLastCandle[3]
-        ),
-      // COND_6: () =>
-      //   (maxRange30 / minRange30 - 1) /
-      //     (lastestCandle[4] / thirdLastCandle[3] - 1) >=
-      //   3,
-    };
+  // init data
+  let CONDITION = {};
+  let currentRR = 1;
+  let EstRR = 1;
 
-    const isPassCondition = Object.values(CONDITION).every((cond) => cond());
+  const isUpEMA = EMA100 > EMA200;
+  const isDownEMA = EMA200 > EMA100;
 
-    if (true && isPassCondition) {
-      slPercent = EstRR;
-      type = "up";
-      isAllowOrder = true;
+  if (true && isUpEMA) {
+    switch (true) {
+      // main trending
 
-      timeStamp = lastestCandle[0];
+      case EMA20 > EMA50: {
+        // mini condition
+        switch (true) {
+          case true && lastestCandle[3] > EMA20: {
+            EstRR = (lastestCandle[4] / EMA20 - 1) * 100 * 1.5;
+            currentRR = 1;
+
+            // condition
+            CONDITION = {
+              COND_1: () => EstRR > 0.4 && EstRR < 0.6,
+              COND_2: () =>
+                checkFullCandle(forthLastCandle, "up") &&
+                lastestCandle[4] > forthLastCandle[4],
+              // COND_3: () =>
+              //   rangeCandle10.slice(-3).every((candle) => +candle[5] < +lastestCandle[5]),
+            };
+
+            const isPassCondition =
+              Object.values(CONDITION).length &&
+              Object.values(CONDITION).every((cond) => cond());
+
+            if (true && isPassCondition) {
+              slPercent = EstRR;
+              tpPercent = EstRR * currentRR;
+              type = "up";
+              isAllowOrder = true;
+              methodRR = currentRR;
+              timeStamp = lastestCandle[0];
+            }
+            break;
+          }
+
+          default:
+            break;
+        }
+
+        break;
+      }
+
+      default:
+        break;
     }
-  } else if (
-    true &&
-    (!typeCheck || typeCheck === 2) &&
-    isDownCandle(lastestCandle, "down")
-  ) {
-    const EstRR = (thirdLastCandle[2] / lastestCandle[4] - 1) * 100 * RATE_SL;
+  } else if (true && isDownEMA) {
+    switch (true) {
+      case EMA20 < EMA50: {
+        // mini condition
+        switch (true) {
+          case true && lastestCandle[2] < EMA20: {
+            EstRR = (EMA20 / lastestCandle[4] - 1) * 100 * 1.5;
+            currentRR = 1;
 
-    // condition
-    const CONDITION = {
-      COND_1: () => EstRR > 1 && EstRR < 1.5,
-      COND_2: () =>
-        // isDownCandle(thirdLastCandle) &&
-        thirdLastCandle[3] - lastestCandle[2] > 0 &&
-        (thirdLastCandle[3] - lastestCandle[2]) / exchangePrice(prevCandle) >
-          0.75,
-      COND_3: () => trendLine === "down",
-      COND_4: () => countContinueUp(rangeCandle30) <= 4,
-      // COND_5: () =>
-      //   !rangeCandle15.some(
-      //     (candle) =>
-      //       isUpCandle(candle) &&
-      //       exchangePrice(candle) > thirdLastCandle[2] - lastestCandle[4]
-      //   ),
-    };
+            // condition
+            CONDITION = {
+              COND_1: () => EstRR > 0.4 && EstRR < 0.6,
+              COND_2: () =>
+                checkFullCandle(forthLastCandle, "down") &&
+                lastestCandle[4] < forthLastCandle[4],
+            };
 
-    const isPassCondition = Object.values(CONDITION).every((cond) => cond());
+            const isPassCondition =
+              Object.values(CONDITION).length &&
+              Object.values(CONDITION).every((cond) => cond());
 
-    if (true && isPassCondition) {
-      slPercent = EstRR;
-      type = "down";
-      isAllowOrder = true;
-      timeStamp = lastestCandle[0];
+            if (true && isPassCondition) {
+              slPercent = EstRR;
+              tpPercent = EstRR * currentRR;
+              type = "down";
+              isAllowOrder = true;
+              methodRR = currentRR;
+              timeStamp = lastestCandle[0];
+            }
+            break;
+          }
+
+          default:
+            break;
+        }
+
+        break;
+      }
+
+      default:
+        break;
     }
   }
 
-  return { type, slPercent, isAllowOrder, timeStamp, entry: lastestCandle[4] };
+  return {
+    type,
+    slPercent,
+    isAllowOrder,
+    timeStamp,
+    entry: lastestCandle[4],
+    tpPercent,
+    methodRR,
+  };
 };

@@ -13,7 +13,7 @@ export const handleOrderSymbol = async (payload) => {
     chatId,
     timeLine,
     command,
-    RR = RR_MANUAL_ORDER || RR_QUICK,
+    RR = RR_QUICK,
   } = payload;
   // ex: order ABCUSDT 1.232 up 1 isCheckHasCurrentOrder
   const arrayCommand = command.split(" ");

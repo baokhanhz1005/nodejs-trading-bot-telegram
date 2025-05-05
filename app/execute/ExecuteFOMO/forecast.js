@@ -1,7 +1,8 @@
 import { buildLinkToSymbol, buildTimeStampToDate } from "../../../utils.js";
 import { CONFIG_QUICK_TRADE } from "./config.js";
 
-const { RR, COST } = CONFIG_QUICK_TRADE;
+const { RR, COST, isLevelPow, maxLevelPow, isHitSLMode, limitHitSL } =
+  CONFIG_QUICK_TRADE;
 
 export const ForeCastMethodFOMO = (data) => {
   const {
@@ -32,6 +33,8 @@ export const ForeCastMethodFOMO = (data) => {
       markType: "",
       data,
     },
+    levelPow: 0,
+    currentHitSL: 0,
   };
 
   if (rangeCandleInfo && candleStickData.length > rangeCandleInfo) {
@@ -64,16 +67,43 @@ const handleFOMOMethod = ({
   listCandleInfo.pop();
   if (dataForeCast.orderInfo) {
     // handle run trailing here
-    const { entry, tp, sl, type, timeStamp, percent, funding } =
-      dataForeCast.orderInfo;
+    const {
+      entry,
+      tp,
+      sl,
+      type,
+      timeStamp,
+      percent,
+      funding,
+      methodRR,
+      // levelPow,
+    } = dataForeCast.orderInfo;
 
+    const levelPow = dataForeCast.levelPow;
+    const currentHitSL = dataForeCast.currentHitSL;
     const maxCurrentPrice = currentCandle[2];
     const minCurrentPrice = currentCandle[3];
 
-    const profit = RR * COST - funding;
-    const lost = -(COST + funding);
+    const currentRR = methodRR || RR;
 
-    if (type === "up" && minCurrentPrice <= sl) {
+    const profit = currentRR * COST * Math.pow(2, levelPow) - funding;
+    const lost = -(COST * Math.pow(2, levelPow) + funding);
+
+    if (isHitSLMode & (currentHitSL <= limitHitSL)) {
+      if (
+        (type === "up" && minCurrentPrice <= sl) ||
+        (type === "down" && maxCurrentPrice >= sl)
+      ) {
+        dataForeCast.currentHitSL += 1;
+        dataForeCast.orderInfo = null;
+      } else if (
+        (type === "up" && maxCurrentPrice >= tp) ||
+        (type === "down" && minCurrentPrice <= tp)
+      ) {
+        dataForeCast.currentHitSL = limitHitSL + 1;
+        dataForeCast.orderInfo = null;
+      }
+    } else if (type === "up" && minCurrentPrice <= sl) {
       dataForeCast.infoSL.push(
         `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
           symbol
@@ -81,7 +111,11 @@ const handleFOMOMethod = ({
       );
       dataForeCast.countSL += 1;
       dataForeCast.profit += lost;
+      if (isLevelPow) {
+        dataForeCast.levelPow = levelPow + 1 >= maxLevelPow ? 0 : levelPow + 1;
+      }
       dataForeCast.orderInfo = null;
+      dataForeCast.currentHitSL = 0;
     } else if (type === "down" && maxCurrentPrice >= sl) {
       dataForeCast.infoSL.push(
         `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
@@ -90,29 +124,37 @@ const handleFOMOMethod = ({
       );
       dataForeCast.countSL += 1;
       dataForeCast.profit += lost;
+      if (isLevelPow) {
+        dataForeCast.levelPow = levelPow + 1 >= maxLevelPow ? 0 : levelPow + 1;
+      }
       dataForeCast.orderInfo = null;
+      dataForeCast.currentHitSL = 0;
     } else if (type === "up" && maxCurrentPrice >= tp) {
       // if (dataForeCast.orderInfo.minPrice < dataForeCast.orderInfo.avgPrice) {
-        dataForeCast.infoTP.push(
-          `${timeStamp}-${buildTimeStampToDate(
-            timeStamp
-          )} - ${buildLinkToSymbol(symbol)} - LONG\n`
-        );
-        dataForeCast.countTP += 1;
-        dataForeCast.profit += profit;
+      dataForeCast.infoTP.push(
+        `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
+          symbol
+        )} - LONG\n`
+      );
+      dataForeCast.countTP += 1;
+      dataForeCast.profit += profit;
+      dataForeCast.levelPow = 0;
       // }
+      dataForeCast.currentHitSL = limitHitSL + 1;
       dataForeCast.orderInfo = null;
     } else if (type === "down" && minCurrentPrice <= tp) {
       // if (dataForeCast.orderInfo.maxPrice > dataForeCast.orderInfo.avgPrice) {
-        dataForeCast.infoTP.push(
-          `${timeStamp}-${buildTimeStampToDate(
-            timeStamp
-          )} - ${buildLinkToSymbol(symbol)} - SHORT\n`
-        );
-        dataForeCast.countTP += 1;
-        dataForeCast.profit += profit;
+      dataForeCast.infoTP.push(
+        `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
+          symbol
+        )} - SHORT\n`
+      );
+      dataForeCast.countTP += 1;
+      dataForeCast.profit += profit;
+      dataForeCast.levelPow = 0;
       // }
       dataForeCast.orderInfo = null;
+      dataForeCast.currentHitSL = limitHitSL + 1;
     } else {
       dataForeCast.orderInfo.maxPrice =
         dataForeCast.orderInfo.maxPrice < maxCurrentPrice
@@ -127,13 +169,14 @@ const handleFOMOMethod = ({
   } else {
     const {
       type,
-      symbol,
+      symbol: symbolOrder,
       isAbleOrder = false,
       tpPercent,
       slPercent,
       entry,
       timeStamp,
-    } = methodFn(listCandleInfo, "", typeCheck) || {};
+      methodRR,
+    } = methodFn(listCandleInfo, symbol, typeCheck) || {};
 
     if (isAbleOrder && (type === "up" || type === "down")) {
       const ratePriceTP =
@@ -149,10 +192,12 @@ const handleFOMOMethod = ({
         type,
         timeStamp,
         percent: slPercent,
-        funding: (COST * 0.1) / slPercent,
+        funding: (COST * 0.1 * Math.pow(2, dataForeCast.levelPow)) / slPercent,
         maxPrice: +entry,
         minPrice: +entry,
         avgPrice: +entry + (ratePriceSL * +entry - +entry) * 0.5,
+        methodRR,
+        // levelPow: dataForeCast.levelPow,
       };
 
       dataForeCast.orderInfo = newOrder;
