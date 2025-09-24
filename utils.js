@@ -63,6 +63,12 @@ export const fetchApiGetListingSymbols = async () => {
   return listSymbols.filter(Boolean);
 };
 
+export const fetchApiGetAllCurrentPrice = async () => {
+  const response = await GetCandleService.getListPrice();
+
+  return response?.data || [];
+};
+
 export const fetchApiGetCandleStickData = async (params) => {
   try {
     const { symbol } = params.data;
@@ -198,6 +204,49 @@ function calculateAverage(values) {
   // console.log("valueeee", values);
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
+
+export const fetchAllCandles = async (
+  symbol,
+  interval,
+  limit = 500,
+  startTime = ''
+) => {
+  let allCandles = [];
+  let hasMore = true;
+  let currentStart = startTime;
+
+  while (hasMore) {
+    const params = {
+      data: {
+        symbol,
+        interval,
+        limit,
+        startTime: currentStart,
+      },
+    };
+
+    const res = await fetchApiGetCandleStickData(params);
+    if (!res?.data?.length) break;
+
+    allCandles.push(...res.data);
+
+    if (symbol === "DOGSUSDT") {
+      console.log(allCandles.length);
+    }
+
+    const lastCandle = res.data[res.data.length - 1];
+    const lastTime = lastCandle[0];
+
+    if (lastTime >= Date.now() - 60_000) {
+      hasMore = false;
+    } else {
+      currentStart = lastTime + 1;
+      await new Promise((r) => setTimeout(r, 200));
+    }
+  }
+
+  return { symbol, data: allCandles };
+};
 
 export const buildTimeStampToDate = (timestamp) => {
   let result = "";

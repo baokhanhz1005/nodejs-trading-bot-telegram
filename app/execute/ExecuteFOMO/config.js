@@ -13,13 +13,13 @@ export const CONFIG_QUICK_TRADE = {
   },
   isSpecificTime: true,
   // isShowSL: true,
-  // rangeTime: 1742007601000, // comment its when no use
+  rangeTime: 1742007601000, // comment its when no use
   // rangeTime: 1743562801000, // comment its when no use
   // loopData: 40,
 
   // hit SL mode
   // isHitSLMode: true,
-  limitHitSL: 1,
+  // limitHitSL: 1,
   
   // ---------- level pow ------------
   isLevelPow: false,

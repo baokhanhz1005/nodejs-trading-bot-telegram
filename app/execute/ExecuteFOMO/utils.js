@@ -174,22 +174,20 @@ const checkPattern = (candleStickData, symbol, typeCheck) => {
   if (true && isUpEMA) {
     switch (true) {
       // main trending
-
-      case EMA20 > EMA50: {
+      case EMA20 < EMA50: {
         // mini condition
         switch (true) {
-          case true && lastestCandle[3] > EMA20: {
-            EstRR = (lastestCandle[4] / EMA20 - 1) * 100 * 1.5;
+          case true && lastestCandle[2] < EMA20: {
+            EstRR = (EMA20 / lastestCandle[4] - 1) * 100 * 1.25;
             currentRR = 1;
 
             // condition
             CONDITION = {
-              COND_1: () => EstRR > 0.4 && EstRR < 0.6,
+              COND_1: () => EstRR > 0.35 && EstRR < 0.6,
               COND_2: () =>
-                checkFullCandle(forthLastCandle, "up") &&
-                lastestCandle[4] > forthLastCandle[4],
-              // COND_3: () =>
-              //   rangeCandle10.slice(-3).every((candle) => +candle[5] < +lastestCandle[5]),
+                checkFullCandle(forthLastCandle, "down") &&
+                lastestCandle[4] < forthLastCandle[4] &&
+                isDownCandle(lastestCandle),
             };
 
             const isPassCondition =
@@ -199,7 +197,7 @@ const checkPattern = (candleStickData, symbol, typeCheck) => {
             if (true && isPassCondition) {
               slPercent = EstRR;
               tpPercent = EstRR * currentRR;
-              type = "up";
+              type = "down";
               isAllowOrder = true;
               methodRR = currentRR;
               timeStamp = lastestCandle[0];
@@ -219,19 +217,22 @@ const checkPattern = (candleStickData, symbol, typeCheck) => {
     }
   } else if (true && isDownEMA) {
     switch (true) {
-      case EMA20 < EMA50: {
+      case EMA20 > EMA50: {
         // mini condition
         switch (true) {
-          case true && lastestCandle[2] < EMA20: {
-            EstRR = (EMA20 / lastestCandle[4] - 1) * 100 * 1.5;
+          case true && lastestCandle[3] > EMA20: {
+            EstRR = (lastestCandle[4] / EMA20 - 1) * 100 * 1.25;
             currentRR = 1;
 
             // condition
             CONDITION = {
-              COND_1: () => EstRR > 0.4 && EstRR < 0.6,
+              COND_1: () => EstRR > 0.35 && EstRR < 0.6,
               COND_2: () =>
-                checkFullCandle(forthLastCandle, "down") &&
-                lastestCandle[4] < forthLastCandle[4],
+                checkFullCandle(forthLastCandle, "up") &&
+                lastestCandle[4] > forthLastCandle[4] &&
+                isUpCandle(lastestCandle),
+              // COND_3: () =>
+              //   rangeCandle10.slice(-3).every((candle) => +candle[5] < +lastestCandle[5]),
             };
 
             const isPassCondition =
@@ -241,7 +242,7 @@ const checkPattern = (candleStickData, symbol, typeCheck) => {
             if (true && isPassCondition) {
               slPercent = EstRR;
               tpPercent = EstRR * currentRR;
-              type = "down";
+              type = "up";
               isAllowOrder = true;
               methodRR = currentRR;
               timeStamp = lastestCandle[0];

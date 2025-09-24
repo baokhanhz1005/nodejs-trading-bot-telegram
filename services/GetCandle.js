@@ -8,6 +8,12 @@ const API = {
       .then((res) => res)
       .catch((err) => console.error(err));
   },
+  getListPrice: async () => {
+    const URL = `${ENDPOINT_TYPE.fAPIv1}/ticker/price`;
+    return callApiBinanceFt(URL, "GET")
+      .then((res) => res)
+      .catch((err) => console.error(err));
+  },
   getCurrent: async (params) => {
     const { symbol } = params;
     const URL = `${ENDPOINT_TYPE.fAPIv1}/ticker/price?symbol=${symbol}`;
