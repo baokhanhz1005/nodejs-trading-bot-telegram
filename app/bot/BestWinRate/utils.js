@@ -42,14 +42,7 @@ export const getMinWinRateByType = async (type, listCandleRes) => {
   );
 
   return results.reduce(
-    (acc, res) =>
-      !acc.winRate
-        ? res
-        : res.winRate < acc.winRate
-        ? res.winRate <= 20
-          ? acc
-          : res
-        : acc,
+    (acc, res) => (!acc.winRate ? res : res.winRate < acc.winRate ? res : acc),
     {
       winRate: 0,
       backTestKey: "",

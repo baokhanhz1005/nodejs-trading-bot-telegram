@@ -184,7 +184,7 @@ export const BackTestBestFunction = async (payload) => {
 
               delete orderInfo[symbol];
             }
-          } else if (winRate >= 20 && winRate <= 35) {
+          } else if (winRate <= 35) {
             const {
               type,
               symbol: symbolOrder,

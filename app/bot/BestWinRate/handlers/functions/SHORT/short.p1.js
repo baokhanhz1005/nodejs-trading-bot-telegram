@@ -20,7 +20,7 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
 
   // init data
   let CONDITION = {};
-  let currentRR = 1;
+  let currentRR = 0.75;
   let EstRR = 1;
 
   EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.25;

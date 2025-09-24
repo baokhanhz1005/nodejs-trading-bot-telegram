@@ -20,7 +20,7 @@ export const checkPattern_2 = (candleStickData, symbol, typeCheck) => {
 
   // init data
   let CONDITION = {};
-  let currentRR = 1;
+  let currentRR = 0.75;
   let EstRR = 1;
 
   const EMA200 = getEMA(200, candleStickData.slice(-200));
