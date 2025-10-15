@@ -16,8 +16,9 @@ const SETTING_BACKTEST = {
   },
   loopData: false,
   excludeTimeStamp: [],
-  // rangeTime: 1757491260000,
-  rangeTime: 1756756860000,
+  // rangeTime: 1757597100000, // ngày 12
+  // rangeTime: 1756756860000, // thang 9
+  rangeTime: 1754121600000,
 };
 
 const COST = 1;
@@ -51,7 +52,12 @@ export const BackTestBestFunction = async (payload) => {
     numCandleWinRate = 100,
     limit = 500,
     nextTimeStamp = nextData.nextTimeStamp || "",
-    currentTimeStamp = "";
+    currentTimeStamp = "",
+    maxLost = nextData.maxLost || 0,
+    maxProfit = nextData.maxProfit || 0,
+    currentBestKey = nextData.currentBestKey || "",
+    currentBestWinRate = nextData.currentBestWinRate || 0,
+    isHasOrder = nextData.isHasOrder || false;
 
   const orderInfo = nextData.orderInfo || {};
 
@@ -89,15 +95,27 @@ export const BackTestBestFunction = async (payload) => {
         (candle) => candle.data.length && candle.data.length === limit
       );
       const rangeCandle = numInitCandle + numCandleWinRate;
-      const nextIndx =
-        (listSymbolHasData[0]?.data?.length || limit) - rangeCandle;
-      nextTimeStamp = listSymbolHasData[0]?.data?.[nextIndx][0];
+      const listTimeStamps = listSymbolHasData
+        .map((symbolInfo) => {
+          const { data = [] } = symbolInfo;
+          const nextIndx = (data.length || limit) - rangeCandle;
+
+          return +data[nextIndx][0];
+        })
+        .filter(Boolean);
+
+      const most = listTimeStamps.reduce(
+        (acc, n) => ((acc[n] = (acc[n] || 0) + 1), acc),
+        {}
+      );
+
+      nextTimeStamp = Object.entries(most).sort((a, b) => b[1] - a[1])[0][0];
 
       const timeDate = new Date(nextTimeStamp);
 
       const date = timeDate.getDate();
       const hour = timeDate.getHours();
-      if (date === 23 && hour > 12) {
+      if (date === 28 && hour > 12) {
         return;
       }
 
@@ -117,23 +135,44 @@ export const BackTestBestFunction = async (payload) => {
             };
           });
 
+        const isGetMax = false;
+        let winRateInfo = {};
         let acc = { winRate: 0, backTestKey: "" };
         for (const key of ["LONG", "SHORT"]) {
-          const bestWinRateInfo = await getMinWinRateByType(
-            key,
-            currentListCandleRes
-          );
-
-          if (bestWinRateInfo.winRate < acc.winRate || !acc.winRate) {
+          const handlerFn = isGetMax
+            ? getMaxWinRateByType
+            : getMinWinRateByType;
+          const bestWinRateInfo = await handlerFn(key, currentListCandleRes);
+          winRateInfo = {
+            ...winRateInfo,
+            ...bestWinRateInfo.winRateInfo,
+          };
+          if (
+            isGetMax
+              ? bestWinRateInfo.winRate > acc.winRate
+              : bestWinRateInfo.winRate < acc.winRate || !acc.winRate
+          ) {
             acc = bestWinRateInfo;
           }
         }
 
         const { winRate, backTestKey } = acc;
 
+        if (currentBestKey !== backTestKey) {
+          currentBestKey = backTestKey;
+          isHasOrder = false;
+          currentBestWinRate = winRate;
+        } else if (winRate >= currentBestWinRate) {
+          isHasOrder = true;
+          currentBestWinRate = winRate;
+        } else {
+          isHasOrder = false;
+          currentBestWinRate = winRate;
+        }
+
         const [type, key] = backTestKey.split("-");
 
-        const methodFn = ExecuteFn[type][key];
+        const methodFn = ExecuteFn?.[type]?.[key] || (() => {});
 
         listSymbolHasData.forEach((candleInfo) => {
           const { symbol, data = [] } = candleInfo;
@@ -184,8 +223,8 @@ export const BackTestBestFunction = async (payload) => {
 
               delete orderInfo[symbol];
             }
-          } else if (winRate <= 35) {
-            const {
+          } else {
+            let {
               type,
               symbol: symbolOrder,
               isAbleOrder = false,
@@ -196,9 +235,19 @@ export const BackTestBestFunction = async (payload) => {
               methodRR,
             } = methodFn(candleStickData, symbol) || {};
 
-            if (isAbleOrder && (type === "up" || type === "down")) {
+            if (
+              isAbleOrder &&
+              isHasOrder &&
+              (type === "up" || type === "down")
+            ) {
+              const R = 1.5;
+              methodRR = 1.5;
+              type = type === "up" ? "down" : "up";
+
               const ratePriceTP =
-                type === "up" ? 1 + tpPercent / 100 : 1 - tpPercent / 100;
+                type === "up"
+                  ? 1 + (tpPercent * R) / 100
+                  : 1 - (tpPercent * R) / 100;
               const ratePriceSL =
                 type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
 
@@ -240,18 +289,48 @@ export const BackTestBestFunction = async (payload) => {
         //   rate: (totalWin * 100) / (totalWin + totalLose || 1),
         //   nextTimeStamp,
         // });
+        const listKeyWinInfo = Object.keys(winRateInfo);
+
+        maxLost = +totalProfit < maxLost ? +totalProfit : maxLost;
+        maxProfit = +totalProfit > maxProfit ? +totalProfit : maxProfit;
 
         await bot.sendMessage(
           chatId,
           `🎯🎯🎯🎯🎯🎯🎯 \nTIME: ${buildTimeStampToDate(
             listSymbolHasData[0].data[i - 1][0]
-          )}\n\n+idx: ${i}\n+ BackTestKey: ${backTestKey} \n>>> Win rate: ${winRate}\n+ Profit: ${(+totalProfit).toFixed(
+          )}\n\n📌 ${i}\n💎 Profit: ${(+totalProfit).toFixed(
             2
-          )}\n+ Total: ${totalOrder}\n+ Running: ${
+          )}\n🚀 Total: ${totalOrder}\n🟣 Running: ${
             totalOrder - totalWin - totalLose
-          } - ${totalLong} LONG - ${totalShort} SHORT\n+ Win: ${totalWin} \n+ Lose: ${totalLose}\n+Rate: ${
-            (totalWin * 100) / (totalWin + totalLose || 1)
-          }%`
+          } - ${totalLong} LONG - ${totalShort} SHORT\n🟢 Win: ${totalWin} \n🔴 Lose: ${totalLose}\n⭐ Rate: ${(
+            (totalWin * 100) /
+            (totalWin + totalLose || 1)
+          ).toFixed(2)}%\n  ${
+            isHasOrder ? "Processing..." : "Waiting"
+          } (${currentBestWinRate.toFixed(
+            2
+          )})\n-------------------------------\n- MaxLoss: ${maxLost.toFixed(
+            2
+          )}   --  MaxProfit: ${maxProfit.toFixed(
+            2
+          )}\n${nextTimeStamp}\n${listKeyWinInfo
+            .map((key, index) => {
+              if (index < 6) {
+                const otherKey = listKeyWinInfo[index + 6];
+                const isBest = backTestKey.split("-")[1] === key;
+                const isBestOther = backTestKey.split("-")[1] === otherKey;
+
+                return ` ${key}: ${winRateInfo[key]} ${
+                  isBest ? "🌟🌟--" : "----------"
+                } ${otherKey}: ${winRateInfo[otherKey]} ${
+                  isBestOther ? "🌟🌟" : ""
+                }`;
+              }
+              return null;
+            })
+            .filter(Boolean)
+            .join("\n")}
+          `
         );
 
         index += 1;
@@ -272,6 +351,11 @@ export const BackTestBestFunction = async (payload) => {
           totalLose,
           totalProfit,
           orderInfo,
+          maxLost,
+          maxProfit,
+          currentBestKey,
+          currentBestWinRate,
+          isHasOrder,
         },
       });
 

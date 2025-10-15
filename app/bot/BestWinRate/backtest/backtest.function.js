@@ -11,16 +11,16 @@ const SETTING_BACKTEST = {
   listCandleParamTesting: {
     limit: 488,
     isUseRange: false,
-    range: [0, 345],
+    range: [0, 388],
   },
   loopData: false,
   excludeTimeStamp: [],
   // rangeTime: 1757923260000,
-  rangeTime: 1758268860000,
+  // rangeTime: 1758182460000,
   isShowSL: true,
   isSpecificTime: false,
   typeFn: "LONG",
-  keyFn: "pattern_L4",
+  keyFn: "pattern_L1",
 };
 
 const {
@@ -88,6 +88,7 @@ export const BackTestFunction = async (payload) => {
       if (
         candleStickData &&
         candleStickData.length &&
+        // candleStickData.length === limit &&
         validatePriceForTrade(+candleStickData.slice(-1)[0][4])
       ) {
         const payload = {
@@ -164,7 +165,7 @@ export const BackTestFunction = async (payload) => {
               //   "JELLYJELLYUSDT",
             ].includes(each.symbol) &&
             each.symbol.endsWith("USDT") &&
-            parseFloat(each.price) < 2
+            parseFloat(each.price) < 1
         )
         .map(async (token) => {
           const { symbol, stickPrice } = token;

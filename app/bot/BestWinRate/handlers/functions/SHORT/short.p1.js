@@ -4,7 +4,11 @@ import {
   getMaxOnListCandle,
   getMinOnListCandle,
 } from "../../../../../../utils/handleDataCandle.js";
-import { checkFullCandle } from "../../../../../../utils/TypeCandle.js";
+import {
+  checkFullCandle,
+  isDownCandle,
+  isUpCandle,
+} from "../../../../../../utils/TypeCandle.js";
 
 export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
   //   const count = candleStickData.length;
@@ -20,41 +24,42 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
 
   // init data
   let CONDITION = {};
-  let currentRR = 0.75;
+  let currentRR = 1;
   let EstRR = 1;
 
   EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.25;
 
-  const EMA200 = getEMA(200, candleStickData.slice(-200));
-  const EMA20 = getEMA(20, candleStickData.slice(-20));
+  // const EMA200 = getEMA(200, candleStickData.slice(-200));
+  // const EMA20 = getEMA(20, candleStickData.slice(-20));
 
-  const min4Range30 = getMinOnListCandle(candleStickData.slice(-30), 4);
+  // const min4Range30 = getMinOnListCandle(candleStickData.slice(-30), 4);
   const max4Range30 = getMaxOnListCandle(candleStickData.slice(-30), 4);
-  const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
+  // const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
 
-  const { maxContinueDown, maxContinueUp } = findContinueSameTypeCandle(
-    candleStickData.slice(-15)
-  );
+  // const { maxContinueDown, maxContinueUp } = findContinueSameTypeCandle(
+  //   candleStickData.slice(-15)
+  // );
   // condition
   CONDITION = {
-    COND_1: () => EstRR > 0.6 && EstRR < 0.9,
+    COND_1: () => EstRR > 0.6 && EstRR < 1,
     COND_2: () => checkFullCandle(lastestCandle, "down"),
-    COND_3: () =>
-      (max4Range15 - lastestCandle[2]) /
-        (lastestCandle[2] - lastestCandle[4]) <=
-      0.5,
-    COND_4: () => lastestCandle[4] > EMA20,
+    COND_3: () => isUpCandle(prevCandle) && lastestCandle[4] < prevCandle[1],
+    COND_4: () =>
+      candleStickData
+        .slice(-5)
+        .reduce(
+          (acc, candle) =>
+            isUpCandle(candle, "up") &&
+            (candle[4] - candle[1]) / (lastestCandle[1] - lastestCandle[4]) >=
+              0.85
+              ? acc + 1
+              : acc,
+          0
+        ) <= 0,
     COND_5: () =>
-      candleStickData.slice(-5).reduce((acc, candle) => {
-        if (checkFullCandle(candle, "up")) {
-          return acc + 1;
-        }
-
-        return acc;
-      }, 0) <= 1,
-    COND_6: () =>
-      (EMA200 - lastestCandle[4]) / (lastestCandle[2] - lastestCandle[4]) >=
-      3.5,
+      (max4Range30 - lastestCandle[1]) /
+        (lastestCandle[2] - lastestCandle[4]) <=
+      1.5,
   };
 
   const isPassCondition =

@@ -12,7 +12,7 @@ import {
   isUpTrending,
   validatePriceForTrade,
 } from "../../utils/handleDataCandle.js";
-import { FindExtremeTrending } from "../feature/FindExtremeTrending/index.js";
+import { FindExtremeTrending } from "../feature/FindSignal/index.js";
 import AccountService from "../../services/Account.js";
 import OrderServices from "../../services/Order.js";
 import { ExecuteFOMO } from "../execute/ExecuteFOMO/index.js";

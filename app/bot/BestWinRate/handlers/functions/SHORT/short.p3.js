@@ -24,38 +24,33 @@ export const checkPattern_3 = (candleStickData, symbol, typeCheck) => {
 
   // init data
   let CONDITION = {};
-  let currentRR = 0.75;
+  let currentRR = 1;
   let EstRR = 1;
 
   const EMA200 = getEMA(200, candleStickData.slice(-200));
-  const EMA20 = getEMA(20, candleStickData.slice(-20));
+  // const EMA20 = getEMA(20, candleStickData.slice(-20));
 
-  const max2Range15 = getMaxOnListCandle(candleStickData.slice(-15), 2);
-  const max2Range50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
+  // const max2Range15 = getMaxOnListCandle(candleStickData.slice(-15), 2);
+  // const max2Range50 = getMaxOnListCandle(candleStickData.slice(-50), 2);
 
-  EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1;
+  EstRR = (thirdLastCandle[2] / lastestCandle[4] - 1) * 100 * 1.2;
 
   const min4Range30 = getMinOnListCandle(candleStickData.slice(-30), 4);
-  const max4Range30 = getMaxOnListCandle(candleStickData.slice(-30), 4);
-  const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
+  // const max4Range30 = getMaxOnListCandle(candleStickData.slice(-30), 4);
+  // const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
 
-  const { maxContinueDown, maxContinueUp } = findContinueSameTypeCandle(
-    candleStickData.slice(-15)
-  );
+  // const { maxContinueDown, maxContinueUp } = findContinueSameTypeCandle(
+  //   candleStickData.slice(-15)
+  // );
   // condition
   CONDITION = {
-    COND_1: () => EstRR > 0.6 && EstRR < 0.9,
-    COND_2: () => checkFullCandle(lastestCandle, "up"),
-    COND_3: () =>
-      (EMA200 - lastestCandle[4]) / (lastestCandle[4] - lastestCandle[3]) <=
-      1.5,
-
-    COND_4: () => isUpCandle(prevCandle),
-    COND_5: () =>
-      (lastestCandle[4] - EMA200) / (lastestCandle[4] - lastestCandle[3]) >= 2,
-    COND_6: () =>
-      lastestCandle[4] > EMA20 &&
-      (lastestCandle[4] - EMA20) / (lastestCandle[4] - lastestCandle[3]) <= 1.5,
+    COND_1: () => EstRR > 0.6 && EstRR < 1,
+    COND_2: () =>
+      isDownCandle(lastestCandle) &&
+      isDownCandle(prevCandle) &&
+      isDownCandle(thirdLastCandle),
+    COND_3: () => min4Range30 < lastestCandle[4],
+    COND_4: () => lastestCandle[4] < EMA200,
   };
 
   const isPassCondition =

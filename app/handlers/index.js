@@ -19,6 +19,7 @@ import { BackTestTrailing } from "../execute/ExecuteTrailing/backtest.js";
 import { BackTestFOMO } from "../execute/ExecuteFOMO/backtest.js";
 import { BackTestFunction } from "../bot/BestWinRate/backtest/backtest.function.js";
 import { BackTestBestFunction } from "../bot/BestWinRate/backtest/backtest.js";
+import { FindExtremeTrending } from "../feature/FindSignal/index.js";
 
 export const handleRunBot = async (payload) => {
   const { bot = () => {}, chatId, command } = payload;
@@ -101,6 +102,11 @@ export const handleRunBot = async (payload) => {
 
     case "best-func": {
       BackTestBestFunction(newPayload);
+      break;
+    }
+
+    case "find": {
+      FindExtremeTrending(newPayload);
       break;
     }
 

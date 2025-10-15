@@ -1087,14 +1087,34 @@ export const exchangePrice = (candle, rangeType = [1, 4]) =>
   Math.abs(candle[rangeType[0]] - candle[rangeType[1]]);
 
 export const getEMA = (period = 0, listCandle = []) => {
-  const infoEMA = new EMA({
-    period,
-    values: listCandle.map((candle) => +candle[4]),
-  });
+  const data = listCandle.map((candle) => +candle[4]);
+  const k = 2 / (period + 1);
+  const emaArray = [];
+  let emaPrev;
 
-  const value = infoEMA.getResult()[0];
+  for (let i = 0; i < data.length; i++) {
+    const price = data[i];
 
-  return value;
+    if (i < period - 1) {
+      emaArray.push(null); // chưa đủ nến
+      continue;
+    }
+
+    // khởi tạo EMA đầu tiên = SMA(period)
+    if (i === period - 1) {
+      const sma = data.slice(0, period).reduce((a, b) => a + b, 0) / period;
+      emaPrev = sma;
+      emaArray.push(sma);
+      continue;
+    }
+
+    // EMA sau đó
+    const ema = price * k + emaPrev * (1 - k);
+    emaArray.push(ema);
+    emaPrev = ema;
+  }
+
+  return emaArray.at(-1);
 };
 
 export const getPreListCandle = (
