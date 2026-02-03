@@ -24,42 +24,31 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
 
   // init data
   let CONDITION = {};
-  let currentRR = 1;
+  let currentRR = 0.5;
   let EstRR = 1;
 
-  EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.25;
+  EstRR = (prevCandle[2] / lastestCandle[4] - 1) * 100 * 1.5;
 
-  // const EMA200 = getEMA(200, candleStickData.slice(-200));
+  const EMA200 = getEMA(200, candleStickData.slice(-200));
   // const EMA20 = getEMA(20, candleStickData.slice(-20));
 
   // const min4Range30 = getMinOnListCandle(candleStickData.slice(-30), 4);
   const max4Range30 = getMaxOnListCandle(candleStickData.slice(-30), 4);
+
+  const avgCandleBody = candleStickData.slice(-50).reduce((acc, candle) => {
+    return acc += Math.abs(+candle[1] - +candle[4])
+  }, 0) / 50;
   // const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
 
-  // const { maxContinueDown, maxContinueUp } = findContinueSameTypeCandle(
-  //   candleStickData.slice(-15)
-  // );
+  const { maxContinueDown, maxContinueUp } = findContinueSameTypeCandle(
+    candleStickData.slice(-15)
+  );
   // condition
   CONDITION = {
-    COND_1: () => EstRR > 0.6 && EstRR < 1,
-    COND_2: () => checkFullCandle(lastestCandle, "down"),
-    COND_3: () => isUpCandle(prevCandle) && lastestCandle[4] < prevCandle[1],
-    COND_4: () =>
-      candleStickData
-        .slice(-5)
-        .reduce(
-          (acc, candle) =>
-            isUpCandle(candle, "up") &&
-            (candle[4] - candle[1]) / (lastestCandle[1] - lastestCandle[4]) >=
-              0.85
-              ? acc + 1
-              : acc,
-          0
-        ) <= 0,
-    COND_5: () =>
-      (max4Range30 - lastestCandle[1]) /
-        (lastestCandle[2] - lastestCandle[4]) <=
-      1.5,
+    COND_1: () => EstRR > 0.6 && EstRR < 1.5,
+    COND_2: () => checkFullCandle(prevCandle, "down", avgCandleBody) && isDownCandle(lastestCandle),
+    COND_3: () => isUpCandle(thirdLastCandle) && lastestCandle[4] < thirdLastCandle[3],
+
   };
 
   const isPassCondition =

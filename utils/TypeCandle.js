@@ -2,18 +2,18 @@ import { TYPE_OF_PRICE } from "../constant.js";
 
 const { OPEN, HIGH, LOW, CLOSE } = TYPE_OF_PRICE;
 
-export const checkFullCandle = (candle, type) => {
+export const checkFullCandle = (candle, type, avgCandleBody) => {
   let isFullCandle = false;
   if (type === "up") {
     isFullCandle =
       Math.abs(candle[HIGH] - candle[CLOSE]) /
-        Math.abs(candle[CLOSE] - candle[OPEN]) <=
-        0.3 && candle[CLOSE] / candle[OPEN] >= 1.0015;
+      Math.abs(candle[CLOSE] - candle[OPEN]) <=
+      0.2 && (+candle[CLOSE] - +candle[OPEN]) / avgCandleBody >= 1.25;
   } else if (type === "down") {
     isFullCandle =
       Math.abs(candle[LOW] - candle[CLOSE]) /
-        Math.abs(candle[CLOSE] - candle[OPEN]) <=
-        0.3 && candle[OPEN] / candle[CLOSE] >= 1.0015;
+      Math.abs(candle[CLOSE] - candle[OPEN]) <=
+      0.2 && (+candle[OPEN] - +candle[CLOSE]) / avgCandleBody >= 1.25;
   }
 
   return isFullCandle;
@@ -26,38 +26,38 @@ export const checkPinbar = (candle, typeCheck) => {
   if (typeCheck === "up" && isUp) {
     isPinbarCandle =
       Math.abs(candle[LOW] - candle[OPEN]) /
-        Math.abs(candle[CLOSE] - candle[OPEN]) >=
-        0.8 &&
+      Math.abs(candle[CLOSE] - candle[OPEN]) >=
+      0.8 &&
       Math.abs(candle[LOW] - candle[OPEN]) /
-        Math.abs(candle[HIGH] - candle[CLOSE]) >=
-        2 &&
+      Math.abs(candle[HIGH] - candle[CLOSE]) >=
+      2 &&
       candle[HIGH] / candle[LOW] >= 1.01;
   } else if (typeCheck === "up") {
     isPinbarCandle =
       Math.abs(candle[LOW] - candle[CLOSE]) /
-        Math.abs(candle[OPEN] - candle[CLOSE]) >=
-        3 &&
+      Math.abs(candle[OPEN] - candle[CLOSE]) >=
+      3 &&
       Math.abs(candle[LOW] - candle[CLOSE]) /
-        Math.abs(candle[HIGH] - candle[OPEN]) >=
-        5 &&
+      Math.abs(candle[HIGH] - candle[OPEN]) >=
+      5 &&
       candle[HIGH] / candle[LOW] >= 1.01;
   } else if (typeCheck === "down" && isUp) {
     isPinbarCandle =
       Math.abs(candle[HIGH] - candle[CLOSE]) /
-        Math.abs(candle[CLOSE] - candle[OPEN]) >=
-        3 &&
+      Math.abs(candle[CLOSE] - candle[OPEN]) >=
+      3 &&
       Math.abs(candle[HIGH] - candle[CLOSE]) /
-        Math.abs(candle[LOW] - candle[OPEN]) >=
-        2 &&
+      Math.abs(candle[LOW] - candle[OPEN]) >=
+      2 &&
       candle[HIGH] / candle[LOW] >= 1.0065;
   } else if (typeCheck === "down") {
     isPinbarCandle =
       Math.abs(candle[HIGH] - candle[OPEN]) /
-        Math.abs(candle[OPEN] - candle[CLOSE]) >=
-        0.8 &&
+      Math.abs(candle[OPEN] - candle[CLOSE]) >=
+      0.8 &&
       Math.abs(candle[HIGH] - candle[OPEN]) /
-        Math.abs(candle[LOW] - candle[CLOSE]) >=
-        1.5 &&
+      Math.abs(candle[LOW] - candle[CLOSE]) >=
+      1.5 &&
       candle[HIGH] / candle[LOW] >= 1.0065;
   }
 
