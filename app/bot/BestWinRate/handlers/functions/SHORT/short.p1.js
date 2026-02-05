@@ -7,6 +7,7 @@ import {
 import {
   checkFullCandle,
   isDownCandle,
+  isHitFVG,
   isUpCandle,
 } from "../../../../../../utils/TypeCandle.js";
 
@@ -27,7 +28,7 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
   let currentRR = 0.5;
   let EstRR = 1;
 
-  const EMA100 = getEMA(100, candleStickData.slice(-100));
+  const EMA200 = getEMA(200, candleStickData.slice(-200));
   const EMA50 = getEMA(50, candleStickData.slice(-50));
   const EMA20 = getEMA(20, candleStickData.slice(-20));
 
@@ -38,6 +39,8 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
 
   const max4Range50 = getMaxOnListCandle(candleStickData.slice(-50), 4);
   const min4Range50 = getMinOnListCandle(candleStickData.slice(-50), 4);
+
+  const max4Range10 = getMaxOnListCandle(candleStickData.slice(-10), 4);
 
   const avgCandleBody =
     candleStickData.slice(-50).reduce((acc, candle) => {
@@ -51,25 +54,52 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
 
   const RANGE_EXCHANGE_LEVEL = (max4Range50 - min4Range50) / avgCandleBody;
 
-  if (RANGE_EXCHANGE_LEVEL > 17) {
-    if (EMA20 > EMA50 && lastestCandle[4] > EMA20) {
+  if (RANGE_EXCHANGE_LEVEL <= 6) {
+    CONDITION = {};
+  } else {
+    const isPrevent = false;
+
+    EstRR = (lastestCandle[4] / prevCandle[3] - 1) * 100 * 1.25;
+    type = "up";
+
+    const moveRatio =
+      Math.abs(lastestCandle[4] - candleStickData.slice(-50)[0][4]) /
+      (max4Range50 - min4Range50);
+
+    CONDITION = {
+      COND_1: () => EstRR > 0.6 && EstRR < 1.5,
+      COND_2: () =>
+        isUpCandle(lastestCandle, "up", avgCandleBody) &&
+        isDownCandle(prevCandle, "down", avgCandleBody),
+      COND_3: () => lastestCandle[4] > prevCandle[1],
+      COND_4: () =>
+        (lastestCandle[4] - lastestCandle[3]) / (max4Range50 - min4Range50) <=
+        0.2,
+    };
+
+    if (
+      checkFullCandle(forthLastCandle, "up", avgCandleBody) &&
+      isDownCandle(lastestCandle) &&
+      isDownCandle(prevCandle) &&
+      isDownCandle(thirdLastCandle) &&
+      isPrevent
+    ) {
       // LONG
-      EstRR = (lastestCandle[4] / prevCandle[3] - 1) * 100 * 1;
+      EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 1;
       type = "up";
       // condition
       CONDITION = {
         COND_1: () => EstRR > 0.6 && EstRR < 1.5,
-        COND_2: () =>
-          checkFullCandle(prevCandle, "up", avgCandleBody) &&
-          isUpCandle(lastestCandle),
+        COND_2: () => lastestCandle[4] < forthLastCandle[3],
         COND_3: () =>
-          (lastestCandle[3] - EMA20) / (lastestCandle[4] - prevCandle[3]) <= 0.5,
+          (max4Range30 - lastestCandle[4]) / (lastestCandle[4] - min3Range15) >=
+          1,
       };
     } else if (
       lastestCandle[4] > EMA50 &&
       candleStickData.slice(-30)[0][4] < EMA50 &&
       lastestCandle[4] < EMA20 &&
-      true
+      isPrevent
     ) {
       // SHORT
       EstRR = (prevCandle[2] / lastestCandle[4] - 1) * 100 * 1.5;
@@ -92,6 +122,9 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
                 (candle[4] - candle[1]) / (prevCandle[2] - lastestCandle[4]) >=
                   1.5,
             ),
+        COND_6: () =>
+          (max4Range30 - prevCandle[2]) / (prevCandle[2] - lastestCandle[4]) <=
+          1,
       };
     }
   }
