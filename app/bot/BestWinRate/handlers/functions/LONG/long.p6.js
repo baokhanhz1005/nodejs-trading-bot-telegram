@@ -36,16 +36,19 @@ export const checkPattern_6 = (candleStickData, symbol, typeCheck) => {
   // const min4Range30 = getMinOnListCandle(candleStickData.slice(-30), 4);
   // const max4Range30 = getMaxOnListCandle(candleStickData.slice(-30), 4);
 
-//   const { maxContinueDown } = findContinueSameTypeCandle(
-//     candleStickData.slice(-15)
-//   );
-  const limitPeakOrBottom = 10;
+  //   const { maxContinueDown } = findContinueSameTypeCandle(
+  //     candleStickData.slice(-15)
+  //   );
+  const limitPeakOrBottom = 100;
 
   const listHighest = getListHighest(
-    candleStickData.slice(-100),
-    limitPeakOrBottom
+    candleStickData.slice(-limitPeakOrBottom),
+    8,
+    2,
   );
-  const listHighestValue = listHighest.map((peak) => +peak.price);
+
+  const listHighestValue = listHighest.map((p) => p.price);
+
   const isUpTrend = isUpTrending(listHighestValue);
 
   // condition

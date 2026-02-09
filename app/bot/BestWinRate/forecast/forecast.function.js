@@ -1,4 +1,3 @@
-
 import { buildLinkToSymbol, buildTimeStampToDate } from "../../../../utils.js";
 
 const SETTING_FORECAST = {
@@ -23,7 +22,7 @@ const SETTING_FORECAST = {
   // hit SL mode
   // isHitSLMode: true,
   // limitHitSL: 1,
-  
+
   // ---------- level pow ------------
   isLevelPow: false,
   maxLevelPow: 4,
@@ -36,6 +35,8 @@ const SETTING_FORECAST = {
 
 const { RR, COST, isLevelPow, maxLevelPow, isHitSLMode, limitHitSL } =
   SETTING_FORECAST;
+
+const MAX_LOST = 3;
 
 export const ForeCastFunction = (data) => {
   const {
@@ -68,6 +69,7 @@ export const ForeCastFunction = (data) => {
     },
     levelPow: 0,
     currentHitSL: 0,
+    allowLost: MAX_LOST,
   };
 
   if (rangeCandleInfo && candleStickData.length > rangeCandleInfo) {
@@ -98,6 +100,8 @@ const handleFOMOMethod = ({
   typeCheck,
 }) => {
   listCandleInfo.pop();
+  if (dataForeCast.allowLost <= 0 && !dataForeCast.orderInfo) return;
+
   if (dataForeCast.orderInfo) {
     // handle run trailing here
     const {
@@ -122,25 +126,11 @@ const handleFOMOMethod = ({
     const profit = currentRR * COST * Math.pow(2, levelPow) - funding;
     const lost = -(COST * Math.pow(2, levelPow) + funding);
 
-    if (isHitSLMode && (currentHitSL <= limitHitSL)) {
-      if (
-        (type === "up" && minCurrentPrice <= sl) ||
-        (type === "down" && maxCurrentPrice >= sl)
-      ) {
-        dataForeCast.currentHitSL += 1;
-        dataForeCast.orderInfo = null;
-      } else if (
-        (type === "up" && maxCurrentPrice >= tp) ||
-        (type === "down" && minCurrentPrice <= tp)
-      ) {
-        dataForeCast.currentHitSL = limitHitSL + 1;
-        dataForeCast.orderInfo = null;
-      }
-    } else if (type === "up" && minCurrentPrice <= sl) {
+    if (type === "up" && minCurrentPrice <= sl) {
       dataForeCast.infoSL.push(
         `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
-          symbol
-        )} - LONG\n`
+          symbol,
+        )} - LONG\n`,
       );
       dataForeCast.countSL += 1;
       dataForeCast.profit += lost;
@@ -149,11 +139,12 @@ const handleFOMOMethod = ({
       }
       dataForeCast.orderInfo = null;
       dataForeCast.currentHitSL = 0;
+      dataForeCast.allowLost -= 1;
     } else if (type === "down" && maxCurrentPrice >= sl) {
       dataForeCast.infoSL.push(
         `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
-          symbol
-        )} - SHORT\n`
+          symbol,
+        )} - SHORT\n`,
       );
       dataForeCast.countSL += 1;
       dataForeCast.profit += lost;
@@ -162,12 +153,13 @@ const handleFOMOMethod = ({
       }
       dataForeCast.orderInfo = null;
       dataForeCast.currentHitSL = 0;
+      dataForeCast.allowLost -= 1;
     } else if (type === "up" && maxCurrentPrice >= tp) {
       // if (dataForeCast.orderInfo.minPrice < dataForeCast.orderInfo.avgPrice) {
       dataForeCast.infoTP.push(
         `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
-          symbol
-        )} - LONG\n`
+          symbol,
+        )} - LONG\n`,
       );
       dataForeCast.countTP += 1;
       dataForeCast.profit += profit;
@@ -175,12 +167,15 @@ const handleFOMOMethod = ({
       // }
       dataForeCast.currentHitSL = limitHitSL + 1;
       dataForeCast.orderInfo = null;
+      if (dataForeCast.allowLost < MAX_LOST) {
+        dataForeCast.allowLost += 1;
+      }
     } else if (type === "down" && minCurrentPrice <= tp) {
       // if (dataForeCast.orderInfo.maxPrice > dataForeCast.orderInfo.avgPrice) {
       dataForeCast.infoTP.push(
         `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
-          symbol
-        )} - SHORT\n`
+          symbol,
+        )} - SHORT\n`,
       );
       dataForeCast.countTP += 1;
       dataForeCast.profit += profit;
@@ -188,16 +183,9 @@ const handleFOMOMethod = ({
       // }
       dataForeCast.orderInfo = null;
       dataForeCast.currentHitSL = limitHitSL + 1;
-    } else {
-      dataForeCast.orderInfo.maxPrice =
-        dataForeCast.orderInfo.maxPrice < maxCurrentPrice
-          ? maxCurrentPrice
-          : dataForeCast.orderInfo.maxPrice;
-
-      dataForeCast.orderInfo.minPrice =
-        dataForeCast.orderInfo.minPrice > minCurrentPrice
-          ? minCurrentPrice
-          : dataForeCast.orderInfo.minPrice;
+      if (dataForeCast.allowLost < MAX_LOST) {
+        dataForeCast.allowLost += 1;
+      }
     }
   } else {
     const {

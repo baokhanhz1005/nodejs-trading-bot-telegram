@@ -32,7 +32,7 @@ export const isIntoRangePrice = (
   priceCurrent,
   priceCheck,
   range = 0.5,
-  typeRange
+  typeRange,
 ) => {};
 
 export const getListSupportRestricted = (listCandle) => {
@@ -176,7 +176,7 @@ export const getMinMaxRangePeriod = (
   candleStickData,
   groupCandle = 3,
   range = 15,
-  minMaxType = ""
+  minMaxType = "",
 ) => {
   const minMaxPeriod = [];
   if (candleStickData && candleStickData.length) {
@@ -291,7 +291,7 @@ export const ForeCastMethod = (data) => {
           currentCandle,
           dataForeCast,
           methodFn,
-          symbol
+          symbol,
         );
       } else {
         handleData(
@@ -299,7 +299,7 @@ export const ForeCastMethod = (data) => {
           currentCandle,
           dataForeCast,
           methodFn,
-          symbol
+          symbol,
         );
       }
     }
@@ -313,7 +313,7 @@ const handleData = (
   dataForeCast,
   methodFn,
   symbol,
-  isHasPopArr = false
+  isHasPopArr = false,
 ) => {
   if (!isHasPopArr) {
     listCandleInfo.pop();
@@ -456,8 +456,8 @@ const handleData = (
       dataForeCast.orderInfo = null;
       dataForeCast.info.push(
         `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
-          symbol
-        )} - LONG\n`
+          symbol,
+        )} - LONG\n`,
       );
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
@@ -469,15 +469,15 @@ const handleData = (
         dataForeCast,
         methodFn,
         symbol,
-        true
+        true,
       );
     } else if (type === "down" && maxPrice >= sl) {
       dataForeCast.loseOrder += 1;
       dataForeCast.orderInfo = null;
       dataForeCast.info.push(
         `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
-          symbol
-        )} - SHORT\n`
+          symbol,
+        )} - SHORT\n`,
       );
       dataForeCast.percent += percent;
       dataForeCast.count += 1;
@@ -489,7 +489,7 @@ const handleData = (
         dataForeCast,
         methodFn,
         symbol,
-        true
+        true,
       );
     } else if (type === "up" && maxPrice >= tp) {
       dataForeCast.winOrder += 1;
@@ -506,7 +506,7 @@ const handleData = (
         dataForeCast,
         methodFn,
         symbol,
-        true
+        true,
       );
     } else if (type === "down" && minPrice <= tp) {
       dataForeCast.winOrder += 1;
@@ -523,7 +523,7 @@ const handleData = (
         dataForeCast,
         methodFn,
         symbol,
-        true
+        true,
       );
     }
   } else {
@@ -577,7 +577,7 @@ const handleOtherMethod = (
   currentCandle,
   dataForeCast,
   methodFn,
-  symbol
+  symbol,
 ) => {
   if (dataForeCast.orderInfo) {
     const { sl, tp, type, timeStamp, percent, cost } = dataForeCast.orderInfo;
@@ -626,8 +626,8 @@ const handleOtherMethod = (
       dataForeCast.info.push(
         `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
           symbol,
-          timeStamp
-        )} - LONG\n`
+          timeStamp,
+        )} - LONG\n`,
       );
     } else if (type === "down" && minPrice <= tp) {
       dataForeCast.winOrder += 1;
@@ -642,8 +642,8 @@ const handleOtherMethod = (
       dataForeCast.levelPow = 0;
       dataForeCast.info.push(
         `${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
-          symbol
-        )} - SHORT\n`
+          symbol,
+        )} - SHORT\n`,
       );
     }
   } else {
@@ -690,7 +690,7 @@ const handleOtherMethod = (
 export const getMinOnListCandle = (
   listCandle,
   type = 1,
-  isGetIndex = false
+  isGetIndex = false,
 ) => {
   // type: 1 - OPEN    2 - HIGH    3 - LOW    4 - CLOSE
   if (!isGetIndex) {
@@ -711,7 +711,7 @@ export const getMinOnListCandle = (
     {
       value: listCandle[0][type],
       index: 0,
-    }
+    },
   );
 
   return infoMin;
@@ -720,7 +720,7 @@ export const getMinOnListCandle = (
 export const getMaxOnListCandle = (
   listCandle,
   type = 1,
-  isGetIndex = false
+  isGetIndex = false,
 ) => {
   // type:1 - OPEN    2 - HIGH    3 - LOW    4 - CLOSE
   if (!isGetIndex) {
@@ -741,7 +741,7 @@ export const getMaxOnListCandle = (
     {
       value: 0,
       index: 0,
-    }
+    },
   );
 
   return infoMax;
@@ -750,7 +750,7 @@ export const getMaxOnListCandle = (
 export const checkTrendingLine = (
   candleStickData,
   gap = candleStickData.length - 1,
-  typeCandle = 4
+  typeCandle = 4,
 ) => {
   let result = "";
   const maxInfo = getMaxOnListCandle(candleStickData, typeCandle, 1);
@@ -774,12 +774,12 @@ export const checkTrendingLine = (
 export const getMinMaxAndIndexOnListCandle = (
   listCandle,
   key = "", // min --- max
-  type = 1 // 1 - open, 2 - max, 3 - lowest, 4- close
+  type = 1, // 1 - open, 2 - max, 3 - lowest, 4- close
 ) => {
   const value = Math[key](...listCandle.map((candle) => +candle[type]));
 
   const indexOfValue = listCandle.findIndex(
-    (candle) => +candle[type] === +value
+    (candle) => +candle[type] === +value,
   );
 
   return { index: indexOfValue, value };
@@ -832,17 +832,17 @@ export const forecastTrending = (candleStickData) => {
 
   const firstMinRange = getMaxOnListCandle(
     candleStickData.slice(0, Math.ceil((numberCandle * 1) / 3)),
-    3
+    3,
   );
 
   const centerMinRange = getMaxOnListCandle(
     candleStickData.slice(34, Math.ceil((numberCandle * 2) / 3)),
-    3
+    3,
   );
 
   const lastMinRange = getMaxOnListCandle(
     candleStickData.slice(67, Math.ceil((numberCandle * 3) / 3)),
-    3
+    3,
   );
 
   if (firstMinRange < centerMinRange && firstMinRange < lastMinRange) {
@@ -895,7 +895,7 @@ export const countContinueUp = (candleStickData) => {
 
 export const findContinueSameTypeCandle = (
   candleStickData,
-  minimumFractionalPart = 0
+  minimumFractionalPart = 0,
 ) => {
   // đếm số nến cùng loại liên tiếp nhau nhiều nhất
   let listCountDown = [];
@@ -949,83 +949,141 @@ export const getAlertByType = (type) => {
   return `${type === "up" ? "🟢🟢🟢🟢" : "🔴🔴🔴🔴"}\n`;
 };
 
+export const TREND = {
+  UP: "UP",
+  DOWN: "DOWN",
+  RANGE: "RANGE",
+};
+
+export const classifyTrend = (
+  highs = [],
+  lows = [],
+  allowViolation = 2,
+  minRatio = 0.997,
+) => {
+  let upViolations = 0;
+  let downViolations = 0;
+
+  for (let i = 1; i < highs.length; i++) {
+    if (highs[i] < highs[i - 1] * minRatio) upViolations++;
+    if (highs[i] > highs[i - 1] / minRatio) downViolations++;
+  }
+
+  for (let i = 1; i < lows.length; i++) {
+    if (lows[i] < lows[i - 1] * minRatio) upViolations++;
+    if (lows[i] > lows[i - 1] / minRatio) downViolations++;
+  }
+
+  if (upViolations <= allowViolation) return TREND.UP;
+  if (downViolations <= allowViolation) return TREND.DOWN;
+
+  return TREND.RANGE;
+};
+
 // lấy danh sách các đỉnh
-export const getListHighest = (candleStickData = [], range = 10) => {
+export const getListHighest = (
+  candleStickData = [],
+  rangeBefore = 8,
+  rangeAfter = 2,
+  tolerance = 0.001,
+) => {
   const result = [];
 
-  const { CLOSE } = TYPE_OF_PRICE;
   candleStickData.forEach((candle, index) => {
-    if (index >= range - 1 && index <= candleStickData.length - range) {
-      const maxBefore = getMaxOnListCandle(
-        candleStickData.slice(index - range + 1, index + 1),
-        CLOSE
-      );
-      const maxAfter = getMaxOnListCandle(
-        candleStickData.slice(index, index + range),
-        CLOSE
-      );
+    if (
+      index >= rangeBefore &&
+      index <= candleStickData.length - rangeAfter - 1
+    ) {
+      const high = +candle[2]; // HIGH
 
-      if (+candle[4] === maxBefore && +candle[4] === maxAfter) {
-        const peakInfo = {
-          price: candle[4],
+      const beforeHighs = candleStickData
+        .slice(index - rangeBefore, index)
+        .map((c) => +c[2]);
+
+      const afterHighs = candleStickData
+        .slice(index + 1, index + 1 + rangeAfter)
+        .map((c) => +c[2]);
+
+      const maxBefore = Math.max(...beforeHighs);
+      const maxAfter = Math.max(...afterHighs);
+
+      if (
+        high >= maxBefore * (1 - tolerance) &&
+        high >= maxAfter * (1 - tolerance)
+      ) {
+        result.push({
+          price: high,
           index,
-        };
-
-        result.push(peakInfo);
+        });
       }
     }
   });
+
   return result;
 };
 
-// lấy danh sách các đáy
-export const getListLowest = (candleStickData = [], range = 10) => {
+export const getListLowest = (
+  candleStickData = [],
+  rangeBefore = 8,
+  rangeAfter = 2,
+  tolerance = 0.001, // 0.1%
+) => {
   const result = [];
 
-  const { CLOSE } = TYPE_OF_PRICE;
   candleStickData.forEach((candle, index) => {
-    if (index >= range - 1 && index <= candleStickData.length - range) {
-      const minBefore = getMinOnListCandle(
-        candleStickData.slice(index - range + 1, index + 1),
-        CLOSE
-      );
-      const minAfter = getMinOnListCandle(
-        candleStickData.slice(index, index + range),
-        CLOSE
-      );
+    if (
+      index >= rangeBefore &&
+      index <= candleStickData.length - rangeAfter - 1
+    ) {
+      const low = +candle[3]; // LOW
 
-      if (+candle[4] === minBefore && +candle[4] === minAfter) {
-        const peakInfo = {
-          price: +candle[4],
+      const beforeLows = candleStickData
+        .slice(index - rangeBefore, index)
+        .map((c) => +c[3]);
+
+      const afterLows = candleStickData
+        .slice(index + 1, index + 1 + rangeAfter)
+        .map((c) => +c[3]);
+
+      const minBefore = Math.min(...beforeLows);
+      const minAfter = Math.min(...afterLows);
+
+      if (
+        low <= minBefore * (1 + tolerance) &&
+        low <= minAfter * (1 + tolerance)
+      ) {
+        result.push({
+          price: low,
           index,
-        };
-
-        result.push(peakInfo);
+        });
       }
     }
   });
+
   return result;
 };
 
-export const isUpTrending = (arrPeak = [], allowViolation = 2) => {
+export const isUpTrending = (
+  peaks = [],
+  allowViolation = 2,
+  minHigherRatio = 0.997,
+) => {
   let violations = 0;
-  for (let i = 1; i < arrPeak.length; i++) {
-    if (arrPeak[i] < arrPeak[i - 1]) {
+
+  for (let i = 1; i < peaks.length; i++) {
+    if (peaks[i] < peaks[i - 1] * minHigherRatio) {
       violations++;
-      if (violations > allowViolation) {
-        return false;
-      }
+      if (violations > allowViolation) return false;
     }
   }
 
-  if (arrPeak.slice(-3).length === 3) {
-    // lấy 3 đỉnh gần đây nhất, nếu nó giảm dần thì khả năng đã chuyển sang xu hướng giảm
-    const [peak1, peak2, peak3] = arrPeak.slice(-3);
-
-    if (peak1 * 1.005 >= peak2 && peak2 >= peak3 * 1.005) {
+  if (peaks.length >= 3) {
+    const [a, b, c] = peaks.slice(-3);
+    if (a < b * minHigherRatio && b < c * minHigherRatio) {
       return false;
     }
   }
+
   return true;
 };
 
@@ -1120,10 +1178,10 @@ export const getEMA = (period = 0, listCandle = []) => {
 export const getPreListCandle = (
   candleStickData = [],
   numPreCandle = 0,
-  length = 0
+  length = 0,
 ) => {
   return candleStickData.slice(
     candleStickData.length - numPreCandle - length,
-    candleStickData.length - numPreCandle
+    candleStickData.length - numPreCandle,
   );
 };
