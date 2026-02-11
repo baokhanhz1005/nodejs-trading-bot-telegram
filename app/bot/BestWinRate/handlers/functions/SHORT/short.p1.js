@@ -45,6 +45,7 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
 
   const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
 
+  const min4Range30 = getMinOnListCandle(candleStickData.slice(-30), 4);
   const max4Range30 = getMaxOnListCandle(candleStickData.slice(-30), 4);
 
   const max4Range50 = getMaxOnListCandle(candleStickData.slice(-50), 4);
@@ -77,40 +78,34 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
   if (RANGE_EXCHANGE_LEVEL <= 10) {
     CONDITION = {};
   } else if (trend === TREND.UP && true) {
-    // LONG
-    EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1;
     type = "up";
-    // condition
-    CONDITION = {
-      COND_1: () => EstRR > 0.5 && EstRR < 1,
-      COND_2: () => isUpCandle(lastestCandle),
-      COND_3: () => candleStickData.slice(-6).reduce((acc, candle) => {
-        if (isDownCandle(candle)) return acc + 1;
-        return acc;
-      }, 0) >= 4,
-      COND_4: () => lastestCandle[4] > thirdLastCandle[1]
-    };
+    // LONG
+    if (lastestCandle[4] > EMA200) {
+      if (EMA20 > EMA50) {
+        if (lastestCandle[4] > EMA20) {
+          EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 1;
+          type = "down";
+          // condition
+          CONDITION = {
+            COND_1: () => EstRR > 0.5 && EstRR < 1,
+            COND_2: () => isUpCandle(lastestCandle),
+          };
+        } else {
+        }
+      } else {
+        // handle condition
+      }
+    } else {
+      if (EMA20 > EMA50) {
+        // handle condition
+      } else {
+        // handle condition
+      }
+    }
   } else if (trend === TREND.DOWN && false) {
-    // SHORT
-    EstRR = (lastestCandle[2] / lastestCandle[4] - 1) * 100 * 1.5;
-    type = "down";
-    // condition
-    CONDITION = {
-      COND_1: () => EstRR > 0.5 && EstRR < 1,
-      COND_2: () =>
-        (lastestCandle[3] - min3Range15) /
-        (lastestCandle[2] - lastestCandle[4]) >=
-        0.5,
-      COND_3: () => (lastestCandle[1] - lastestCandle[4]) / avgCandleBody >= 1,
-      COND_4: () =>
-        (EMA200 - lastestCandle[2]) / (lastestCandle[2] - lastestCandle[4]) <=
-        10,
-      COND_5: () =>
-        (max4Range15 - lastestCandle[2]) /
-        (lastestCandle[2] - lastestCandle[4]) >=
-        1,
-    };
+    // logic SHORT
   } else if (trend === TREND.RANGE) {
+    // logic RANGE
   }
 
   // if (RANGE_EXCHANGE_LEVEL <= 10) {
