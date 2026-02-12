@@ -16,9 +16,9 @@ const SETTING_BACKTEST = {
   loopData: false,
   excludeTimeStamp: [],
   // rangeTime: 1757923260000,
-  rangeTime: 1769446800000,
-  isShowSL: true,
-  isSpecificTime: false,
+  rangeTime: 1769360400000,
+  isShowSL: false,
+  isSpecificTime: true,
   typeFn: "SHORT",
   keyFn: "pattern_S1",
 };

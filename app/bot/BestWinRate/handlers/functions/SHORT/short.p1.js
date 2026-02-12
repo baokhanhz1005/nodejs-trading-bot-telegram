@@ -53,7 +53,7 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
   const min4Range50 = getMinOnListCandle(candleStickData.slice(-50), 4);
   const min3Range50 = getMinOnListCandle(candleStickData.slice(-50), 3);
 
-  const min4Range0To50 = getMaxOnListCandle(candleStickData.slice(0, 50), 4);
+  const max4Range0To50 = getMinOnListCandle(candleStickData.slice(0, 50), 4);
 
   const avgCandleBody =
     candleStickData.slice(-50).reduce((acc, candle) => {
@@ -103,10 +103,28 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
           CONDITION = {
             COND_1: () => EstRR > 0.5 && EstRR < 1,
             COND_2: () => isUpCandle(lastestCandle),
+            COND_3: () =>
+              (max4Range10 - lastestCandle[4]) /
+                (lastestCandle[4] - min3Range15) <=
+              1.5,
+            COND_4: () =>
+              (lastestCandle[4] - lastestCandle[1]) / avgCandleBody <= 1,
+            // COND_5: () => max4Range0To50 > EMA200,
           };
+
+          CONDITION = {}; // debug
         }
       } else {
-        // handle condition
+        if (lastestCandle[4] > EMA20) {
+          EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 1;
+          type = "up";
+          // condition
+          CONDITION = {
+            COND_1: () => EstRR > 0.5 && EstRR < 1,
+            COND_2: () => isUpCandle(lastestCandle),
+          };
+        } else {
+        }
       }
     } else {
       if (EMA20 > EMA50) {
