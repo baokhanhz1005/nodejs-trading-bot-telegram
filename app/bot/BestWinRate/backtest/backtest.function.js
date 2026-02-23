@@ -15,8 +15,11 @@ const SETTING_BACKTEST = {
   },
   loopData: false,
   excludeTimeStamp: [],
-  // rangeTime: 1757923260000,
-  rangeTime: 1769619600000,
+  rangeTime: 1765990800000, //18/12
+  // rangeTime: 1767200400000, //01/01
+  // rangeTime: 1768496400000, //16/01
+  // rangeTime: 1769878800000, //01/02
+  // rangeTime:  1738342800000, //01/02 đáasldkaas
   isShowSL: true,
   isSpecificTime: false,
   typeFn: "SHORT",

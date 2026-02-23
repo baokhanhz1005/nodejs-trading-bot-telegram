@@ -33,6 +33,7 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
   let EstRR = 1;
 
   const EMA200 = getEMA(200, candleStickData.slice(-200));
+  const EMA100 = getEMA(100, candleStickData.slice(-100));
   const EMA50 = getEMA(50, candleStickData.slice(-50));
   const EMA20 = getEMA(20, candleStickData.slice(-20));
 
@@ -54,6 +55,7 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
   const min3Range50 = getMinOnListCandle(candleStickData.slice(-50), 3);
 
   const min4Range100 = getMinOnListCandle(candleStickData.slice(-100), 4);
+  const max4Range100 = getMaxOnListCandle(candleStickData.slice(-100), 4);
 
   const max4Range0To50 = getMinOnListCandle(candleStickData.slice(0, 50), 4);
 
@@ -75,7 +77,7 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
   const highs = listHighest.map((p) => p.price);
   const lows = listLowest.map((p) => p.price);
 
-  const trend = classifyTrend(highs, lows);
+  const trend = classifyTrend(highs, lows, 2, 0.99);
 
   const RANGE_EXCHANGE_LEVEL = (max4Range50 - min4Range50) / avgCandleBody;
   let currentRR = 1;
@@ -94,49 +96,145 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
           type = "up";
           // condition
           CONDITION = {
-            COND_1: () => EstRR > 0.5 && EstRR < 1,
-            COND_2: () => isUpCandle(lastestCandle) && isUpCandle(prevCandle),
-            COND_3: () => min3Range15 === min3Range30,
-            COND_4: () => max4Range50 !== max4Range15,
-            COND_5: () =>
-              (max4Range30 - lastestCandle[4]) /
+            COND_1: () => EstRR > 1 && EstRR < 3,
+            COND_2: () =>
+              checkFullCandle(lastestCandle, "up", avgCandleBody) &&
+              isUpCandle(prevCandle),
+            COND_3: () =>
+              (lastestCandle[4] - min4Range50) /
                 (lastestCandle[4] - min3Range15) >=
-              1,
-            COND_6: () =>
-              (lastestCandle[4] - min4Range100) /
-                (lastestCandle[4] - min3Range15) <=
-              4,
+              2,
           };
 
-          // CONDITION = {}; // debug
+          CONDITION = {}; // debug   ********************************
         } else if (lastestCandle[4] < EMA20) {
-          EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 1;
+          EstRR = (lastestCandle[4] / EMA50 - 1) * 100 * 1;
           type = "up";
           // condition
           CONDITION = {
-            COND_1: () => EstRR > 0.5 && EstRR < 1.2,
-            COND_2: () =>
-              isUpCandle(thirdLastCandle, "up", avgCandleBody) &&
-              isUpCandle(lastestCandle),
-            COND_3: () => lastestCandle[4] > thirdLastCandle[2],
-            COND_4: () => min3Range15 === min3Range30,
-            COND_5: () =>
-              (max4Range15 - min4Range15) / (lastestCandle[4] - min3Range15) <=
-              2,
-            COND_6: () =>
-              !candleStickData
-                .slice(-15)
-                .some(
-                  (candle) =>
-                    isDownCandle(candle) &&
-                    (candle[1] - candle[4]) / avgCandleBody >= 2.5,
-                ),
+            COND_1: () => EstRR > 1 && EstRR < 3,
+            COND_2: () => checkFullCandle(lastestCandle, "up", avgCandleBody),
+            // COND_3: () =>
+            //   !candleStickData
+            //     .slice(-15)
+            //     .some((candle) => +candle[2] + avgCandleBody * 1.5 > EMA100),
             // COND_4: () =>
-            //   (lastestCandle[4] - lastestCandle[1]) / avgCandleBody <= 0.75,
-            // COND_5: () => max4Range0To50 > EMA200,
+            //   candleStickData.slice(-15).reduce((acc, candle) => {
+            //     if (
+            //       isUpCandle(candle) &&
+            //       (candle[4] - candle[1]) /
+            //         (lastestCandle[1] - lastestCandle[4]) >=
+            //         1
+            //     ) {
+            //       return acc + 1;
+            //     }
+
+            //     return acc;
+            //   }, 0) <= 1,
           };
 
-          // CONDITION = {}; // debug
+          // CONDITION = {}; // debug  ********************************
+        }
+      } else if (EMA20 < EMA50) {
+        if (lastestCandle[4] > EMA20) {
+          // handle affter
+        } else {
+        }
+      }
+    } else if (lastestCandle[4] < EMA200) {
+      if (EMA20 > EMA50) {
+        // price vs EMA
+        if (lastestCandle[4] > EMA20) {
+          // EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1;
+          // type = "up";
+          // // condition
+          // CONDITION = {
+          //   COND_1: () => EstRR > 0.5 && EstRR < 1.2,
+          // };
+          // CONDITION = {}; // debug  ********************************
+        } else if (lastestCandle[4] < EMA20) {
+          // EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1;
+          // type = "up";
+          // // condition
+          // CONDITION = {
+          //   COND_1: () => EstRR > 0.5 && EstRR < 1.2,
+          // };
+          // CONDITION = {}; // debug  ********************************
+        }
+      } else if (EMA20 < EMA50) {
+        // handle condition
+        if (lastestCandle[4] > EMA20) {
+          // EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1;
+          // type = "up";
+          // // condition
+          // CONDITION = {
+          //   COND_1: () => EstRR > 0.5 && EstRR < 1.2,
+          // };
+          // CONDITION = {}; // debug  ********************************
+        } else {
+          // EstRR = (lastestCandle[4] / lastestCandle[3] - 1) * 100 * 1;
+          // type = "up";
+          // // condition
+          // CONDITION = {
+          //   COND_1: () => EstRR > 0.5 && EstRR < 1.2,
+          //   COND_2: () =>
+          //     isUpCandle(lastestCandle) &&
+          //     (lastestCandle[4] - lastestCandle[1]) / avgCandleBody >= 0.75,
+          // };
+        }
+      }
+    }
+  } else if (trend === TREND.DOWN && false) {
+    type = "down";
+    // LONG
+    if (lastestCandle[4] < EMA200) {
+      // EMA20 vs EMA50
+      if (EMA20 < EMA50) {
+        // price vs EMA
+        if (lastestCandle[4] < EMA20) {
+          EstRR = (max2Range15 / lastestCandle[4] - 1) * 100 * 1;
+          type = "down";
+          // condition
+          CONDITION = {
+            COND_1: () => EstRR > 1 && EstRR < 3,
+            COND_2: () => checkFullCandle(lastestCandle, "down", avgCandleBody),
+            COND_3: () =>
+              (lastestCandle[4] - min4Range30) /
+                (max2Range15 - lastestCandle[4]) >=
+              1,
+            COND_4: () =>
+              (max2Range15 - min3Range15) /
+                (lastestCandle[1] - lastestCandle[4]) >=
+              3,
+          };
+
+          // CONDITION = {}; // debug  ####################################
+        } else if (lastestCandle[4] > EMA20) {
+          EstRR = (EMA50 / lastestCandle[4] - 1) * 100 * 1;
+          type = "down";
+          // condition
+          CONDITION = {
+            COND_1: () => EstRR > 1 && EstRR < 3,
+            COND_2: () => checkFullCandle(lastestCandle, "down", avgCandleBody),
+            COND_3: () =>
+              !candleStickData
+                .slice(-15)
+                .some((candle) => +candle[2] + avgCandleBody * 1.5 > EMA100),
+            COND_4: () =>
+              candleStickData.slice(-15).reduce((acc, candle) => {
+                if (
+                  isUpCandle(candle) &&
+                  (candle[4] - candle[1]) /
+                    (lastestCandle[1] - lastestCandle[4]) >=
+                    1
+                ) {
+                  return acc + 1;
+                }
+
+                return acc;
+              }, 0) <= 1,
+          };
+          // CONDITION = {}; // debug  ####################################
         }
       } else if (EMA20 < EMA50) {
         if (lastestCandle[4] > EMA20) {
@@ -157,8 +255,6 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
         // handle condition
       }
     }
-  } else if (trend === TREND.DOWN && false) {
-    // logic SHORT
   } else if (trend === TREND.RANGE) {
     // logic RANGE
   }
