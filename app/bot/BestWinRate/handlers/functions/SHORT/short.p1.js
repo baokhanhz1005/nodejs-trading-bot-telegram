@@ -114,6 +114,8 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
           CONDITION = {
             COND_1: () => EstRR > 1 && EstRR < 3,
             COND_2: () => checkFullCandle(lastestCandle, "up", avgCandleBody),
+            COND_3: () => maxContinueDown <= 4,
+            // COND_4: () => Math.abs(EMA50 - EMA20) > avgCandleBody * 2,
             // COND_3: () =>
             //   !candleStickData
             //     .slice(-15)
@@ -121,9 +123,9 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
             // COND_4: () =>
             //   candleStickData.slice(-15).reduce((acc, candle) => {
             //     if (
-            //       isUpCandle(candle) &&
-            //       (candle[4] - candle[1]) /
-            //         (lastestCandle[1] - lastestCandle[4]) >=
+            //       isDownCandle(candle) &&
+            //       (candle[1] - candle[4]) /
+            //         (lastestCandle[4] - lastestCandle[1]) >=
             //         1
             //     ) {
             //       return acc + 1;
@@ -131,6 +133,10 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
 
             //     return acc;
             //   }, 0) <= 1,
+            COND_5: () =>
+              isDownCandle(prevCandle)
+                ? lastestCandle[4] > prevCandle[2]
+                : true,
           };
 
           // CONDITION = {}; // debug  ********************************
