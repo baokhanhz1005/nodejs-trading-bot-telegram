@@ -8,9 +8,15 @@ import {
   getEMA,
   getListHighest,
   getListLowest,
+  getMaxOnListCandle,
+  getMinOnListCandle,
   TREND,
 } from "../../../utils/handleDataCandle.js";
-import { isDownCandle, isUpCandle } from "../../../utils/TypeCandle.js";
+import {
+  checkFullCandle,
+  isDownCandle,
+  isUpCandle,
+} from "../../../utils/TypeCandle.js";
 
 export const FindExtremeTrending = async (payload) => {
   const { bot, chatId, timeLine } = payload;
@@ -50,10 +56,40 @@ export const FindExtremeTrending = async (payload) => {
           candleStickData.slice(-5);
         if (candleStickData.length < LIMIT) continue;
 
+        const avgCandleBody =
+          candleStickData.slice(-50).reduce((acc, candle) => {
+            return (acc += Math.abs(+candle[1] - +candle[4]));
+          }, 0) / 50;
+
         const EMA200 = getEMA(200, candleStickData.slice(-200));
         const EMA100 = getEMA(100, candleStickData.slice(-100));
         const EMA50 = getEMA(50, candleStickData.slice(-50));
         const EMA20 = getEMA(20, candleStickData.slice(-20));
+
+        const min3Range10 = getMinOnListCandle(candleStickData.slice(-10), 3);
+        const max4Range10 = getMaxOnListCandle(candleStickData.slice(-10), 4);
+
+        const min3Range15 = getMinOnListCandle(candleStickData.slice(-15), 3);
+        const max2Range15 = getMaxOnListCandle(candleStickData.slice(-15), 2);
+        const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
+        const min4Range15 = getMinOnListCandle(candleStickData.slice(-15), 4);
+
+        const min3Range30 = getMinOnListCandle(candleStickData.slice(-30), 3);
+        const max2Range30 = getMaxOnListCandle(candleStickData.slice(-30), 2);
+        const min4Range30 = getMinOnListCandle(candleStickData.slice(-30), 4);
+        const max4Range30 = getMaxOnListCandle(candleStickData.slice(-30), 4);
+
+        const max4Range50 = getMaxOnListCandle(candleStickData.slice(-50), 4);
+        const min4Range50 = getMinOnListCandle(candleStickData.slice(-50), 4);
+        const min3Range50 = getMinOnListCandle(candleStickData.slice(-50), 3);
+
+        const min4Range100 = getMinOnListCandle(candleStickData.slice(-100), 4);
+        const max4Range100 = getMaxOnListCandle(candleStickData.slice(-100), 4);
+
+        const max4Range0To50 = getMinOnListCandle(
+          candleStickData.slice(0, 50),
+          4,
+        );
 
         const lookback = 100;
 
@@ -72,6 +108,7 @@ export const FindExtremeTrending = async (payload) => {
         const lows = listLowest.map((p) => p.price);
         const trend = classifyTrend(highs, lows);
         let CONDITIONS = {};
+        const MULTI = 0;
 
         if (trend === TREND.UP) {
           CONDITIONS = {
@@ -80,23 +117,16 @@ export const FindExtremeTrending = async (payload) => {
                 .slice(-5)
                 .some(
                   (candle) =>
-                    (+candle[3] < +EMA100 &&
+                    (+candle[3] < +EMA50 &&
                       candleStickData
                         .slice(-10)
-                        .every((cand) => cand[4] > EMA100)) ||
-                    (+candle[3] < +EMA200 &&
+                        .every((cand) => cand[4] > EMA50)) ||
+                    (+candle[3] + avgCandleBody * MULTI < +EMA100 &&
                       candleStickData
                         .slice(-10)
-                        .every((cand) => cand[4] > EMA200)),
+                        .every((cand) => cand[4] > EMA100)),
                 ),
-            COND_2: () =>
-              candleStickData.slice(-5).reduce((acc, candle) => {
-                if (isDownCandle(candle)) {
-                  return acc + 1;
-                }
-
-                return acc;
-              }, 0) >= 4,
+            COND_2: () => min3Range50 === min3Range15,
           };
         } else if (trend === TREND.DOWN) {
           CONDITIONS = {
@@ -105,23 +135,16 @@ export const FindExtremeTrending = async (payload) => {
                 .slice(-5)
                 .some(
                   (candle) =>
-                    (+candle[2] > +EMA100 &&
+                    (+candle[2] > +EMA50 &&
                       candleStickData
                         .slice(-10)
-                        .every((cand) => cand[4] < EMA100)) ||
-                    (+candle[2] > +EMA200 &&
+                        .every((cand) => cand[4] < EMA50)) ||
+                    (+candle[2] - avgCandleBody * MULTI > +EMA100 &&
                       candleStickData
                         .slice(-10)
-                        .every((cand) => cand[4] < EMA200)),
+                        .every((cand) => cand[4] < EMA100)),
                 ),
-            COND_2: () =>
-              candleStickData.slice(-5).reduce((acc, candle) => {
-                if (isUpCandle(candle)) {
-                  return acc + 1;
-                }
-
-                return acc;
-              }, 0) >= 4,
+            COND_2: () => max2Range15 === max2Range30,
           };
         }
 
@@ -130,7 +153,7 @@ export const FindExtremeTrending = async (payload) => {
           Object.values(CONDITIONS).every((cond) => !!cond());
 
         if (IS_PASS_CONDITION) {
-          const mess = `${trend} - ${buildLinkToSymbol(symbolCandle)}`;
+          const mess = `${trend} - ${buildLinkToSymbol(symbolCandle)} - Order ${symbolCandle} ${lastestCandle[4]} ${trend === TREND.UP ? "up" : "down"} 0.5`;
           listMessage.push(mess);
         }
       }

@@ -77,7 +77,7 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
   const highs = listHighest.map((p) => p.price);
   const lows = listLowest.map((p) => p.price);
 
-  const trend = classifyTrend(highs, lows, 2, 0.99);
+  const trend = classifyTrend(highs, lows, 2, 0.993);
 
   const RANGE_EXCHANGE_LEVEL = (max4Range50 - min4Range50) / avgCandleBody;
   let currentRR = 1;
@@ -106,7 +106,7 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
               2,
           };
 
-          CONDITION = {}; // debug   ********************************
+          // CONDITION = {}; // debug   ********************************
         } else if (lastestCandle[4] < EMA20) {
           EstRR = (lastestCandle[4] / EMA50 - 1) * 100 * 1;
           type = "up";
@@ -190,7 +190,7 @@ export const checkPattern_1 = (candleStickData, symbol, typeCheck) => {
         }
       }
     }
-  } else if (trend === TREND.DOWN && false) {
+  } else if (trend === TREND.DOWN && true) {
     type = "down";
     // LONG
     if (lastestCandle[4] < EMA200) {
