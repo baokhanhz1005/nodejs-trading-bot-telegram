@@ -106,7 +106,7 @@ export const FindExtremeTrending = async (payload) => {
 
         const highs = listHighest.map((p) => p.price);
         const lows = listLowest.map((p) => p.price);
-        const trend = classifyTrend(highs, lows);
+        const trend = classifyTrend(highs, lows, 2, 0.993);
         let CONDITIONS = {};
         const MULTI = 0;
 
@@ -117,16 +117,23 @@ export const FindExtremeTrending = async (payload) => {
                 .slice(-5)
                 .some(
                   (candle) =>
-                    (+candle[3] < +EMA50 &&
+                    (+candle[3] < +EMA20 &&
                       candleStickData
                         .slice(-10)
-                        .every((cand) => cand[4] > EMA50)) ||
-                    (+candle[3] + avgCandleBody * MULTI < +EMA100 &&
+                        .every((cand) => cand[4] > EMA20)) ||
+                    (+candle[3] + avgCandleBody * MULTI < +EMA50 &&
                       candleStickData
                         .slice(-10)
-                        .every((cand) => cand[4] > EMA100)),
+                        .every((cand) => cand[4] > EMA50)),
                 ),
-            COND_2: () => min3Range50 === min3Range15,
+            COND_4: () => {
+              const EMA20last15 = getEMA(
+                20,
+                candleStickData.slice(-35).slice(0, 20),
+              );
+
+              return (EMA20 - EMA20last15) / avgCandleBody >= 2;
+            },
           };
         } else if (trend === TREND.DOWN) {
           CONDITIONS = {
@@ -135,16 +142,23 @@ export const FindExtremeTrending = async (payload) => {
                 .slice(-5)
                 .some(
                   (candle) =>
-                    (+candle[2] > +EMA50 &&
+                    (+candle[2] > +EMA20 &&
                       candleStickData
                         .slice(-10)
-                        .every((cand) => cand[4] < EMA50)) ||
-                    (+candle[2] - avgCandleBody * MULTI > +EMA100 &&
+                        .every((cand) => cand[4] < EMA20)) ||
+                    (+candle[2] - avgCandleBody * MULTI > +EMA50 &&
                       candleStickData
                         .slice(-10)
-                        .every((cand) => cand[4] < EMA100)),
+                        .every((cand) => cand[4] < EMA50)),
                 ),
-            COND_2: () => max2Range15 === max2Range30,
+            COND_4: () => {
+              const EMA20last15 = getEMA(
+                20,
+                candleStickData.slice(-35).slice(0, 20),
+              );
+
+              return (EMA20last15 - EMA20) / avgCandleBody >= 2;
+            },
           };
         }
 

@@ -9,16 +9,17 @@ import { ExecuteFn } from "../handlers/index.js";
 
 const SETTING_BACKTEST = {
   listCandleParamTesting: {
-    limit: 488,
+    limit: 492,
     isUseRange: false,
     range: [0, 388],
   },
   loopData: false,
   excludeTimeStamp: [],
-  rangeTime: 1765990800000, //18/12
+  // rangeTime: 1765990800000, //18/12
   // rangeTime: 1767200400000, //01/01
   // rangeTime: 1768496400000, //16/01
   // rangeTime: 1769878800000, //01/02
+  // rangeTime: 1770829200000, //12/02
   // rangeTime:  1738342800000, //01/02 đáasldkaas
   isShowSL: true,
   isSpecificTime: false,
@@ -168,7 +169,7 @@ export const BackTestFunction = async (payload) => {
               //   "JELLYJELLYUSDT",
             ].includes(each.symbol) &&
             each.symbol.endsWith("USDT") &&
-            parseFloat(each.price) < 1
+            parseFloat(each.price) < 1,
         )
         .map(async (token) => {
           const { symbol, stickPrice } = token;
@@ -228,7 +229,7 @@ export const BackTestFunction = async (payload) => {
 
               return acc;
             },
-            []
+            [],
           );
 
           const findListSpecificTimeOrder = Object.keys(useMapInfo).reduce(
@@ -243,7 +244,7 @@ export const BackTestFunction = async (payload) => {
 
               return acc;
             },
-            []
+            [],
           );
 
           const listTimeOrderWillShow = isSpecificTime
@@ -284,10 +285,10 @@ export const BackTestFunction = async (payload) => {
                     ? "🟢🟢🟢🟢"
                     : "🔴🔴🔴🔴"
                   : isCheckWinRate
-                  ? "🟢🟢🔴🔴"
-                  : ""
+                    ? "🟢🟢🔴🔴"
+                    : ""
               }\n+ Profit: ${(+totalProfit).toFixed(
-                2
+                2,
               )}\n+ Win: ${totalWin} \n+ Lose: ${totalLose}\n+ Total: ${totalOrder} -- (${
                 totalOrder - totalWin - totalLose
               }) - ${totalLong} LONG - ${totalShort} SHORT\n+Win Rate: ${
@@ -296,7 +297,7 @@ export const BackTestFunction = async (payload) => {
                 Object.keys(mapInfoSameTimeStampTP).length
               } \n+ SL: ${Object.keys(mapInfoSameTimeStampSL).length}\n${
                 +totalProfit > 0 ? "🟢🟢🟢🟢" : "🔴🔴🔴🔴"
-              }`
+              }`,
             )
             .then((sentMess) => {
               if (loopData && CURRENT_LOOP <= loopData && newestRangeTime) {
