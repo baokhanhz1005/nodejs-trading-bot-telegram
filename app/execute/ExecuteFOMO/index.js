@@ -42,7 +42,7 @@ export const ExecuteFOMO = async (payload) => {
     const isHasTrackingData = true || timeMinute % 15 === 0; // use candle 15m
 
     if (isHasTrackingData) {
-      bot.sendMessage(chatId, "🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯");
+      // bot.sendMessage(chatId, "🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯");
       const promiseDataCandles = shuffleArr(listSymbols)
         .map((tokenInfo) => {
           const { symbol, stickPrice } = tokenInfo;
