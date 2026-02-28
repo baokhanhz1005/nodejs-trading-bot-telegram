@@ -39,7 +39,7 @@ export const ExecuteFOMO = async (payload) => {
 
   const executeBOT = async () => {
     const timeMinute = new Date().getMinutes();
-    const isHasTrackingData = timeMinute % 15 === 0; // use candle 15m
+    const isHasTrackingData = true || timeMinute % 15 === 0; // use candle 15m
 
     if (isHasTrackingData) {
       bot.sendMessage(chatId, "🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯");
@@ -125,8 +125,6 @@ export const ExecuteFOMO = async (payload) => {
           }
         }
       });
-    } else {
-      const mapListOrders = {};
 
       await fetchApiHandleResultOrder(
         payload,
@@ -134,6 +132,8 @@ export const ExecuteFOMO = async (payload) => {
         listSymbolDeleteRemain,
         Date.now(),
       );
+    } else {
+      const mapListOrders = {};
 
       // if ((timeMinute - 1) % 5 === 0) {
       //   BackTestFOMO({ ...payload, typeCheck: 1, isCheckWinRate: true });

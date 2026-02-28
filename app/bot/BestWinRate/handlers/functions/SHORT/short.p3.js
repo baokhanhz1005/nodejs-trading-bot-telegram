@@ -77,10 +77,10 @@ export const checkPattern_3 = (candleStickData, symbol, typeCheck) => {
   const highs = listHighest.map((p) => p.price);
   const lows = listLowest.map((p) => p.price);
 
-  const trend = classifyTrend(highs, lows, 2, 0.993);
+  const trend = classifyTrend(highs, lows, 2, 0.999);
 
   const RANGE_EXCHANGE_LEVEL = (max4Range50 - min4Range50) / avgCandleBody;
-  let currentRR = 2;
+  let currentRR = 1;
 
   if (RANGE_EXCHANGE_LEVEL <= 10) {
     CONDITIONS = {};
@@ -89,7 +89,7 @@ export const checkPattern_3 = (candleStickData, symbol, typeCheck) => {
     type = "up";
     // condition
     CONDITIONS = {
-      COND_1: () => EstRR > 1 && EstRR < 3,
+      COND_1: () => EstRR > 0.35 && EstRR < 1.5,
       COND_2: () =>
         candleStickData.slice(-5).some(
           (candle) =>
@@ -101,7 +101,7 @@ export const checkPattern_3 = (candleStickData, symbol, typeCheck) => {
           // (+candle[2] > +EMA100 &&
           //   candleStickData.slice(-10).every((cand) => cand[4] < EMA100)),
         ),
-      COND_3: () => EMA20 > EMA50,
+      COND_3: () => EMA20 > EMA50 && EMA50 > EMA200,
       COND_4: () => checkFullCandle(lastestCandle, "up", avgCandleBody),
     };
   } else if (trend === TREND.DOWN) {
@@ -109,7 +109,7 @@ export const checkPattern_3 = (candleStickData, symbol, typeCheck) => {
     type = "down";
     // condition
     CONDITIONS = {
-      COND_1: () => EstRR > 1 && EstRR < 3,
+      COND_1: () => EstRR > 0.35 && EstRR < 1.5,
       COND_2: () =>
         candleStickData.slice(-5).some(
           (candle) =>
@@ -121,7 +121,7 @@ export const checkPattern_3 = (candleStickData, symbol, typeCheck) => {
           // (+candle[2] > +EMA100 &&
           //   candleStickData.slice(-10).every((cand) => cand[4] < EMA100)),
         ),
-      COND_3: () => EMA20 < EMA50,
+      COND_3: () => EMA20 < EMA50 && EMA50 < EMA200,
       COND_4: () => checkFullCandle(lastestCandle, "down", avgCandleBody),
     };
   }
