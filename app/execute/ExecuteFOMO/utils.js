@@ -80,7 +80,7 @@ export const checkAbleQuickOrder  = (candleStickData, symbol, typeCheck) => {
   const trend = classifyTrend(highs, lows, 2, 0.993);
 
   const RANGE_EXCHANGE_LEVEL = (max4Range50 - min4Range50) / avgCandleBody;
-  let currentRR = 2;
+  let currentRR = 1;
 
   if (RANGE_EXCHANGE_LEVEL <= 10) {
     CONDITIONS = {};
@@ -141,7 +141,7 @@ export const checkAbleQuickOrder  = (candleStickData, symbol, typeCheck) => {
   return {
     type,
     slPercent,
-    isAllowOrder,
+    isAbleOrder: isAllowOrder,
     timeStamp,
     entry: lastestCandle[4],
     tpPercent,

@@ -67,7 +67,6 @@ export const ExecuteFOMO = async (payload) => {
           for (const response of responses) {
             const { symbol: symbolCandle, data: candleStickData = [] } =
               response;
-
             if (!candleStickData.length) continue;
 
             const newestCandle = candleStickData.slice(-1)[0];
@@ -93,7 +92,6 @@ export const ExecuteFOMO = async (payload) => {
 
             if (
               isAbleOrder &&
-              lastestCandle[4] <= 5 &&
               validatePriceForTrade(+candleStickData.slice(-1)[0][4])
             ) {
               const ratePriceSL =
