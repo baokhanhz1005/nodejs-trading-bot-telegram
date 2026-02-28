@@ -32,32 +32,32 @@ export const checkAbleQuickOrder  = (candleStickData, symbol, typeCheck) => {
   let CONDITIONS = {};
   let EstRR = 1;
 
-  const EMA200 = getEMA(200, candleStickData.slice(-200));
-  const EMA100 = getEMA(100, candleStickData.slice(-100));
+  // const EMA200 = getEMA(200, candleStickData.slice(-200));
+  // const EMA100 = getEMA(100, candleStickData.slice(-100));
   const EMA50 = getEMA(50, candleStickData.slice(-50));
   const EMA20 = getEMA(20, candleStickData.slice(-20));
 
-  const min3Range10 = getMinOnListCandle(candleStickData.slice(-10), 3);
-  const max4Range10 = getMaxOnListCandle(candleStickData.slice(-10), 4);
+  // const min3Range10 = getMinOnListCandle(candleStickData.slice(-10), 3);
+  // const max4Range10 = getMaxOnListCandle(candleStickData.slice(-10), 4);
 
   const min3Range15 = getMinOnListCandle(candleStickData.slice(-15), 3);
   const max2Range15 = getMaxOnListCandle(candleStickData.slice(-15), 2);
-  const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
-  const min4Range15 = getMinOnListCandle(candleStickData.slice(-15), 4);
+  // const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
+  // const min4Range15 = getMinOnListCandle(candleStickData.slice(-15), 4);
 
-  const min3Range30 = getMinOnListCandle(candleStickData.slice(-30), 3);
-  const max2Range30 = getMaxOnListCandle(candleStickData.slice(-30), 2);
-  const min4Range30 = getMinOnListCandle(candleStickData.slice(-30), 4);
-  const max4Range30 = getMaxOnListCandle(candleStickData.slice(-30), 4);
+  // const min3Range30 = getMinOnListCandle(candleStickData.slice(-30), 3);
+  // const max2Range30 = getMaxOnListCandle(candleStickData.slice(-30), 2);
+  // const min4Range30 = getMinOnListCandle(candleStickData.slice(-30), 4);
+  // const max4Range30 = getMaxOnListCandle(candleStickData.slice(-30), 4);
 
   const max4Range50 = getMaxOnListCandle(candleStickData.slice(-50), 4);
   const min4Range50 = getMinOnListCandle(candleStickData.slice(-50), 4);
-  const min3Range50 = getMinOnListCandle(candleStickData.slice(-50), 3);
+  // const min3Range50 = getMinOnListCandle(candleStickData.slice(-50), 3);
 
-  const min4Range100 = getMinOnListCandle(candleStickData.slice(-100), 4);
-  const max4Range100 = getMaxOnListCandle(candleStickData.slice(-100), 4);
+  // const min4Range100 = getMinOnListCandle(candleStickData.slice(-100), 4);
+  // const max4Range100 = getMaxOnListCandle(candleStickData.slice(-100), 4);
 
-  const max4Range0To50 = getMinOnListCandle(candleStickData.slice(0, 50), 4);
+  // const max4Range0To50 = getMinOnListCandle(candleStickData.slice(0, 50), 4);
 
   const avgCandleBody =
     candleStickData.slice(-50).reduce((acc, candle) => {
