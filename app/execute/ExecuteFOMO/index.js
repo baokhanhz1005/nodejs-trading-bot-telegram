@@ -39,7 +39,7 @@ export const ExecuteFOMO = async (payload) => {
 
   const executeBOT = async () => {
     const timeMinute = new Date().getMinutes();
-    const isHasTrackingData = timeMinute % 5 === 0; // use candle 5m
+    const isHasTrackingData = timeMinute % 15 === 0; // use candle 15m
 
     if (isHasTrackingData) {
       bot.sendMessage(chatId, "🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯");
@@ -67,6 +67,8 @@ export const ExecuteFOMO = async (payload) => {
           for (const response of responses) {
             const { symbol: symbolCandle, data: candleStickData = [] } =
               response;
+
+            if (!candleStickData.length) continue;
 
             const newestCandle = candleStickData.slice(-1)[0];
             const dateTimeCandle = new Date(newestCandle[0]);
@@ -132,7 +134,7 @@ export const ExecuteFOMO = async (payload) => {
         payload,
         mapListOrders,
         listSymbolDeleteRemain,
-        Date.now()
+        Date.now(),
       );
 
       // if ((timeMinute - 1) % 5 === 0) {
@@ -143,10 +145,16 @@ export const ExecuteFOMO = async (payload) => {
     }
   };
 
-  setTimeout(() => {
-    executeBOT();
-    setInterval(() => {
+  setTimeout(
+    () => {
       executeBOT();
-    }, 1 * 60 * 1000);
-  }, timeRemaining * 1000 + 500);
+      setInterval(
+        () => {
+          executeBOT();
+        },
+        1 * 60 * 1000,
+      );
+    },
+    timeRemaining * 1000 + 500,
+  );
 };

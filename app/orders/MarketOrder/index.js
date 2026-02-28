@@ -5,7 +5,16 @@ import { TYPE_MARKET } from "../contants.js";
 import { REWARD } from "../../execute/ExecuteSMC/constant.js";
 
 export const OrderMarket = async (payload) => {
-  const { symbol, entry, type, stickPrice, tp, sl, levelPow, volumeOrder = '' } = payload;
+  const {
+    symbol,
+    entry,
+    type,
+    stickPrice,
+    tp,
+    sl,
+    levelPow,
+    volumeOrder = "",
+  } = payload;
 
   // Thực thi 1 lệnh market và lấy orderId
   const side = type === "up" ? "BUY" : "SELL";
@@ -26,8 +35,10 @@ export const OrderMarket = async (payload) => {
   };
 
   const resMarket = await OrderServices.market(params).catch((err) =>
-    console.error("Error when order:", err)
+    console.error("Error when order:", err),
   );
+
+  console.log(resMarket);
 
   if (resMarket && resMarket.data && resMarket.data.orderId) {
     const ratePriceTP = type === "up" ? 1 + tp / 100 : 1 - tp / 100;
@@ -40,21 +51,24 @@ export const OrderMarket = async (payload) => {
             ? entry * ratePriceTP
             : entry * ratePriceSL;
 
+        console.log(type);
+
         params.data.type = type;
-        params.data.stopPrice = priceTake.toFixed(+stickPrice);
+        params.data.triggerPrice = priceTake.toFixed(+stickPrice);
         params.data.side = side === "BUY" ? "SELL" : "BUY";
         params.data.timestamp = Date.now();
         params.data.closePosition = true;
+        params.data.algoType = "CONDITIONAL";
 
         delete params.data.newOrderRespType;
         delete params.data.leverage;
         delete params.data.quantity;
 
         // set Take profit || Stop loss
-        await OrderServices.market(params).catch((err) =>
-          console.error("Error when set TP SL:", err)
+        await OrderServices.algoMarket(params).catch((err) =>
+          console.error("Error when set TP SL:", err),
         );
-      }
+      },
     );
   }
 };

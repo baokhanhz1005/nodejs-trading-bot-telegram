@@ -221,28 +221,28 @@ export const checkPattern_2 = (candleStickData, symbol, typeCheck) => {
           CONDITION = {
             COND_1: () => EstRR > 1 && EstRR < 3,
             COND_2: () => checkFullCandle(lastestCandle, "down", avgCandleBody),
-            COND_3: () =>
-              !candleStickData
-                .slice(-15)
-                .some(
-                  (candle) =>
-                    isUpCandle(candle) &&
-                    (candle[4] - candle[1]) / avgCandleBody >= 3,
-                ),
+            // COND_3: () =>
+            //   !candleStickData
+            //     .slice(-15)
+            //     .some(
+            //       (candle) =>
+            //         isUpCandle(candle) &&
+            //         (candle[4] - candle[1]) / avgCandleBody >= 3,
+            //     ),
               
-            // COND_4: () =>
-            //   (max4Range50 - lastestCandle[4]) / avgCandleBody <= 15,
-            // COND_5: () => (EMA200 - EMA50) / avgCandleBody >= 0.5,
-            COND_4: () => (max4Range50 - EMA20) / avgCandleBody <= 10,
-            // COND_5: () => (EMA50 - EMA20) / avgCandleBody <= 4,
-            COND_6: () => {
-              const EMA20last15 = getEMA(
-                20,
-                candleStickData.slice(-35).slice(0, 20),
-              );
+            // // COND_4: () =>
+            // //   (max4Range50 - lastestCandle[4]) / avgCandleBody <= 15,
+            // // COND_5: () => (EMA200 - EMA50) / avgCandleBody >= 0.5,
+            // COND_4: () => (max4Range50 - EMA20) / avgCandleBody <= 10,
+            // // COND_5: () => (EMA50 - EMA20) / avgCandleBody <= 4,
+            // COND_6: () => {
+            //   const EMA20last15 = getEMA(
+            //     20,
+            //     candleStickData.slice(-35).slice(0, 20),
+            //   );
 
-              return (EMA20last15 - EMA20) / avgCandleBody >= 2;
-            },
+            //   return (EMA20last15 - EMA20) / avgCandleBody >= 2;
+            // },
           };
 
           // CONDITION = {}; // debug  ####################################

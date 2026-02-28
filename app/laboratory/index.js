@@ -22,7 +22,7 @@ import { ExecuteFOMO_1m } from "../execute/ExecuteFOMO/index.1m.js";
 export const TestFunctionUtility = async (payload) => {
   const { bot, chatId, timeLine } = payload;
 
-  // ExecuteFOMO(payload);
+  ExecuteFOMO(payload);
 
   // const listPositionOrder = await fetchApiGetCurrentPositionAccount();
 
@@ -48,7 +48,7 @@ export const TestFunctionUtility = async (payload) => {
 
   // console.log(resMarket);
 
-  await FindExtremeTrending(payload);
+  // await FindExtremeTrending(payload);
   // const listSymbols = await fetchApiGetListingSymbols();
 
   // if (listSymbols && listSymbols.length) {

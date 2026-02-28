@@ -9,13 +9,13 @@ import { ExecuteFn } from "../handlers/index.js";
 
 const SETTING_BACKTEST = {
   listCandleParamTesting: {
-    limit: 492,
+    limit: 488,
     isUseRange: false,
     range: [0, 388],
   },
   loopData: false,
   excludeTimeStamp: [],
-  // rangeTime: 1765990800000, //18/12
+  rangeTime: 1765990800000, //18/12
   // rangeTime: 1767200400000, //01/01
   // rangeTime: 1768496400000, //16/01
   // rangeTime: 1769878800000, //01/02
@@ -24,7 +24,7 @@ const SETTING_BACKTEST = {
   isShowSL: true,
   isSpecificTime: false,
   typeFn: "SHORT",
-  keyFn: "pattern_S2",
+  keyFn: "pattern_S3",
 };
 
 const {

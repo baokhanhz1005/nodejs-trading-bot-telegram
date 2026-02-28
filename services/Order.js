@@ -26,6 +26,18 @@ const API = {
         return {};
       });
   },
+  algoMarket: async (params) => {
+    const URL = `${ENDPOINT_TYPE.fAPIv1}/algoOrder`;
+    return callApiBinanceFutureWithAuth(URL, "POST", params.data)
+      .then((res) => {
+        console.log(res);
+        return res
+      })
+      .catch((err) => {
+        console.log(err);
+        return {};
+      });
+  },
   updateOrder: async (params) => {
     const URL = `${ENDPOINT_TYPE.fAPIv1}/order`;
     return callApiBinanceFutureWithAuth(URL, "PUT", params.data)
