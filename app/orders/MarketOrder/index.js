@@ -28,7 +28,7 @@ export const OrderMarket = async (payload) => {
       side,
       type: "MARKET",
       quantity,
-      leverage: 50,
+      leverage: 10,
       newOrderRespType: "RESULT",
       timestamp: Date.now(),
     },
