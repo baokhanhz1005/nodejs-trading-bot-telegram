@@ -38,8 +38,6 @@ export const OrderMarket = async (payload) => {
     console.error("Error when order:", err),
   );
 
-  console.log(resMarket);
-
   if (resMarket && resMarket.data && resMarket.data.orderId) {
     const ratePriceTP = type === "up" ? 1 + tp / 100 : 1 - tp / 100;
     const ratePriceSL = type === "up" ? 1 - sl / 100 : 1 + sl / 100;
@@ -50,8 +48,6 @@ export const OrderMarket = async (payload) => {
           type === TYPE_MARKET.TAKE_PROFIT_MARKET
             ? entry * ratePriceTP
             : entry * ratePriceSL;
-
-        console.log(type);
 
         params.data.type = type;
         params.data.triggerPrice = priceTake.toFixed(+stickPrice);
