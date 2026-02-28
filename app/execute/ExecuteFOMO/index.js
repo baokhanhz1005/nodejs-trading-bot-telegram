@@ -125,6 +125,7 @@ export const ExecuteFOMO = async (payload) => {
           }
         }
       });
+      const mapListOrders = {};
 
       await fetchApiHandleResultOrder(
         payload,
@@ -133,7 +134,6 @@ export const ExecuteFOMO = async (payload) => {
         Date.now(),
       );
     } else {
-      const mapListOrders = {};
 
       // if ((timeMinute - 1) % 5 === 0) {
       //   BackTestFOMO({ ...payload, typeCheck: 1, isCheckWinRate: true });
