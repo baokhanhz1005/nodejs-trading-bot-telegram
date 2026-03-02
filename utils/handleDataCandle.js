@@ -1115,21 +1115,28 @@ export const isDownTrending = (arrPeak = [], allowViolation = 2) => {
 
 export const handleResultOrder = () => {};
 
-export const validatePriceForTrade = (price, lengthPrice = 4) => {
+export const validatePriceForTrade = (
+  price,
+  lengthPrice = 4,
+  minimumFirstDigit = 3,
+) => {
   if (isNaN(price)) return false;
-  let count = 0;
 
   const stringPrice = price.toString();
-  const [integerPart, fractionalPart] = stringPrice.split(".");
 
-  if (+integerPart > 0) {
-    count += integerPart.length;
-  }
+  // bỏ dấu chấm
+  const noDotPrice = stringPrice.replace(".", "");
 
-  const tempFractional = +fractionalPart;
-  count += tempFractional.toString().length;
+  // bỏ số 0 phía trước
+  const normalized = noDotPrice.replace(/^0+/, "");
 
-  return count >= lengthPrice;
+  if (!normalized) return false; // trường hợp 0.000000
+
+  const count = normalized.length;
+
+  const firstDigit = Number(normalized[0]);
+
+  return count >= lengthPrice && firstDigit >= minimumFirstDigit;
 };
 
 export const getSmallestFractionPart = (num) => {

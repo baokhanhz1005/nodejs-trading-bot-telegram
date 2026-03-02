@@ -21,6 +21,7 @@ export const ExecuteFOMO = async (payload) => {
   const listSymbolDeleteRemain = [];
   const currentSecond = new Date().getSeconds();
   const timeRemaining = 60 - currentSecond;
+  let filteredListSymbols = [];
 
   bot.on("message", async (msg) => {
     const botId = (await bot.getMe()).id;
@@ -40,10 +41,13 @@ export const ExecuteFOMO = async (payload) => {
   const executeBOT = async () => {
     const timeMinute = new Date().getMinutes();
     const isHasTrackingData = true || timeMinute % 15 === 0; // use candle 15m
+    const tempListSymbols = [];
 
     if (isHasTrackingData) {
       // bot.sendMessage(chatId, "🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯");
-      const promiseDataCandles = shuffleArr(listSymbols)
+      const promiseDataCandles = shuffleArr(
+        filteredListSymbols.length ? filteredListSymbols : listSymbols,
+      )
         .map((tokenInfo) => {
           const { symbol, stickPrice } = tokenInfo;
           const params = {
@@ -90,6 +94,10 @@ export const ExecuteFOMO = async (payload) => {
               timeStamp,
             } = checkAbleQuickOrder(candleStickData, symbolCandle);
 
+            if (validatePriceForTrade(+candleStickData.slice(-1)[0][4])) {
+              tempListSymbols.push({ symbol: symbolCandle });
+            }
+
             if (
               isAbleOrder &&
               validatePriceForTrade(+candleStickData.slice(-1)[0][4])
@@ -124,7 +132,13 @@ export const ExecuteFOMO = async (payload) => {
             }
           }
         }
+        
+        // update list by condition
+        if (!filteredListSymbols.length) {
+          filteredListSymbols = tempListSymbols;
+        }
       });
+
       // const mapListOrders = {};
 
       // await fetchApiHandleResultOrder(
@@ -134,7 +148,6 @@ export const ExecuteFOMO = async (payload) => {
       //   Date.now(),
       // );
     } else {
-
       // if ((timeMinute - 1) % 5 === 0) {
       //   BackTestFOMO({ ...payload, typeCheck: 1, isCheckWinRate: true });
       // } else if ((timeMinute - 2) % 5 === 0) {
