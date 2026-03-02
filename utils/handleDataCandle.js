@@ -1124,10 +1124,8 @@ export const validatePriceForTrade = (
 
   const stringPrice = price.toString();
 
-  // bỏ dấu chấm
   const noDotPrice = stringPrice.replace(".", "");
 
-  // bỏ số 0 phía trước
   const normalized = noDotPrice.replace(/^0+/, "");
 
   if (!normalized) return false; // trường hợp 0.000000
@@ -1136,7 +1134,10 @@ export const validatePriceForTrade = (
 
   const firstDigit = Number(normalized[0]);
 
-  return count >= lengthPrice && firstDigit >= minimumFirstDigit;
+  return (
+    (count >= lengthPrice && firstDigit >= minimumFirstDigit) ||
+    count > lengthPrice
+  );
 };
 
 export const getSmallestFractionPart = (num) => {
