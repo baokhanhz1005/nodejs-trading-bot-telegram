@@ -125,14 +125,14 @@ export const ExecuteFOMO = async (payload) => {
           }
         }
       });
-      const mapListOrders = {};
+      // const mapListOrders = {};
 
-      await fetchApiHandleResultOrder(
-        payload,
-        mapListOrders,
-        listSymbolDeleteRemain,
-        Date.now(),
-      );
+      // await fetchApiHandleResultOrder(
+      //   payload,
+      //   mapListOrders,
+      //   listSymbolDeleteRemain,
+      //   Date.now(),
+      // );
     } else {
 
       // if ((timeMinute - 1) % 5 === 0) {
