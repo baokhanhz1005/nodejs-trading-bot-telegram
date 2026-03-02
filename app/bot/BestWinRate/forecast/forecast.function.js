@@ -130,7 +130,7 @@ const handleFOMOMethod = ({
       dataForeCast.infoSL.push(
         `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
           symbol,
-        )} - LONG\n`,
+        )} - LONG 🟢\n`,
       );
       dataForeCast.countSL += 1;
       dataForeCast.profit += lost;
@@ -144,7 +144,7 @@ const handleFOMOMethod = ({
       dataForeCast.infoSL.push(
         `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
           symbol,
-        )} - SHORT\n`,
+        )} - SHORT 🔴\n`,
       );
       dataForeCast.countSL += 1;
       dataForeCast.profit += lost;
@@ -159,7 +159,7 @@ const handleFOMOMethod = ({
       dataForeCast.infoTP.push(
         `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
           symbol,
-        )} - LONG\n`,
+        )} - LONG 🟢\n`,
       );
       dataForeCast.countTP += 1;
       dataForeCast.profit += profit;
@@ -175,7 +175,7 @@ const handleFOMOMethod = ({
       dataForeCast.infoTP.push(
         `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
           symbol,
-        )} - SHORT\n`,
+        )} - SHORT 🔴\n`,
       );
       dataForeCast.countTP += 1;
       dataForeCast.profit += profit;

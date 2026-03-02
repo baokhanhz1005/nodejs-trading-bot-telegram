@@ -105,11 +105,11 @@ export const ExecuteFOMO = async (payload) => {
               const ratePriceSL =
                 type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
 
-              const message = `${
+              const message = `---------------------------------\n${
                 type === "up" ? "🟢🟢" : "🔴🔴"
               } ${buildLinkToSymbol(symbolCandle)} ${
                 type === "up" ? "BULL" : "BEAR"
-              } SIGNAL ${slPercent}%`;
+              } SIGNAL ${+slPercent.toFixed(2)}%`;
 
               bot.sendMessage(chatId, message, {
                 reply_markup: {
@@ -132,7 +132,7 @@ export const ExecuteFOMO = async (payload) => {
             }
           }
         }
-        
+
         // update list by condition
         if (!filteredListSymbols.length) {
           filteredListSymbols = tempListSymbols;
