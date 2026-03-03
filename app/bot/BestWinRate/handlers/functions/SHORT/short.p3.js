@@ -80,49 +80,49 @@ export const checkPattern_3 = (candleStickData, symbol, typeCheck) => {
   const trend = classifyTrend(highs, lows, 2, 0.999);
 
   const RANGE_EXCHANGE_LEVEL = (max4Range50 - min4Range50) / avgCandleBody;
-  let currentRR = 1;
+  let currentRR = 2;
 
   if (RANGE_EXCHANGE_LEVEL <= 10) {
     CONDITIONS = {};
   } else if (trend === TREND.UP) {
-    EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 2;
+    EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 1;
     type = "up";
     // condition
     CONDITIONS = {
-      COND_1: () => EstRR > 0.5 && EstRR < 3,
-      COND_2: () =>
-        candleStickData.slice(-5).some(
-          (candle) =>
-            (+candle[3] < +EMA20 &&
-              candleStickData.slice(-10).every((cand) => cand[4] > EMA20)) ||
-            (+candle[3] < +EMA50 &&
-              candleStickData.slice(-10).every((cand) => cand[4] > EMA50)),
-          //   ||
-          // (+candle[2] > +EMA100 &&
-          //   candleStickData.slice(-10).every((cand) => cand[4] < EMA100)),
-        ),
-      COND_3: () => EMA20 > EMA50 && EMA50 > EMA200,
-      COND_4: () => checkFullCandle(lastestCandle, "up", avgCandleBody),
+      COND_1: () => EstRR > 0.4 && EstRR < 3,
+      COND_2: () => EMA20 > EMA50,
+      COND_3: () => isUpCandle(lastestCandle) && lastestCandle[3] > EMA20,
+      COND_4: () => {
+        const EMA20last15 = getEMA(20, candleStickData.slice(-35).slice(0, 20));
+        const EMA50last15 = getEMA(50, candleStickData.slice(-65).slice(0, 50));
+        const candleLast15 = candleStickData.slice(-15)[0];
+
+        return (
+          candleLast15[4] < EMA20last15 &&
+          EMA20last15 < EMA50last15 &&
+          (EMA20 - EMA20last15) / avgCandleBody >= 4
+        );
+      },
     };
-  } else if (trend === TREND.DOWN) {
-    EstRR = (max2Range15 / lastestCandle[4] - 1) * 100 * 2;
+  } else if (trend === TREND.DOWN && true) {
+    EstRR = (max2Range15 / lastestCandle[4] - 1) * 100 * 1;
     type = "down";
     // condition
     CONDITIONS = {
-      COND_1: () => EstRR > 0.5 && EstRR < 3,
-      COND_2: () =>
-        candleStickData.slice(-5).some(
-          (candle) =>
-            (+candle[2] > +EMA20 &&
-              candleStickData.slice(-10).every((cand) => cand[4] < EMA20)) ||
-            (+candle[2] > +EMA50 &&
-              candleStickData.slice(-10).every((cand) => cand[4] < EMA50)),
-          //   ||
-          // (+candle[2] > +EMA100 &&
-          //   candleStickData.slice(-10).every((cand) => cand[4] < EMA100)),
-        ),
-      COND_3: () => EMA20 < EMA50 && EMA50 < EMA200,
-      COND_4: () => checkFullCandle(lastestCandle, "down", avgCandleBody),
+      COND_1: () => EstRR > 0.4 && EstRR < 3,
+      COND_2: () => EMA20 < EMA50,
+      COND_3: () => isDownCandle(lastestCandle) && lastestCandle[2] < EMA20,
+      COND_4: () => {
+        const EMA20last15 = getEMA(20, candleStickData.slice(-35).slice(0, 20));
+        const EMA50last15 = getEMA(50, candleStickData.slice(-65).slice(0, 50));
+        const candleLast15 = candleStickData.slice(-15)[0];
+
+        return (
+          candleLast15[4] > EMA20last15 &&
+          EMA20last15 > EMA50last15 &&
+          (EMA20last15 - EMA20) / avgCandleBody >= 4
+        );
+      },
     };
   }
 
