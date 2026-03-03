@@ -24,7 +24,7 @@ const SETTING_BACKTEST = {
   isShowSL: true,
   isSpecificTime: true,
   typeFn: "SHORT",
-  keyFn: "pattern_S3",
+  keyFn: "pattern_S4",
 };
 
 const {
