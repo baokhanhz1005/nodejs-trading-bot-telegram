@@ -54,7 +54,7 @@ export const ExecuteFOMO = async (payload) => {
             data: {
               symbol: symbol,
               interval: timeLine,
-              limit: 201,
+              limit: !filteredListSymbols.length ? 3 : 201,
             },
           };
 
@@ -71,7 +71,7 @@ export const ExecuteFOMO = async (payload) => {
           for (const response of responses) {
             const { symbol: symbolCandle, data: candleStickData = [] } =
               response;
-            if (!candleStickData.length) continue;
+            if (!candleStickData.length || candleStickData.length < 3) continue;
 
             const newestCandle = candleStickData.slice(-1)[0];
             const dateTimeCandle = new Date(newestCandle[0]);
@@ -85,6 +85,13 @@ export const ExecuteFOMO = async (payload) => {
 
             const [prevCandle, lastestCandle] = candleStickData.slice(-2);
 
+            if (validatePriceForTrade(+candleStickData.slice(-1)[0][4])) {
+              tempListSymbols.push({ symbol: symbolCandle });
+            }
+
+            if (candleStickData.length < 200) continue;
+
+
             const {
               type,
               symbol,
@@ -93,10 +100,6 @@ export const ExecuteFOMO = async (payload) => {
               slPercent,
               timeStamp,
             } = checkAbleQuickOrder(candleStickData, symbolCandle);
-
-            if (validatePriceForTrade(+candleStickData.slice(-1)[0][4])) {
-              tempListSymbols.push({ symbol: symbolCandle });
-            }
 
             if (
               isAbleOrder &&
