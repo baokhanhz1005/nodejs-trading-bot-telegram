@@ -128,9 +128,9 @@ const handleFOMOMethod = ({
 
     if (type === "up" && minCurrentPrice <= sl) {
       dataForeCast.infoSL.push(
-        `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
+        `🟢${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
           symbol,
-        )} - LONG 🟢\n`,
+        )} - LONG \n`,
       );
       dataForeCast.countSL += 1;
       dataForeCast.profit += lost;
@@ -142,9 +142,9 @@ const handleFOMOMethod = ({
       dataForeCast.allowLost -= 1;
     } else if (type === "down" && maxCurrentPrice >= sl) {
       dataForeCast.infoSL.push(
-        `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
+        `🔴${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
           symbol,
-        )} - SHORT 🔴\n`,
+        )} - SHORT\n`,
       );
       dataForeCast.countSL += 1;
       dataForeCast.profit += lost;
@@ -157,9 +157,9 @@ const handleFOMOMethod = ({
     } else if (type === "up" && maxCurrentPrice >= tp) {
       // if (dataForeCast.orderInfo.minPrice < dataForeCast.orderInfo.avgPrice) {
       dataForeCast.infoTP.push(
-        `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
+        `🟢${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
           symbol,
-        )} - LONG 🟢\n`,
+        )} - LONG\n`,
       );
       dataForeCast.countTP += 1;
       dataForeCast.profit += profit;
@@ -173,9 +173,9 @@ const handleFOMOMethod = ({
     } else if (type === "down" && minCurrentPrice <= tp) {
       // if (dataForeCast.orderInfo.maxPrice > dataForeCast.orderInfo.avgPrice) {
       dataForeCast.infoTP.push(
-        `${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
+        `🔴${timeStamp}-${buildTimeStampToDate(timeStamp)} - ${buildLinkToSymbol(
           symbol,
-        )} - SHORT 🔴\n`,
+        )} - SHORT\n`,
       );
       dataForeCast.countTP += 1;
       dataForeCast.profit += profit;
