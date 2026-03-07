@@ -22,6 +22,7 @@ export const ExecuteFOMO = async (payload) => {
   const currentSecond = new Date().getSeconds();
   const timeRemaining = 60 - currentSecond;
   let filteredListSymbols = [];
+  const candleCache = {};
 
   bot.on("message", async (msg) => {
     const botId = (await bot.getMe()).id;
@@ -37,6 +38,18 @@ export const ExecuteFOMO = async (payload) => {
       }
     }
   });
+
+  const mergeCandles = (oldCandles = [], newCandles = []) => {
+    const map = new Map();
+
+    [...oldCandles, ...newCandles].forEach((c) => {
+      map.set(c[0], c);
+    });
+
+    const merged = Array.from(map.values()).sort((a, b) => a[0] - b[0]);
+
+    return merged.slice(-200);
+  };
 
   const executeBOT = async () => {
     const timeMinute = new Date().getMinutes();
@@ -54,7 +67,11 @@ export const ExecuteFOMO = async (payload) => {
             data: {
               symbol: symbol,
               interval: timeLine,
-              limit: !filteredListSymbols.length ? 3 : 201,
+              limit: !filteredListSymbols.length
+                ? 3
+                : !candleCache[symbol]
+                  ? 201
+                  : 3,
             },
           };
 
@@ -69,19 +86,35 @@ export const ExecuteFOMO = async (payload) => {
       Promise.all(promiseDataCandles).then(async (responses) => {
         if (responses && responses.length) {
           for (const response of responses) {
-            const { symbol: symbolCandle, data: candleStickData = [] } =
-              response;
-            if (!candleStickData.length || candleStickData.length < 3) continue;
-
-            const newestCandle = candleStickData.slice(-1)[0];
+            const { symbol: symbolCandle, data: candles = [] } = response;
+            if (!candles.length) continue;
+            // console.log(symbolCandle, candles.length);
+            const newestCandle = candles.slice(-1)[0];
             const dateTimeCandle = new Date(newestCandle[0]);
             const currentTime = new Date();
             if (
               Number(dateTimeCandle.getMinutes()) ===
               Number(currentTime.getMinutes())
             ) {
-              candleStickData.pop();
+              candles.pop();
             }
+
+            if (filteredListSymbols.length) {
+              if (!candleCache[symbolCandle]) {
+                // lần đầu load 200 nến
+                candleCache[symbolCandle] = candles.slice(-200);
+              } else {
+                // merge nến mới
+                candleCache[symbolCandle] = mergeCandles(
+                  candleCache[symbolCandle],
+                  candles,
+                );
+              }
+            }
+
+            const candleStickData = filteredListSymbols.length
+              ? candleCache[symbolCandle]
+              : candles;
 
             const [prevCandle, lastestCandle] = candleStickData.slice(-2);
 
@@ -90,7 +123,6 @@ export const ExecuteFOMO = async (payload) => {
             }
 
             if (candleStickData.length < 200) continue;
-
 
             const {
               type,
