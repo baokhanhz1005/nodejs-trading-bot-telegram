@@ -147,7 +147,7 @@ export const ExecuteFOMO = async (payload) => {
                 type === "up" ? "🟢🟢" : "🔴🔴"
               } ${buildLinkToSymbol(symbolCandle)} ${
                 type === "up" ? "BULL" : "BEAR"
-              } SIGNAL \nPer: ${+slPercent.toFixed(2)}%\nBasic entry: ${lastestCandle[4]}\nEst SL: ${lastestCandle[4] * ratePriceSL}`;
+              } SIGNAL \nPer: ${+slPercent.toFixed(2)}%\nBasic entry: ${lastestCandle[4]}\nEst SL: ${lastestCandle[4] * ratePriceSL}\nreverse-EST SL: ${lastestCandle[4] * ratePriceSLRevese}`;
 
               bot.sendMessage(chatId, message, {
                 reply_markup: {
