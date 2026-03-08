@@ -140,6 +140,9 @@ export const ExecuteFOMO = async (payload) => {
               const ratePriceSL =
                 type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
 
+              const ratePriceSLRevese =
+                type === "up" ? 1 + slPercent / 100 : 1 - slPercent / 100;
+
               const message = `${
                 type === "up" ? "🟢🟢" : "🔴🔴"
               } ${buildLinkToSymbol(symbolCandle)} ${
@@ -157,6 +160,14 @@ export const ExecuteFOMO = async (payload) => {
                         callback_data: `order ${symbolCandle} ${
                           lastestCandle[4] * ratePriceSL
                         } ${type} ${COST}`,
+                      },
+                      {
+                        text: `🟡🟡 - order ${symbolCandle} ${
+                          lastestCandle[4] * ratePriceSLRevese
+                        } ${type === "up" ? "down" : "up"} ${COST}`,
+                        callback_data: `order ${symbolCandle} ${
+                          lastestCandle[4] * ratePriceSLRevese
+                        } ${type === "up" ? "down" : "up"} ${COST}`,
                       },
                     ],
                   ],
