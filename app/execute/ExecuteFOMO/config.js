@@ -1,6 +1,6 @@
 export const CONFIG_QUICK_TRADE = {
-  RR: 0.3,
-  COST: 1,
+  RR: 3.3,
+  COST: 0.3,
   RATE_SL: 1.5, // default = 3
   limitPeakOrBottom: 10,
   RR_MANUAL_ORDER: 0.5,
@@ -20,7 +20,7 @@ export const CONFIG_QUICK_TRADE = {
   // hit SL mode
   // isHitSLMode: true,
   // limitHitSL: 1,
-  
+
   // ---------- level pow ------------
   isLevelPow: false,
   maxLevelPow: 4,
