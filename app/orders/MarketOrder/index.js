@@ -12,7 +12,7 @@ export const OrderMarket = async (payload) => {
     stickPrice,
     tp,
     sl,
-    levelPow,
+    levelPow = 0,
     volumeOrder = "",
   } = payload;
 

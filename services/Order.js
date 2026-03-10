@@ -11,6 +11,12 @@ const API = {
       .then((res) => res)
       .catch((err) => console.log(err));
   },
+  openAlgoOrders: async (params) => {
+    const URL = `${ENDPOINT_TYPE.fAPIv1}/openAlgoOrders`;
+    return callApiBinanceFutureWithAuth(URL, "GET", params.data)
+      .then((res) => res)
+      .catch((err) => console.log(err));
+  },
   getListPosition: async (params) => {
     const URL = `${ENDPOINT_TYPE.fAPIv2}/positionRisk`;
     return callApiBinanceFutureWithAuth(URL, "GET", params.data)
@@ -31,7 +37,7 @@ const API = {
     return callApiBinanceFutureWithAuth(URL, "POST", params.data)
       .then((res) => {
         console.log(res);
-        return res
+        return res;
       })
       .catch((err) => {
         console.log(err);

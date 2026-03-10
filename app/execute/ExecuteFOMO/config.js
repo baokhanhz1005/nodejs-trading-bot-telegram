@@ -1,6 +1,6 @@
 export const CONFIG_QUICK_TRADE = {
-  RR: 1,
-  COST: 2.5,
+  RR: 0.3,
+  COST: 1,
   RATE_SL: 1.5, // default = 3
   limitPeakOrBottom: 10,
   RR_MANUAL_ORDER: 0.5,
