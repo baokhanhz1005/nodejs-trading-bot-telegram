@@ -85,7 +85,7 @@ export const ExecuteFOMO = async (payload) => {
             ];
           }
         });
-        listSymbolOrder = [...Object.keys(mapListOrders), 'LDOUSDT'];
+        listSymbolOrder = [...Object.keys(mapListOrders), "LDOUSDT"];
         // console.log(listSymbolOrder.length);
       }
       /////////////////////////////////////////////////////////////
@@ -187,7 +187,7 @@ export const ExecuteFOMO = async (payload) => {
               } SIGNAL \nPer: ${+slPercent.toFixed(2)}%\nBasic entry: ${lastestCandle[4]}\nEst SL: ${lastestCandle[4] * ratePriceSL}\nreverse-EST SL: ${lastestCandle[4] * ratePriceSLRevese}`;
               ////////////////////////////////////////////////////
               const { stickPrice } = mapSymbolInfo[symbolCandle];
-
+              const volumeOrder = (+COST * 100) / +slPercent;
               await OrderMarket({
                 symbol: symbolCandle,
                 entry: +lastestCandle[4],
@@ -195,6 +195,7 @@ export const ExecuteFOMO = async (payload) => {
                 stickPrice,
                 tp: tpPercent,
                 sl: slPercent,
+                volumeOrder,
               });
 
               bot.sendMessage(
