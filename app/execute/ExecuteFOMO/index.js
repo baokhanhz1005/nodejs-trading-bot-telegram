@@ -168,11 +168,13 @@ export const ExecuteFOMO = async (payload) => {
               timeStamp,
             } = checkAbleQuickOrder(candleStickData, symbolCandle);
             // console.log(symbolCandle, isAbleOrder);
+            const volumeOrder = (+COST * 100) / +slPercent;
+
             if (
               isAbleOrder &&
               validatePriceForTrade(+candleStickData.slice(-1)[0][4]) &&
               listSymbolOrder.every((order) => order !== symbolCandle) &&
-              lastestCandle[4] < 300
+              lastestCandle[4] / volumeOrder <= 1
             ) {
               const ratePriceSL =
                 type === "up" ? 1 - slPercent / 100 : 1 + slPercent / 100;
@@ -187,7 +189,7 @@ export const ExecuteFOMO = async (payload) => {
               } SIGNAL \nPer: ${+slPercent.toFixed(2)}%\nBasic entry: ${lastestCandle[4]}\nEst SL: ${lastestCandle[4] * ratePriceSL}\nreverse-EST SL: ${lastestCandle[4] * ratePriceSLRevese}`;
               ////////////////////////////////////////////////////
               const { stickPrice } = mapSymbolInfo[symbolCandle];
-              const volumeOrder = (+COST * 100) / +slPercent;
+
               await OrderMarket({
                 symbol: symbolCandle,
                 entry: +lastestCandle[4],
