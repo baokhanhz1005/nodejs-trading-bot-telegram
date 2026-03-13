@@ -1193,3 +1193,67 @@ export const getPreListCandle = (
     candleStickData.length - numPreCandle,
   );
 };
+
+export function calculateADX(candles, period = 14) {
+  const trs = [];
+  const plusDM = [];
+  const minusDM = [];
+
+  for (let i = 1; i < candles.length; i++) {
+    const high = Number(candles[i][2]);
+    const low = Number(candles[i][3]);
+    const close = Number(candles[i][4]);
+
+    const prevHigh = Number(candles[i - 1][2]);
+    const prevLow = Number(candles[i - 1][3]);
+    const prevClose = Number(candles[i - 1][4]);
+
+    const tr = Math.max(
+      high - low,
+      Math.abs(high - prevClose),
+      Math.abs(low - prevClose),
+    );
+
+    trs.push(tr);
+
+    const upMove = high - prevHigh;
+    const downMove = prevLow - low;
+
+    plusDM.push(upMove > downMove && upMove > 0 ? upMove : 0);
+
+    minusDM.push(downMove > upMove && downMove > 0 ? downMove : 0);
+  }
+
+  let tr14 = 0;
+  let plusDM14 = 0;
+  let minusDM14 = 0;
+
+  for (let i = 0; i < period; i++) {
+    tr14 += trs[i];
+    plusDM14 += plusDM[i];
+    minusDM14 += minusDM[i];
+  }
+
+  const dxs = [];
+
+  for (let i = period; i < trs.length; i++) {
+    tr14 = tr14 - tr14 / period + trs[i];
+    plusDM14 = plusDM14 - plusDM14 / period + plusDM[i];
+    minusDM14 = minusDM14 - minusDM14 / period + minusDM[i];
+
+    const plusDI = 100 * (plusDM14 / tr14);
+    const minusDI = 100 * (minusDM14 / tr14);
+
+    const dx = (100 * Math.abs(plusDI - minusDI)) / (plusDI + minusDI);
+
+    dxs.push(dx);
+  }
+
+  const adx = dxs.slice(0, period).reduce((a, b) => a + b, 0) / period;
+
+  return {
+    adx,
+    plusDI: 100 * (plusDM14 / tr14),
+    minusDI: 100 * (minusDM14 / tr14),
+  };
+}
