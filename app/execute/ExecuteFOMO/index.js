@@ -56,11 +56,11 @@ export const ExecuteFOMO = async (payload) => {
 
   const executeBOT = async () => {
     const timeMinute = new Date().getMinutes();
-    const isHasTrackingData = true || timeMinute % 15 === 0; // use candle 15m
+    const isHasTrackingData = false || timeMinute % 15 === 0; // use candle 15m
     const tempListSymbols = [];
 
     if (isHasTrackingData) {
-      // bot.sendMessage(chatId, "🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯");
+      bot.sendMessage(chatId, "🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯");
       ///////////////////////////////////////////////
       let listSymbolOrder = [];
 
@@ -270,7 +270,7 @@ export const ExecuteFOMO = async (payload) => {
         () => {
           executeBOT();
         },
-        1 * 60 * 1000,
+        15 * 60 * 1000,
       );
     },
     timeRemaining * 1000 + 500,
