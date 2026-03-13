@@ -11,6 +11,7 @@ import {
   getMaxOnListCandle,
   getMinOnListCandle,
   TREND,
+  validatePriceForTrade,
 } from "../../../utils/handleDataCandle.js";
 import {
   checkFullCandle,
@@ -115,76 +116,18 @@ export const FindExtremeTrending = async (payload) => {
             COND_1: () =>
               candleStickData
                 .slice(-5)
-                .some(
-                  (candle) =>
-                    (+candle[3] < +EMA20 &&
-                      candleStickData
-                        .slice(-10)
-                        .every((cand) => cand[4] > EMA20)) ||
-                    (+candle[3] + avgCandleBody * MULTI < +EMA50 &&
-                      candleStickData
-                        .slice(-10)
-                        .every((cand) => cand[4] > EMA50)) ||
-                    (+candle[2] - avgCandleBody * MULTI > +EMA100 &&
-                      candleStickData
-                        .slice(-10)
-                        .every((cand) => cand[4] < EMA100)),
-                ),
-            COND_4: () =>
-              candleStickData.slice(-5).some((candle, index) => {
-                const nextCandle = candleStickData.slice(-5)[index + 1];
-                if (nextCandle) {
-                  return (
-                    isUpCandle(candle) &&
-                    isDownCandle(nextCandle) &&
-                    nextCandle[4] < candle[1]
-                  );
-                  // return (
-                  //   isDownCandle(candle) &&
-                  //   isUpCandle(nextCandle) &&
-                  //   nextCandle[4] > candle[1]
-                  // );
-                }
-                return false;
-              }),
+                .every((candle) => candle[4] >= lastestCandle[4]),
+            C2: () => checkFullCandle(lastestCandle, "down", avgCandleBody),
+            C3: () => validatePriceForTrade(+lastestCandle[4]),
           };
         } else if (trend === TREND.DOWN) {
           CONDITIONS = {
             COND_1: () =>
               candleStickData
                 .slice(-5)
-                .some(
-                  (candle) =>
-                    (+candle[2] > +EMA20 &&
-                      candleStickData
-                        .slice(-10)
-                        .every((cand) => cand[4] < EMA20)) ||
-                    (+candle[2] - avgCandleBody * MULTI > +EMA50 &&
-                      candleStickData
-                        .slice(-10)
-                        .every((cand) => cand[4] < EMA50)) ||
-                    (+candle[2] - avgCandleBody * MULTI > +EMA100 &&
-                      candleStickData
-                        .slice(-10)
-                        .every((cand) => cand[4] < EMA100)),
-                ),
-            COND_4: () =>
-              candleStickData.slice(-5).some((candle, index) => {
-                const nextCandle = candleStickData.slice(-5)[index + 1];
-                if (nextCandle) {
-                  return (
-                    isDownCandle(candle) &&
-                    isUpCandle(nextCandle) &&
-                    nextCandle[4] > candle[1]
-                  );
-                  // return (
-                  //   isUpCandle(candle) &&
-                  //   isDownCandle(nextCandle) &&
-                  //   nextCandle[4] < candle[1]
-                  // );
-                }
-                return false;
-              }),
+                .every((candle) => candle[4] <= lastestCandle[4]),
+            C2: () => checkFullCandle(lastestCandle, "up", avgCandleBody),
+            C3: () => validatePriceForTrade(+lastestCandle[4]),
           };
         }
 
