@@ -56,7 +56,7 @@ export const ExecuteFOMO = async (payload) => {
 
   const executeBOT = async () => {
     const timeMinute = new Date().getMinutes();
-    const isHasTrackingData = false || timeMinute % 15 === 0; // use candle 15m
+    const isHasTrackingData = false || timeMinute % 5 === 0; // use candle 5m
     const tempListSymbols = [];
 
     if (isHasTrackingData) {
@@ -270,7 +270,7 @@ export const ExecuteFOMO = async (payload) => {
         () => {
           executeBOT();
         },
-        15 * 60 * 1000,
+        5 * 60 * 1000,
       );
     },
     timeRemaining * 1000 + 500,
