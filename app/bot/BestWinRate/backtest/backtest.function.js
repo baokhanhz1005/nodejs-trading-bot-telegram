@@ -9,7 +9,7 @@ import { ExecuteFn } from "../handlers/index.js";
 
 const SETTING_BACKTEST = {
   listCandleParamTesting: {
-    limit: 338,
+    limit: 300,
     isUseRange: false,
     range: [0, 388],
   },
@@ -80,6 +80,7 @@ export const BackTestFunction = async (payload) => {
     let totalProfit = 0;
     let totalLong = 0;
     let totalShort = 0;
+    let totalHasProfitRunning = 0;
     let newestRangeTime = null;
     const listOrderRunning = [];
 
@@ -118,6 +119,7 @@ export const BackTestFunction = async (payload) => {
           infoTP,
           longOrders,
           shortOrders,
+          orderInfo,
         } = ForeCastFunction(payload);
 
         totalWin += countTP;
@@ -126,6 +128,19 @@ export const BackTestFunction = async (payload) => {
         totalProfit += profit;
         totalLong += longOrders;
         totalShort += shortOrders;
+
+        if (orderInfo) {
+          const { tp, entry, type } = orderInfo;
+          const currentPrice = +candleStickData.slice(-1)[0][4];
+          const avgPrice = (Number(entry) + Number(tp)) / 2;
+
+          if (type === "up" && currentPrice > +entry) {
+            totalHasProfitRunning += 1;
+          }
+          if (type === "down" && currentPrice < +entry) {
+            totalHasProfitRunning += 1;
+          }
+        }
 
         if (infoSL && infoSL.length) {
           listInfoSL.push(...infoSL);
@@ -325,7 +340,7 @@ export const BackTestFunction = async (payload) => {
                 Object.keys(mapInfoSameTimeStampTP).length
               } \n+ SL: ${Object.keys(mapInfoSameTimeStampSL).length}\n${
                 +totalProfit > 0 ? "🟢🟢🟢🟢" : "🔴🔴🔴🔴"
-              }\n 🟢${findListSpecificTimeOrderTP.length} -- 🔴${findListSpecificTimeOrderSL.length}`,
+              }\n 🟢${findListSpecificTimeOrderTP.length} -- 🔴${findListSpecificTimeOrderSL.length} \n - Profit running: ${totalHasProfitRunning}`,
               {
                 parse_mode: "HTML",
                 disable_web_page_preview: true,
