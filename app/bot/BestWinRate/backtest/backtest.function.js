@@ -247,6 +247,34 @@ export const BackTestFunction = async (payload) => {
             [],
           );
 
+          const findListSpecificTimeOrderTP = Object.keys(
+            mapInfoSameTimeStampTP,
+          ).reduce((acc, key) => {
+            if (
+              !excludeTimeStamp.includes(key) &&
+              mapInfoSameTimeStampTP[key] &&
+              mapInfoSameTimeStampTP[key].length
+            ) {
+              acc.push(mapInfoSameTimeStampTP[key][0]);
+            }
+
+            return acc;
+          }, []);
+
+          const findListSpecificTimeOrderSL = Object.keys(
+            mapInfoSameTimeStampSL,
+          ).reduce((acc, key) => {
+            if (
+              !excludeTimeStamp.includes(key) &&
+              mapInfoSameTimeStampSL[key] &&
+              mapInfoSameTimeStampSL[key].length
+            ) {
+              acc.push(mapInfoSameTimeStampSL[key][0]);
+            }
+
+            return acc;
+          }, []);
+
           const listTimeOrderWillShow = isSpecificTime
             ? findListSpecificTimeOrder
             : findListSameTimeStampHighest;
@@ -297,7 +325,11 @@ export const BackTestFunction = async (payload) => {
                 Object.keys(mapInfoSameTimeStampTP).length
               } \n+ SL: ${Object.keys(mapInfoSameTimeStampSL).length}\n${
                 +totalProfit > 0 ? "🟢🟢🟢🟢" : "🔴🔴🔴🔴"
-              }`,
+              }\n 🟢${findListSpecificTimeOrderTP.length} -- 🔴${findListSpecificTimeOrderSL.length}`,
+              {
+                parse_mode: "HTML",
+                disable_web_page_preview: true,
+              },
             )
             .then((sentMess) => {
               if (loopData && CURRENT_LOOP <= loopData && newestRangeTime) {
