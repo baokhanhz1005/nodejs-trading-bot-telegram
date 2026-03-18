@@ -88,7 +88,7 @@ export const checkAbleQuickOrder = (candleStickData, symbol, typeCheck) => {
   if (RANGE_EXCHANGE_LEVEL <= 10) {
     CONDITIONS = {};
   } else if (trend === TREND.UP) {
-    EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 3;
+    EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 1.25;
     type = "up";
     // condition
     CONDITIONS = {
@@ -106,7 +106,7 @@ export const checkAbleQuickOrder = (candleStickData, symbol, typeCheck) => {
           ),
     };
   } else if (trend === TREND.DOWN && true) {
-    EstRR = (max2Range15 / lastestCandle[4] - 1) * 100 * 3;
+    EstRR = (max2Range15 / lastestCandle[4] - 1) * 100 * 1.25;
     type = "down";
     // condition
     CONDITIONS = {

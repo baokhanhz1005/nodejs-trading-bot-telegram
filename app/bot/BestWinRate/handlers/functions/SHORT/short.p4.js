@@ -84,12 +84,12 @@ export const checkPattern_4 = (candleStickData, symbol, typeCheck) => {
 
   const RANGE_EXCHANGE_LEVEL = (max4Range50 - min4Range50) / avgCandleBody;
   let currentRR = 1;
-
+  const isReverse = false;
   if (RANGE_EXCHANGE_LEVEL <= 10) {
     CONDITIONS = {};
   } else if (trend === TREND.UP) {
-    EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 3;
-    type = "up";
+    EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 1.25;
+    type = isReverse ? "down" : "up";
     // condition
     CONDITIONS = {
       COND_1: () => EstRR > 1 && EstRR < 3,
@@ -106,8 +106,8 @@ export const checkPattern_4 = (candleStickData, symbol, typeCheck) => {
           ),
     };
   } else if (trend === TREND.DOWN && true) {
-    EstRR = (max2Range15 / lastestCandle[4] - 1) * 100 * 3;
-    type = "down";
+    EstRR = (max2Range15 / lastestCandle[4] - 1) * 100 * 1.25;
+    type = isReverse ? "up" : "down";
     // condition
     CONDITIONS = {
       COND_1: () => EstRR > 1 && EstRR < 3,

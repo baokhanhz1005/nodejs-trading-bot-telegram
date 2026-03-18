@@ -9,7 +9,7 @@ import { ExecuteFn } from "../handlers/index.js";
 
 const SETTING_BACKTEST = {
   listCandleParamTesting: {
-    limit: 300,
+    limit: 488,
     isUseRange: false,
     range: [0, 388],
   },
