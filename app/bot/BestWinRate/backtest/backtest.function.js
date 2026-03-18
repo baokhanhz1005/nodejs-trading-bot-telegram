@@ -332,15 +332,13 @@ export const BackTestFunction = async (payload) => {
                     : ""
               }\n+ Profit: ${(+totalProfit).toFixed(
                 2,
-              )}\n+ Win: ${totalWin} \n+ Lose: ${totalLose}\n+ Total: ${totalOrder} -- (${
-                totalOrder - totalWin - totalLose
-              }) - ${totalLong} LONG - ${totalShort} SHORT\n+Win Rate: ${
+              )}\n+ Win: ${totalWin} \n+ Lose: ${totalLose}\n+ Total: ${totalOrder} -- ${totalLong} LONG - ${totalShort} SHORT\n+Win Rate: ${
                 (totalWin * 100) / (totalWin + totalLose)
-              }% \n ${listTimeOrderWillShow.length}\n-------------\n+ TP: ${
+              }% \n ${listTimeOrderWillShow.length}\n------------------\n+ TP: ${
                 Object.keys(mapInfoSameTimeStampTP).length
-              } \n+ SL: ${Object.keys(mapInfoSameTimeStampSL).length}\n${
-                +totalProfit > 0 ? "🟢🟢🟢🟢" : "🔴🔴🔴🔴"
-              }\n 🟢${findListSpecificTimeOrderTP.length} -- 🔴${findListSpecificTimeOrderSL.length} \n - Profit running: ${totalHasProfitRunning}`,
+              } \n+ SL: ${Object.keys(mapInfoSameTimeStampSL).length}\n------------------\n 🟢${findListSpecificTimeOrderTP.length} -- 🔴${findListSpecificTimeOrderSL.length} \n - Profit running: ${totalHasProfitRunning} / ${
+                totalOrder - totalWin - totalLose
+              }\n${+totalProfit > 0 ? "🟢🟢🟢🟢" : "🔴🔴🔴🔴"}`,
               {
                 parse_mode: "HTML",
                 disable_web_page_preview: true,
