@@ -102,7 +102,7 @@ export const ExecuteFOMO = async (payload) => {
                 ? 3
                 : !candleCache[symbol]
                   ? 201
-                  : 3,
+                  : 10,
             },
           };
 
