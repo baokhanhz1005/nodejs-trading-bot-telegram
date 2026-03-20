@@ -186,7 +186,7 @@ export const ExecuteFOMO = async (payload) => {
                 type === "up" ? "🟢🟢" : "🔴🔴"
               } ${buildLinkToSymbol(symbolCandle)} ${
                 type === "up" ? "BULL" : "BEAR"
-              } SIGNAL \nPer: ${+slPercent.toFixed(2)}%\nBasic entry: ${lastestCandle[4]}\nEst SL: ${lastestCandle[4] * ratePriceSL}\nreverse-EST SL: ${lastestCandle[4] * ratePriceSLRevese}`;
+              } SIGNAL \nPer: ${+slPercent.toFixed(2)}%\n💥 ${lastestCandle[4] * ratePriceSL}\n💟 ${lastestCandle[4]}\n♻ ${lastestCandle[4] * ratePriceSLRevese}`;
               ////////////////////////////////////////////////////
               // const { stickPrice } = mapSymbolInfo[symbolCandle];
 
