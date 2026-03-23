@@ -1,5 +1,5 @@
 export const CONFIG_QUICK_TRADE = {
-  RR: 1,
+  RR: 0.5,
   COST: 1,
   RATE_SL: 1.5, // default = 3
   limitPeakOrBottom: 10,

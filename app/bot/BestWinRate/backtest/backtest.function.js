@@ -9,7 +9,7 @@ import { ExecuteFn } from "../handlers/index.js";
 
 const SETTING_BACKTEST = {
   listCandleParamTesting: {
-    limit: 488,
+    limit: 300,
     isUseRange: false,
     range: [0, 388],
   },
@@ -290,9 +290,11 @@ export const BackTestFunction = async (payload) => {
             return acc;
           }, []);
 
-          const listTimeOrderWillShow = isSpecificTime
-            ? findListSpecificTimeOrder
-            : findListSameTimeStampHighest;
+          const listTimeOrderWillShow = (
+            isSpecificTime
+              ? findListSpecificTimeOrder
+              : findListSameTimeStampHighest
+          ).sort((a, b) => b.split("-")[0] - a.split("-")[0]);
 
           if (true && !isCheckWinRate && !loopData) {
             // Dùng cho việc log ra các lệnh SL\TP, cho việc đánh giá lý do tại sao lệnh chạm SL
