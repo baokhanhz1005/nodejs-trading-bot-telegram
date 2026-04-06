@@ -83,50 +83,32 @@ export const checkAbleQuickOrder = (candleStickData, symbol, typeCheck) => {
   const trend = classifyTrend(highs, lows, 2, 0.999);
 
   const RANGE_EXCHANGE_LEVEL = (max4Range50 - min4Range50) / avgCandleBody;
-  let currentRR = 1;
-  const isReverse = false;
+  let currentRR = 2;
+  const isReverse = true;
 
   if (RANGE_EXCHANGE_LEVEL <= 10) {
     CONDITIONS = {};
   } else if (trend === TREND.UP) {
-    EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 2;
+    EstRR = (max2Range15 / lastestCandle[4] - 1) * 100 * 2;
     type = isReverse ? "down" : "up";
     // condition
     CONDITIONS = {
-      COND_1: () => EstRR > 1 && EstRR < 2.5,
-      COND_2: () =>
-        isUpCandle(lastestCandle, "up", avgCandleBody) &&
-        lastestCandle[4] > prevCandle[2],
-      COND_3: () => EMA20 > EMA50 && (EMA50 - EMA100) / avgCandleBody <= 0.5,
-      COND_4: () => adx <= 20,
-      COND_5: () =>
-        candleStickData
-          .slice(-10)
-          .some(
-            (candle) =>
-              isDownCandle(candle) &&
-              (+candle[3] < +EMA20 || +candle[3] < +EMA50),
-          ),
+      COND_1: () => EstRR > 0.2 && EstRR < 0.5,
+      COND_2: () => isDownCandle(lastestCandle) && lastestCandle[4] > EMA20,
+      COND_3: () => EMA20 > EMA50 && (EMA20 - EMA50) / avgCandleBody >= 0.5,
+      COND_4: () => EMA100 > EMA200 && (EMA100 - EMA200) / avgCandleBody >= 0.5,
+      COND_5: () => adx > 40,
     };
   } else if (trend === TREND.DOWN && true) {
-    EstRR = (max2Range15 / lastestCandle[4] - 1) * 100 * 2;
+    EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 2;
     type = isReverse ? "up" : "down";
     // condition
     CONDITIONS = {
-      COND_1: () => EstRR > 1 && EstRR < 2.5,
-      COND_2: () =>
-        isDownCandle(lastestCandle, "down", avgCandleBody) &&
-        lastestCandle[4] < prevCandle[3],
-      COND_3: () => EMA20 < EMA50 && (EMA50 - EMA100) / avgCandleBody <= 0.5,
-      COND_4: () => adx <= 20,
-      COND_5: () =>
-        candleStickData
-          .slice(-10)
-          .some(
-            (candle) =>
-              isUpCandle(candle) &&
-              (+candle[2] > +EMA20 || +candle[2] > +EMA50),
-          ),
+      COND_1: () => EstRR > 0.2 && EstRR < 0.5,
+      COND_2: () => isUpCandle(lastestCandle) && lastestCandle[4] < EMA20,
+      COND_3: () => EMA20 < EMA50 && (EMA50 - EMA20) / avgCandleBody >= 0.5,
+      COND_4: () => EMA100 < EMA200 && (EMA200 - EMA100) / avgCandleBody >= 0.5,
+      COND_5: () => adx > 40,
     };
   }
 
