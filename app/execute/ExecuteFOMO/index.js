@@ -220,7 +220,7 @@ export const ExecuteFOMO = async (payload) => {
                         } ${type} ${COST}`,
                         callback_data: `order ${symbolCandle} ${
                           lastestCandle[4] * ratePriceSL
-                        } ${type} ${COST}`,
+                        } ${type} ${COST} true`,
                       },
                       {
                         text: `🟡🟡 - order ${symbolCandle} ${
@@ -228,7 +228,7 @@ export const ExecuteFOMO = async (payload) => {
                         } ${type === "up" ? "down" : "up"} ${COST}`,
                         callback_data: `order ${symbolCandle} ${
                           lastestCandle[4] * ratePriceSLRevese
-                        } ${type === "up" ? "down" : "up"} ${COST}`,
+                        } ${type === "up" ? "down" : "up"} ${COST} true`,
                       },
                     ],
                   ],

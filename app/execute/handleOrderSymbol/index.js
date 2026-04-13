@@ -6,7 +6,7 @@ import OrderServices from "../../../services/Order.js";
 import { OrderMarket } from "../../orders/MarketOrder/index.js";
 import { CONFIG_QUICK_TRADE } from "../ExecuteFOMO/config.js";
 
-const { RR: RR_QUICK, RR_MANUAL_ORDER } = CONFIG_QUICK_TRADE;
+const { RR: RR_QUICK, RR_MANUAL_ORDER, isReverse = false } = CONFIG_QUICK_TRADE;
 export const handleOrderSymbol = async (payload) => {
   const {
     bot,
@@ -81,6 +81,13 @@ export const handleOrderSymbol = async (payload) => {
         volumeOrder,
         type: typeOrder,
       };
+
+      if (isReverse)  {
+          orderInfo.type = typeOrder === "up" ? "down" : "up";
+          orderInfo.tp = +slPercent;
+          orderInfo.sl = +slPercent * RR;
+          orderInfo.volumeOrder = volumeOrder / RR;
+      }
 
       await OrderMarket(orderInfo);
 
