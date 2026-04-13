@@ -86,7 +86,6 @@ export const handleOrderSymbol = async (payload) => {
           orderInfo.type = typeOrder === "up" ? "down" : "up";
           orderInfo.tp = +slPercent;
           orderInfo.sl = +slPercent * RR;
-          orderInfo.volumeOrder = volumeOrder / RR;
       }
 
       await OrderMarket(orderInfo);
