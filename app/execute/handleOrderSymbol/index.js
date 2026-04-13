@@ -8,13 +8,7 @@ import { CONFIG_QUICK_TRADE } from "../ExecuteFOMO/config.js";
 
 const { RR: RR_QUICK, RR_MANUAL_ORDER, isReverse = false } = CONFIG_QUICK_TRADE;
 export const handleOrderSymbol = async (payload) => {
-  const {
-    bot,
-    chatId,
-    timeLine,
-    command,
-    RR = RR_QUICK,
-  } = payload;
+  const { bot, chatId, timeLine, command, RR = RR_QUICK } = payload;
   // ex: order ABCUSDT 1.232 up 1 isCheckHasCurrentOrder
   const arrayCommand = command.split(" ");
 
@@ -29,13 +23,12 @@ export const handleOrderSymbol = async (payload) => {
     isCheckHasCurrentOrder = "",
   ] = arrayCommand;
 
-  if (isCheckHasCurrentOrder) {
-    const res = await OrderServices.getList({
+  if (true || isCheckHasCurrentOrder) {
+    const res = await OrderServices.openAlgoOrders({
       data: {
         timestamp: Date.now(),
+        recvWindow: 5000,
       },
-    }).catch((err) => {
-      console.error("Error when get list order: ", err);
     });
 
     const { data: listOpenOrderData } = res || {};
@@ -43,12 +36,13 @@ export const handleOrderSymbol = async (payload) => {
     // noti and delete order
     if (listOpenOrderData && listOpenOrderData.length) {
       // build thành Object
-      listOpenOrderData.forEach((order) => {
-        if (order?.symbol.toLowerCase() === symbolCmd.toLowerCase()) {
-          isExistOrder = true;
-          bot.sendMessage(chatId, `Has existing this order ${symbolCmd}`);
-        }
-      });
+      isExistOrder = listOpenOrderData.some(
+        (order) => order?.symbol.toLowerCase() === symbolCmd.toLowerCase(),
+      );
+
+      if (isExistOrder) {
+        bot.sendMessage(chatId, `Has existing this order ${symbolCmd}`);
+      }
     }
   }
 
@@ -56,7 +50,7 @@ export const handleOrderSymbol = async (payload) => {
     const listSymbols = await fetchApiGetListingSymbols();
 
     const tokenInfo = listSymbols.find(
-      (token) => token.symbol.toLowerCase() === symbolCmd.toLowerCase()
+      (token) => token.symbol.toLowerCase() === symbolCmd.toLowerCase(),
     );
     if (tokenInfo) {
       const { symbol, stickPrice } = tokenInfo;
@@ -82,22 +76,22 @@ export const handleOrderSymbol = async (payload) => {
         type: typeOrder,
       };
 
-      if (isReverse)  {
-          orderInfo.type = typeOrder === "up" ? "down" : "up";
-          orderInfo.tp = +slPercent;
-          orderInfo.sl = +slPercent * RR;
+      if (isReverse) {
+        orderInfo.type = typeOrder === "up" ? "down" : "up";
+        orderInfo.tp = +slPercent;
+        orderInfo.sl = +slPercent * RR;
       }
 
       await OrderMarket(orderInfo);
 
       bot.sendMessage(
         chatId,
-        `Đã order lệnh ${symbol} - ${orderInfo.type} \n- price: ${arrayCommand[2]}`
+        `Đã order lệnh ${symbol} - ${orderInfo.type} \n- price: ${arrayCommand[2]}`,
       );
     } else {
       bot.sendMessage(
         chatId,
-        `Lệnh Order với cú pháp:\n- ex: Order ABCUSDT 1.2323 up 4 \n ** Order {Mã Token} {price-SL} {up/down} {Cost}`
+        `Lệnh Order với cú pháp:\n- ex: Order ABCUSDT 1.2323 up 4 \n ** Order {Mã Token} {price-SL} {up/down} {Cost}`,
       );
     }
   }

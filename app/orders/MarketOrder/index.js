@@ -23,23 +23,6 @@ export const OrderMarket = async (payload) => {
 
   if (!quantity) return;
 
-  const { data: listOpenOrderData } = await OrderServices.getList({
-    data: {
-      timestamp: Date.now(),
-    },
-  }).catch((err) => {
-    console.error("Error when get list order: ", err);
-  });
-
-  const isExistOrder = listOpenOrderData.some(
-    (order) => order?.symbol.toLowerCase() === symbol.toLowerCase()
-  );
-
-  if (isExistOrder) {
-    console.warn("Order already exists for symbol:", symbol);
-    return;
-  }
-
   const params = {
     data: {
       symbol,
