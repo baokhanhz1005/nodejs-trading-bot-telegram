@@ -93,7 +93,7 @@ export const checkAbleQuickOrder = (candleStickData, symbol, typeCheck) => {
     type = isReverse ? "down" : "up";
     // condition
     CONDITIONS = {
-      COND_1: () => EstRR > 0.5 && EstRR < 1.25,
+      COND_1: () => EstRR > 0.75 && EstRR < 1.875,
       COND_2: () =>
         isUpCandle(lastestCandle, "up", avgCandleBody) &&
         lastestCandle[4] > prevCandle[2],
@@ -113,7 +113,7 @@ export const checkAbleQuickOrder = (candleStickData, symbol, typeCheck) => {
     type = isReverse ? "up" : "down";
     // condition
     CONDITIONS = {
-      COND_1: () => EstRR > 0.5 && EstRR < 1.25,
+      COND_1: () => EstRR > 0.75 && EstRR < 1.875,
       COND_2: () =>
         isDownCandle(lastestCandle, "down", avgCandleBody) &&
         lastestCandle[4] < prevCandle[3],
