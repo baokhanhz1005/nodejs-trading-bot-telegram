@@ -89,26 +89,36 @@ export const checkPattern_4 = (candleStickData, symbol, typeCheck) => {
   if (RANGE_EXCHANGE_LEVEL <= 10) {
     CONDITIONS = {};
   } else if (trend === TREND.UP) {
-    EstRR = (max2Range15 / lastestCandle[4] - 1) * 100 * 2;
+    EstRR = (max2Range15 / lastestCandle[4] - 1) * 100 * 1.5;
     type = isReverse ? "down" : "up";
     // condition
     CONDITIONS = {
-      COND_1: () => EstRR > 0.2 && EstRR < 0.5,
-      COND_2: () => isDownCandle(lastestCandle) && lastestCandle[4] > EMA20,
-      COND_3: () => EMA20 > EMA50 && (EMA20 - EMA50) / avgCandleBody >= 0.5,
-      COND_4: () => EMA100 > EMA200 && (EMA100 - EMA200) / avgCandleBody >= 0.5,
-      COND_5: () => adx > 40,
+      COND_1: () => EstRR > 0.75 && EstRR < 2,
+      COND_2: () =>
+        candleStickData.slice(-5).some((candle) =>
+          candleStickData
+            .slice(-50)
+            .slice(0, 45)
+            .every((preCandle) => +preCandle[2] < +candle[2]),
+        ),
+      COND_3: () => isDownCandle(lastestCandle) && isUpCandle(prevCandle),
+      COND_4: () => (lastestCandle[1] - lastestCandle[4]) / avgCandleBody >= 2,
     };
   } else if (trend === TREND.DOWN && true) {
-    EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 2;
+    EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 1.5;
     type = isReverse ? "up" : "down";
     // condition
     CONDITIONS = {
-      COND_1: () => EstRR > 0.2 && EstRR < 0.5,
-      COND_2: () => isUpCandle(lastestCandle) && lastestCandle[4] < EMA20,
-      COND_3: () => EMA20 < EMA50 && (EMA50 - EMA20) / avgCandleBody >= 0.5,
-      COND_4: () => EMA100 < EMA200 && (EMA200 - EMA100) / avgCandleBody >= 0.5,
-      COND_5: () => adx > 40,
+      COND_1: () => EstRR > 0.75 && EstRR < 2,
+      COND_2: () =>
+        candleStickData.slice(-5).some((candle) =>
+          candleStickData
+            .slice(-50)
+            .slice(0, 45)
+            .every((preCandle) => +preCandle[3] > +candle[3]),
+        ),
+      COND_3: () => isUpCandle(lastestCandle) && isDownCandle(prevCandle),
+      COND_4: () => (lastestCandle[4] - lastestCandle[1]) / avgCandleBody >= 2,
     };
   }
 
