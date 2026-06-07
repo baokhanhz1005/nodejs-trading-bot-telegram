@@ -3,6 +3,7 @@ import {
   fetchApiGetCandleStickData,
   fetchApiGetListingSymbols,
   fetchApiHandleResultOrder,
+  formatPrice,
 } from "../../../utils.js";
 import {
   shuffleArr,
@@ -215,20 +216,20 @@ export const ExecuteFOMO = async (payload) => {
                   inline_keyboard: [
                     [
                       {
-                        text: `order ${symbolCandle} ${
-                          lastestCandle[4] * ratePriceSL
-                        } ${type} ${COST}`,
-                        callback_data: `order ${symbolCandle} ${
-                          lastestCandle[4] * ratePriceSL
-                        } ${type} ${COST} true`,
+                        text: `order ${symbolCandle} ${formatPrice(
+                          lastestCandle[4] * ratePriceSL,
+                        )} ${type} ${COST}`,
+                        callback_data: `order ${symbolCandle} ${formatPrice(
+                          lastestCandle[4] * ratePriceSL,
+                        )} ${type} ${COST} true`,
                       },
                       {
-                        text: `🟡🟡 - order ${symbolCandle} ${
-                          lastestCandle[4] * ratePriceSLRevese
-                        } ${type === "up" ? "down" : "up"} ${COST}`,
-                        callback_data: `order ${symbolCandle} ${
-                          lastestCandle[4] * ratePriceSLRevese
-                        } ${type === "up" ? "down" : "up"} ${COST} true`,
+                        text: `🟡🟡 - order ${symbolCandle} ${formatPrice(
+                          lastestCandle[4] * ratePriceSLRevese,
+                        )} ${type === "up" ? "down" : "up"} ${COST}`,
+                        callback_data: `order ${symbolCandle} ${formatPrice(
+                          lastestCandle[4] * ratePriceSLRevese,
+                        )} ${type === "up" ? "down" : "up"} ${COST} true`,
                       },
                     ],
                   ],

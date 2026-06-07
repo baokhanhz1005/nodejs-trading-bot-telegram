@@ -397,3 +397,14 @@ export const fetchApiHandleResultOrder = async (
     console.error(error);
   }
 };
+
+
+export function formatPrice(price, digits = 4) {
+  const [intPart, decPart = ""] = String(price).split(".");
+
+  const leadingZeros = decPart.match(/^0*/)[0].length;
+
+  return Number(
+    `${intPart}.${decPart.slice(0, leadingZeros + digits)}`
+  );
+}
