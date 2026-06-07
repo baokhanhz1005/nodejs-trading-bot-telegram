@@ -103,6 +103,7 @@ export const checkAbleQuickOrder = (candleStickData, symbol, typeCheck) => {
         ),
       COND_3: () => isDownCandle(lastestCandle) && isUpCandle(prevCandle),
       COND_4: () => (lastestCandle[1] - lastestCandle[4]) / avgCandleBody >= 2,
+      COND_5: () => lastestCandle[4] < prevCandle[1],
     };
   } else if (trend === TREND.DOWN && true) {
     EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 1.5;
@@ -119,6 +120,7 @@ export const checkAbleQuickOrder = (candleStickData, symbol, typeCheck) => {
         ),
       COND_3: () => isUpCandle(lastestCandle) && isDownCandle(prevCandle),
       COND_4: () => (lastestCandle[4] - lastestCandle[1]) / avgCandleBody >= 2,
+      COND_5: () => lastestCandle[4] > prevCandle[1],
     };
   }
 
