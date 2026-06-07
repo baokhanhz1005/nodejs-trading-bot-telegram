@@ -188,54 +188,54 @@ export const ExecuteFOMO = async (payload) => {
                 type === "up" ? "BULL" : "BEAR"
               } SIGNAL \nPer: ${+slPercent.toFixed(2)}%\n💥 ${lastestCandle[4] * ratePriceSL}\n💟 ${lastestCandle[4]}\n♻ ${lastestCandle[4] * ratePriceSLRevese}`;
               ////////////////////////////////////////////////////
-              const { stickPrice } = mapSymbolInfo[symbolCandle];
+              // const { stickPrice } = mapSymbolInfo[symbolCandle];
 
-              await OrderMarket({
-                symbol: symbolCandle,
-                entry: +lastestCandle[4],
-                type,
-                stickPrice,
-                tp: tpPercent,
-                sl: slPercent,
-                volumeOrder,
-              });
-
-              bot.sendMessage(
-                chatId,
-                `${type === "up" ? "☘☘☘☘☘☘☘☘☘☘☘☘" : "🍁🍁🍁🍁🍁🍁🍁🍁🍁🍁🍁🍁"}\n Thực hiện lệnh ${
-                  type === "up" ? "LONG" : "SHORT"
-                } ${symbolCandle}  tại giá ${lastestCandle[4]} \n - Open chart: ${buildLinkToSymbol(
-                  symbolCandle,
-                )}`,
-                { parse_mode: "HTML", disable_web_page_preview: true },
-              );
-              /////////////////////////////////////////////////////////////
-              // bot.sendMessage(chatId, message, {
-              //   reply_markup: {
-              //     inline_keyboard: [
-              //       [
-              //         {
-              //           text: `order ${symbolCandle} ${
-              //             lastestCandle[4] * ratePriceSL
-              //           } ${type} ${COST}`,
-              //           callback_data: `order ${symbolCandle} ${
-              //             lastestCandle[4] * ratePriceSL
-              //           } ${type} ${COST} true`,
-              //         },
-              //         {
-              //           text: `🟡🟡 - order ${symbolCandle} ${
-              //             lastestCandle[4] * ratePriceSLRevese
-              //           } ${type === "up" ? "down" : "up"} ${COST}`,
-              //           callback_data: `order ${symbolCandle} ${
-              //             lastestCandle[4] * ratePriceSLRevese
-              //           } ${type === "up" ? "down" : "up"} ${COST} true`,
-              //         },
-              //       ],
-              //     ],
-              //   },
-              //   parse_mode: "HTML",
-              //   disable_web_page_preview: true,
+              // await OrderMarket({
+              //   symbol: symbolCandle,
+              //   entry: +lastestCandle[4],
+              //   type,
+              //   stickPrice,
+              //   tp: tpPercent,
+              //   sl: slPercent,
+              //   volumeOrder,
               // });
+
+              // bot.sendMessage(
+              //   chatId,
+              //   `${type === "up" ? "☘☘☘☘☘☘☘☘☘☘☘☘" : "🍁🍁🍁🍁🍁🍁🍁🍁🍁🍁🍁🍁"}\n Thực hiện lệnh ${
+              //     type === "up" ? "LONG" : "SHORT"
+              //   } ${symbolCandle}  tại giá ${lastestCandle[4]} \n - Open chart: ${buildLinkToSymbol(
+              //     symbolCandle,
+              //   )}`,
+              //   { parse_mode: "HTML", disable_web_page_preview: true },
+              // );
+              /////////////////////////////////////////////////////////////
+              bot.sendMessage(chatId, message, {
+                reply_markup: {
+                  inline_keyboard: [
+                    [
+                      {
+                        text: `order ${symbolCandle} ${
+                          lastestCandle[4] * ratePriceSL
+                        } ${type} ${COST}`,
+                        callback_data: `order ${symbolCandle} ${
+                          lastestCandle[4] * ratePriceSL
+                        } ${type} ${COST} true`,
+                      },
+                      {
+                        text: `🟡🟡 - order ${symbolCandle} ${
+                          lastestCandle[4] * ratePriceSLRevese
+                        } ${type === "up" ? "down" : "up"} ${COST}`,
+                        callback_data: `order ${symbolCandle} ${
+                          lastestCandle[4] * ratePriceSLRevese
+                        } ${type === "up" ? "down" : "up"} ${COST} true`,
+                      },
+                    ],
+                  ],
+                },
+                parse_mode: "HTML",
+                disable_web_page_preview: true,
+              });
             }
           }
         }
