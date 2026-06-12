@@ -61,7 +61,7 @@ export const ExecuteFOMO = async (payload) => {
     const tempListSymbols = [];
 
     if (isHasTrackingData) {
-      bot.sendMessage(chatId, "🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯");
+      // bot.sendMessage(chatId, "🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯");
       ///////////////////////////////////////////////
       let listSymbolOrder = [];
 
