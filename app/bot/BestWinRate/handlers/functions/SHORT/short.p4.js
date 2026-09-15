@@ -66,62 +66,84 @@ export const checkPattern_4 = (candleStickData, symbol, typeCheck) => {
     candleStickData.slice(-50).reduce((acc, candle) => {
       return (acc += Math.abs(+candle[1] - +candle[4]));
     }, 0) / 50;
+
+  const avgVolume = candleStickData.slice(-50).reduce((acc, candle) => {
+    return (acc += +candle[5]);
+  }, 0) / 50;
   // const max4Range15 = getMaxOnListCandle(candleStickData.slice(-15), 4);
 
   const { maxContinueDown, maxContinueUp } = findContinueSameTypeCandle(
-    candleStickData.slice(-15),
+    candleStickData.slice(-30),
   );
 
-  const lookback = 100;
+  const getTrend = (candleStickData, lookback = 100) => {
+    const listHighest = getListHighest(candleStickData.slice(-lookback), 15);
+    const listLowest = getListLowest(candleStickData.slice(-lookback), 15);
 
-  const listHighest = getListHighest(candleStickData.slice(-lookback), 8, 2);
-  const listLowest = getListLowest(candleStickData.slice(-lookback), 8, 2);
+    const highs = listHighest.map((p) => p.price).slice(-3);
+    const lows = listLowest.map((p) => p.price).slice(-3);
+    const RATIO = 1.00;
 
-  const highs = listHighest.map((p) => p.price);
-  const lows = listLowest.map((p) => p.price);
+    if (highs[1] / highs[0] > RATIO && highs[2] / highs[1] > RATIO) {
+      return TREND.UP;
+    } else if (highs[0] / highs[1] > RATIO && highs[1] / highs[2] > RATIO) {
+      return TREND.DOWN;
+    } else {
+      return TREND.RANGE;
+    }
+  };
 
-  const trend = classifyTrend(highs, lows, 2, 0.999);
+  const trend100 = getTrend(candleStickData, 100);
+  const trend50 = getTrend(candleStickData, 50);
 
   const RANGE_EXCHANGE_LEVEL = (max4Range50 - min4Range50) / avgCandleBody;
-  let currentRR = 2;
-  const isReverse = true;
+  let currentRR = 3;
+  const isReverse = false;
 
   if (RANGE_EXCHANGE_LEVEL <= 10) {
     CONDITIONS = {};
-  } else if (trend === TREND.UP) {
-    EstRR = (max2Range15 / lastestCandle[4] - 1) * 100 * 1.5;
-    type = isReverse ? "down" : "up";
+  } else if (trend100 === TREND.UP && true) {
+    EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 0.8;
+    type = "up";
     // condition
     CONDITIONS = {
-      COND_1: () => EstRR > 0.75 && EstRR < 2,
-      COND_2: () =>
-        candleStickData.slice(-5).some((candle) =>
-          candleStickData
-            .slice(-50)
-            .slice(0, 45)
-            .every((preCandle) => +preCandle[2] < +candle[2]),
-        ),
-      COND_3: () => isDownCandle(lastestCandle) && isUpCandle(prevCandle),
-      COND_4: () => (lastestCandle[1] - lastestCandle[4]) / avgCandleBody >= 2,
-      COND_5: () => lastestCandle[4] < prevCandle[1],
+      C1: () => EstRR > 0.5 && EstRR < 1.25,
+      C2: () => isUpCandle(lastestCandle),
+      C3: () => candleStickData.slice(-10).every(candle => +candle[5] < avgVolume),
     };
-  } else if (trend === TREND.DOWN && true) {
-    EstRR = (lastestCandle[4] / min3Range15 - 1) * 100 * 1.5;
-    type = isReverse ? "up" : "down";
+  } else if (trend100 === TREND.DOWN && true) {
+    EstRR = (max2Range15 / lastestCandle[4] - 1) * 100 * 0.8;
+    type = "down";
     // condition
     CONDITIONS = {
-      COND_1: () => EstRR > 0.75 && EstRR < 2,
-      COND_2: () =>
-        candleStickData.slice(-5).some((candle) =>
-          candleStickData
-            .slice(-50)
-            .slice(0, 45)
-            .every((preCandle) => +preCandle[3] > +candle[3]),
-        ),
-      COND_3: () => isUpCandle(lastestCandle) && isDownCandle(prevCandle),
-      COND_4: () => (lastestCandle[4] - lastestCandle[1]) / avgCandleBody >= 2,
-      COND_5: () => lastestCandle[4] > prevCandle[1],
+      C1: () => EstRR > 0.5 && EstRR < 1.25,
+      C2: () => isDownCandle(lastestCandle),
+      C3: () => candleStickData.slice(-10).every(candle => +candle[5] < avgVolume),
     };
+  } else if (false) {
+    if ((max2Range30 - lastestCandle[4]) / avgCandleBody <= 1.5) {
+      type = "down";
+      EstRR = (max2Range30 / lastestCandle[4] - 1) * 100 * 1.25;
+
+      currentRR = 1;
+
+      // condition
+      CONDITIONS = {
+        C1: () => EstRR > 0.5 && EstRR < 1.5,
+        C2: () => isDownCandle(lastestCandle) && isDownCandle(prevCandle)
+      };
+    } else if ((lastestCandle[4] - min3Range30) / avgCandleBody <= 1.5) {
+      type = "up";
+      EstRR = (lastestCandle[4] / min3Range30 - 1) * 100 * 1.25;
+
+      currentRR = 1;
+
+      // condition
+      CONDITIONS = {
+        C1: () => EstRR > 0.5 && EstRR < 1.5,
+        C2: () => isUpCandle(lastestCandle) && isUpCandle(prevCandle),
+      };
+    }
   }
 
   const isPassCondition =

@@ -2,7 +2,7 @@ import { buildLinkToSymbol, buildTimeStampToDate } from "../../../../utils.js";
 
 const SETTING_FORECAST = {
   RR: 1,
-  COST: 0.5,
+  COST: 1,
   RATE_SL: 1.5, // default = 3
   limitPeakOrBottom: 10,
   RR_MANUAL_ORDER: 0.5,

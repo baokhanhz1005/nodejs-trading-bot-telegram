@@ -981,85 +981,60 @@ export const classifyTrend = (
 };
 
 // lấy danh sách các đỉnh
-export const getListHighest = (
-  candleStickData = [],
-  rangeBefore = 8,
-  rangeAfter = 2,
-  tolerance = 0.001,
-) => {
+export const getListHighest = (candleStickData = [], range = 10) => {
   const result = [];
 
+  const { CLOSE } = TYPE_OF_PRICE;
   candleStickData.forEach((candle, index) => {
-    if (
-      index >= rangeBefore &&
-      index <= candleStickData.length - rangeAfter - 1
-    ) {
-      const high = +candle[2]; // HIGH
+    if (index >= range - 1 && index <= candleStickData.length - range) {
+      const maxBefore = getMaxOnListCandle(
+        candleStickData.slice(index - range + 1, index + 1),
+        CLOSE
+      );
+      const maxAfter = getMaxOnListCandle(
+        candleStickData.slice(index, index + range),
+        CLOSE
+      );
 
-      const beforeHighs = candleStickData
-        .slice(index - rangeBefore, index)
-        .map((c) => +c[2]);
-
-      const afterHighs = candleStickData
-        .slice(index + 1, index + 1 + rangeAfter)
-        .map((c) => +c[2]);
-
-      const maxBefore = Math.max(...beforeHighs);
-      const maxAfter = Math.max(...afterHighs);
-
-      if (
-        high >= maxBefore * (1 - tolerance) &&
-        high >= maxAfter * (1 - tolerance)
-      ) {
-        result.push({
-          price: high,
+      if (+candle[4] === maxBefore && +candle[4] === maxAfter) {
+        const peakInfo = {
+          price: candle[4],
           index,
-        });
+        };
+
+        result.push(peakInfo);
       }
     }
   });
-
   return result;
 };
 
-export const getListLowest = (
-  candleStickData = [],
-  rangeBefore = 8,
-  rangeAfter = 2,
-  tolerance = 0.001, // 0.1%
-) => {
+// lấy danh sách các đáy
+export const getListLowest = (candleStickData = [], range = 10) => {
   const result = [];
 
+  const { CLOSE } = TYPE_OF_PRICE;
   candleStickData.forEach((candle, index) => {
-    if (
-      index >= rangeBefore &&
-      index <= candleStickData.length - rangeAfter - 1
-    ) {
-      const low = +candle[3]; // LOW
+    if (index >= range - 1 && index <= candleStickData.length - range) {
+      const minBefore = getMinOnListCandle(
+        candleStickData.slice(index - range + 1, index + 1),
+        CLOSE
+      );
+      const minAfter = getMinOnListCandle(
+        candleStickData.slice(index, index + range),
+        CLOSE
+      );
 
-      const beforeLows = candleStickData
-        .slice(index - rangeBefore, index)
-        .map((c) => +c[3]);
-
-      const afterLows = candleStickData
-        .slice(index + 1, index + 1 + rangeAfter)
-        .map((c) => +c[3]);
-
-      const minBefore = Math.min(...beforeLows);
-      const minAfter = Math.min(...afterLows);
-
-      if (
-        low <= minBefore * (1 + tolerance) &&
-        low <= minAfter * (1 + tolerance)
-      ) {
-        result.push({
-          price: low,
+      if (+candle[4] === minBefore && +candle[4] === minAfter) {
+        const peakInfo = {
+          price: +candle[4],
           index,
-        });
+        };
+
+        result.push(peakInfo);
       }
     }
   });
-
   return result;
 };
 

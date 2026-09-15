@@ -3,7 +3,7 @@ import { APP_CONFIG } from "../constant.js";
 import { handleRunBot } from "./handlers/index.js";
 import storage from "node-persist";
 
-const bot = new TelegramBot(APP_CONFIG.TOKEN, { polling: true });
+const bot = new TelegramBot(APP_CONFIG.TOKEN_TEST, { polling: true });
 
 let isBotRunning = false;
 let dataCandleAPI = null;

@@ -1,5 +1,5 @@
 export const APP_CONFIG = {
-  TOKEN: "6536748064:AAErrs8oi3Rc5PUMzRIBmzcRtIKrAxWd7ks",
+  TOKEN: "8654639212:AAEKfMnEGnlYdDiKjierfP_tV5v_KBjteNw",
   API_KEY: "16tXNcwM2ruf4shLnGhqnlPD4TDQQHJQqaRZgCRDEi51wAySkXxhQz2Xc9M4IORx",
   API_SECRET:
     "cagy3oI698pBYtdMxNU0Ane4w5ti4rGiv0s3yg4ClBhgTiIqgYZ8uS56x90N2Sdr",
