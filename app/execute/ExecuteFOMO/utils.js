@@ -75,7 +75,7 @@ export const checkAbleQuickOrder = (candleStickData, symbol, typeCheck) => {
   const trend100 = getTrend(candleStickData, 100);
 
   const RANGE_EXCHANGE_LEVEL = (max4Range50 - min4Range50) / avgCandleBody;
-  let currentRR = 3;
+  let currentRR = 2.9;
   const isReverse = false;
 
   if (RANGE_EXCHANGE_LEVEL <= 10) {

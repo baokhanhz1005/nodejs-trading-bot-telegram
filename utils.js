@@ -51,12 +51,15 @@ export const fetchApiGetListingSymbols = async () => {
   const response = await ExchangeInfoService.info();
   if (response && response.data) {
     listSymbols = response.data.symbols.map((pair) => {
-      if (pair.quoteAsset === "USDT" && pair.symbol) {
+
+      if (pair.quoteAsset === "USDT" && pair.symbol && pair.contractType === "PERPETUAL") {
         return {
           symbol: pair.symbol,
           stickPrice: pair.pricePrecision,
         };
       }
+
+      return null;
     });
   }
 
